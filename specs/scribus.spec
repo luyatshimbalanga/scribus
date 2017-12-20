@@ -223,6 +223,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}-%{version}.svn/TRANSLATION
 
 %changelog
+* Tue Dec 19 2017 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20171219git
+- Snapshot svn 22261
+
 * Sat Dec 16 2017 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20171216git
 - Snapshot svn 22252
 
@@ -461,47 +464,3 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 - update to svn 21671
 - drop aspell requirement
 - enable cdr, fontconfig and icu support
-
-* Mon Dec 19 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.28.20161218svn21664
-- update to svn 21665
-
-* Mon Dec 12 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.27.20161212svn21644
-- update to svn 21644
-- set a name with version
-
-* Sun Dec 11 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.26.20161210svn21636
-- update to svn 21636
-- enable podofo support
-- enable boost support
-- enable ccache support
-
-* Fri Dec 09 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.25.20161209svn21621
-- update to svn 21618
-
-* Fri Dec 09 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.24.20161208svn21618
-- update to svn 21618
-
-* Wed Dec 07 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.23.20161206svn21603
-- update to svn 21603
-
-* Mon Dec 05 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.22.20161205svn21586
-- update to svn 21586
-- dropped aspell requirement
-
-* Sun Dec 04 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.21.20161204svn21568
-- update to svn 21568
-- removed patches fixed upstream
-
-* Thu Dec 01 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.20.20161291svn21557
-- update to svn 21557
-- fix icon path
-- enable versioning
-
-* Thu Dec 01 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.18.20161129svn21554
-- enable hunspell
-
-* Tue Nov 29 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.17.20161129svn21554
-- update to svn 21554
-- Dropped patches
-- Added hunspell, GraphicsMagicks and harfbuzz dependencies
-- Added libpagemaker and libvisio dependencies

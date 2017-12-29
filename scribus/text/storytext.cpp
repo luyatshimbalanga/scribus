@@ -1767,16 +1767,24 @@ int StoryText::selectWord(int pos)
 	it->setText((const UChar*) plainText().utf16());
 	int start = it->preceding(pos + 1);
 	int end = it->next();
-	int wordLentgh = end - start;
-	select(start, wordLentgh);
+	int wordLength = end - start;
+	if (wordLength > 0)
+		select(start, wordLength);
+	else
+	{
+		deselectAll();
+		setCursorPosition(start);
+	}
 	return start;
 }
 
 
-void StoryText::select(int pos, uint len, bool on)
+void StoryText::select(int pos, int len, bool on)
 {
 	if (pos < 0)
 		pos += length();
+	if (len < 0)
+		len = 0;
 
 	assert( pos >= 0 );
 	assert( pos + signed(len) <= length() );

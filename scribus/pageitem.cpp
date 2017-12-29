@@ -871,6 +871,16 @@ PageItem::PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double 
 	hatchBackgroundQ = QColor();
 	hatchForeground = "Black";
 	hatchForegroundQ = qcol;
+	selectedMeshControlPoint=0;
+	snapToPatchGrid=0;
+	gridOffset_=0.0;
+	gridValue_=0.0;
+	FrameOnly=false;
+	inlineCharID=0;
+	GrStrokeExtend=VGradient::none;
+	tagged=false;
+	no_fill=false;
+	no_stroke=false;
 }
 
 PageItem::~PageItem()
@@ -1304,6 +1314,8 @@ void PageItem::link(PageItem* nxt, bool addPARSEP)
 			addPARSEP = false;
 		itemText.append(nxt->itemText);
 	}
+	else
+		addPARSEP = false;
 	NextBox = nxt;
 	nxt->BackBox = this;
 	// update AutoText
@@ -3095,7 +3107,7 @@ void PageItem::setMeshPointColor(int x, int y, QString color, int shade, double 
 
 void PageItem::createGradientMesh(int rows, int cols)
 {
-	QString MColor = fillColorVal;
+	QString MColor(fillColorVal);
 	QColor MQColor;
 	if (fillColorVal != CommonStrings::None)
 	{
@@ -3285,7 +3297,7 @@ void PageItem::createConicalMesh()
 			continue;
 		if (isFirst)
 		{
-			if (actualStop != 0)
+			if (actualStop != 0.0)
 			{
 				gradient.addStop(cstops.at(cst)->color, 0, 0, cstops.at(cst)->opacity, cstops.at(cst)->name, cstops.at(cst)->shade);
 				if (actualStop <= 0.25)
@@ -3421,7 +3433,7 @@ void PageItem::createConicalMesh()
 	mgP3.color.setAlphaF(mgP3.transparency);
 	mgList2.append(mgP3);
 	startAngle -= stepAngle;
-	for (uint rst = 2; rst < gradient.Stops(); ++rst)
+	for (int rst = 2; rst < gradient.Stops(); ++rst)
 	{
 		stepAngle = 360 * (rstops.at(rst)->rampPoint - rstops.at(rst-1)->rampPoint);
 		if (stepAngle <= 0)
@@ -7231,20 +7243,21 @@ void PageItem::restoreLinkTextFrame(UndoState *state, bool isUndo)
 		//restore properly text if frame was linked at beginning of chain
 		ScItemState<QPair<PageItem*, PageItem*> > *is = dynamic_cast<ScItemState<QPair<PageItem*, PageItem*> >*>(state);
 		int joinPos = is->getInt("JOIN_POS");
-		int ParSep = is->getBool("ADDPARSEP")?1:0;
+		int parSep = is->getBool("ADDPARSEP") ? 1 : 0;
 		if (is->getBool("FIRST"))
 		{
 			if (joinPos == 0)
 			{
 				is->getItem().second->itemText.append(itemText);
-				itemText = StoryText(m_Doc);
+				itemText.select(0, itemText.length());
+				itemText.removeSelection();
 			}
 			else
 			{
 				StoryText content(m_Doc);
-				itemText.select(joinPos + ParSep, itemText.length() - (joinPos + ParSep));
+				itemText.select(joinPos + parSep, itemText.length() - (joinPos + parSep));
 				content.insert(0, itemText, true);
-				if (ParSep)
+				if (parSep)
 					itemText.select(joinPos, itemText.length() - joinPos);
 				itemText.removeSelection();
 				is->getItem().second->itemText.append(content);
@@ -7254,9 +7267,9 @@ void PageItem::restoreLinkTextFrame(UndoState *state, bool isUndo)
 		{
 			StoryText content(m_Doc);
 			PageItem* prev = is->getItem().second;
-			prev->itemText.select(joinPos + ParSep, prev->itemText.length() - (joinPos + ParSep));
+			prev->itemText.select(joinPos + parSep, prev->itemText.length() - (joinPos + parSep));
 			content.insert(0, prev->itemText, true);
-			if (ParSep)
+			if (parSep)
 				prev->itemText.select(joinPos, prev->itemText.length() - joinPos);
 			prev->itemText.removeSelection();
 			itemText.append(content);

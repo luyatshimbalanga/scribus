@@ -139,10 +139,6 @@ pushd build
 %make_install
 popd
 
-#icon high resolution icons
-
-
-
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 
 %check
@@ -179,8 +175,6 @@ update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
 
 # Update 
 gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
-
-
 
 %files
 %doc %{_defaultdocdir}/%{name}-%{version}.svn/AUTHORS
@@ -223,6 +217,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}-%{version}.svn/TRANSLATION
 
 %changelog
+* Sat Dec 30 2017 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20171230git
+- Snapshot svn 22309
+
 * Fri Dec 29 2017 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20171228git
 - Snapshot svn 22292
 
@@ -451,19 +448,3 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 * Thu Jan 05 2017 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.33.20170105svn21700
 - update to svn 21700
-
-* Fri Dec 30 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.32.20161230svn21689
-- update to svn 21689
-
-* Mon Dec 26 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.31.20161226svn21681
-- update to svn 21681
-- disable rpath
-
-* Sun Dec 25 2016 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.3-0.30.20161225svn21677
-- update to svn 21677
-- clean up spec
-
-* Wed Dec 21 2016 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.3-0.29.20161218svn21664
-- update to svn 21671
-- drop aspell requirement
-- enable cdr, fontconfig and icu support

@@ -114,21 +114,33 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 			continue;
 		OutlineTreeItem *itemPar = itemPars.at(i);
 		OutlineTreeItem *item = dynamic_cast<OutlineTreeItem*>(it);
+		if (!item)
+			qFatal("OutlineWidget::dropEvent !item");
 		OutlineTreeItem *itemPl = dynamic_cast<OutlineTreeItem*>(it->parent());
+		if (!itemPl)
+			qFatal("OutlineWidget::dropEvent !itemPl");
 		OutlineTreeItem *itemPg;
 		if (itemPl->type == 5)
 		{
 			itemPg = dynamic_cast<OutlineTreeItem*>(it->parent()->parent());
+			if (!itemPg)
+				qFatal("OutlineWidget::dropEvent !itemPg 1");
 		}
 		else if (itemPl->type == 2)
 		{
 			itemPg = dynamic_cast<OutlineTreeItem*>(it->parent());
+			if (!itemPg)
+				qFatal("OutlineWidget::dropEvent !itemPg 2");
 			if (haveLayers)
 			{
 				itemPl = dynamic_cast<OutlineTreeItem*>(itemPg->child(0));
+				if (!itemPl)
+					qFatal("OutlineWidget::dropEvent !itemPl");
 				for (int j = 0; j < itemPg->childCount(); ++j)
 				{
 					OutlineTreeItem* childItem = dynamic_cast<OutlineTreeItem*>(itemPg->child(j));
+					if (!childItem)
+						qFatal("OutlineWidget::dropEvent !childItem");
 					if (item->PageItemObject->LayerID == childItem->LayerID)
 					{
 						itemPl = childItem;
@@ -145,11 +157,15 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 			while (itemPg->type != 2)
 			{
 				itemPg = dynamic_cast<OutlineTreeItem*>(itemPg->parent());
+				if (!itemPg)
+					qFatal("OutlineWidget::dropEvent !itemPg 3");
 			}
 		}
 		if (itemPl->indexOfChild(it) != itemPl->childCount() - 1)
 		{
 			OutlineTreeItem *itemBe = dynamic_cast<OutlineTreeItem*>(itemPl->child(itemPl->indexOfChild(it) + 1));
+			if (!itemBe)
+				qFatal("OutlineWidget::dropEvent !itemBe");
 			if ((itemBe->type == 1) || (itemBe->type == 3) || (itemBe->type == 4))
 			{
 				if (item->PageItemObject->isGroupChild())
@@ -213,6 +229,8 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 			else
 			{
 				OutlineTreeItem *itemBe = dynamic_cast<OutlineTreeItem*>(it->parent());
+				if (!itemBe)
+					qFatal("OutlineWidget::dropEvent !itemBe 2");
 				if ((itemBe->type == 1) || (itemBe->type == 3) || (itemBe->type == 4))
 				{
 					if (item->PageItemObject->isGroupChild())
@@ -739,6 +757,8 @@ QTreeWidgetItem* OutlinePalette::getListItem(int SNr, PageItem *Nr)
 			while ( (*it) )
 			{
 				item = dynamic_cast<OutlineTreeItem*>(*it);
+				if (!item)
+					qFatal("OutlinePalette::getListItem !item");
 				if ((item->type == 2) && (item->PageObject->pageNr() == SNr))
 				{
 					retVal = (*it);
@@ -889,6 +909,8 @@ void OutlinePalette::reopenTree()
 	while ( (*it) )
 	{
 		item = dynamic_cast<OutlineTreeItem*>(*it);
+		if (!item)
+			qFatal("OutlinePalette::reopenTree !item");
 		for (int olc = 0; olc < currDoc->OpenNodes.count(); olc++)
 		{
 			if (item->type == currDoc->OpenNodes[olc].type)
@@ -922,6 +944,8 @@ void OutlinePalette::buildReopenVals()
 	while ( (*it) )
 	{
 		item = dynamic_cast<OutlineTreeItem*>(*it);
+		if (!item)
+			qFatal("OutlinePalette::buildReopenVals !item");
 		if (item->isExpanded())
 		{
 			ol.type = item->type;
@@ -954,6 +978,8 @@ void OutlinePalette::slotMultiSelect()
 		{
 			QTreeWidgetItem* ite = items[a];
 			OutlineTreeItem *item = dynamic_cast<OutlineTreeItem*>(ite);
+			if (!item)
+				qFatal("OutlineWidget::slotMultiSelect !item");
 			PageItem *pgItem = NULL;
 			switch (item->type)
 			{
@@ -991,6 +1017,8 @@ void OutlinePalette::slotSelect(QTreeWidgetItem* ite, int)
 		return;
 	selectionTriggered = true;
 	OutlineTreeItem *item = dynamic_cast<OutlineTreeItem*>(ite);
+	if (!item)
+		qFatal("OutlineWidget::slotSelect !item");
 	PageItem *pgItem = NULL;
 	switch (item->type)
 	{
@@ -1048,6 +1076,8 @@ void OutlinePalette::slotDoubleClick(QTreeWidgetItem* ite, int)
 	if (!m_MainWindow || m_MainWindow->scriptIsRunning())
 		return;
 	OutlineTreeItem *item = dynamic_cast<OutlineTreeItem*>(ite);
+	if (!item)
+		qFatal("OutlinePalette::slotDoubleClick !item");
 	PageItem *pgItem = NULL;
 	switch (item->type)
 	{

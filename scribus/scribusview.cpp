@@ -941,11 +941,15 @@ void ScribusView::contentsDropEvent(QDropEvent *e)
 	activateWindow();
 	if (!m_ScMW->scriptIsRunning())
 		raise();
-	m_ScMW->newActWin((dynamic_cast<ScribusWin*>(Doc->WinHan))->getSubWin());
+
+	ScribusWin* sw = dynamic_cast<ScribusWin*>(Doc->WinHan);
+	if (!sw)
+		qFatal("ScribusView::contentsDropEvent !sw");
+	m_ScMW->newActWin(sw->getSubWin());
 	updateContents();
 	//>>
 	QFileInfo fi;
-	QString ext = "";
+	QString ext;
 	if (!e->mimeData()->formats().contains("application/x-scribus-elem"))
 	{
 		fi.setFile(url.toLocalFile());
@@ -2954,18 +2958,14 @@ void ScribusView::setNewRulerOrigin(QMouseEvent *m)
 
 void ScribusView::editExtendedImageProperties()
 {
-	if (Doc->m_Selection->count() != 0)
-	{
-		PageItem *currItem = Doc->m_Selection->itemAt(0);
-		if (currItem->pixm.imgInfo.valid)
-		{
-			ExtImageProps* dia = new ExtImageProps(this, &currItem->pixm.imgInfo, currItem, this);
-			dia->exec();
-			delete dia;
-			dia=NULL;
-			m_ScMW->propertiesPalette->setTextFlowMode(currItem->textFlowMode());
-		}
-	}
+	if (Doc->m_Selection->count() == 0)
+		return;
+	PageItem *currItem = Doc->m_Selection->itemAt(0);
+	if (!currItem->pixm.imgInfo.valid)
+		return;
+	QScopedPointer<ExtImageProps> dia(new ExtImageProps(this, &currItem->pixm.imgInfo, currItem, this));
+	static_cast<void>(dia->exec());
+	m_ScMW->propertiesPalette->setTextFlowMode(currItem->textFlowMode());
 }
 
 void ScribusView::ToPicFrame()
@@ -3536,8 +3536,11 @@ bool ScribusView::eventFilter(QObject *obj, QEvent *event)
 			requestMode(modeImportImage);
 			if (frame)
 			{
-				dynamic_cast<CanvasMode_ImageImport*>(canvasMode())->setImage(frame);
-				dynamic_cast<CanvasMode_ImageImport*>(canvasMode())->updateList();
+				CanvasMode_ImageImport* cm = dynamic_cast<CanvasMode_ImageImport*>(canvasMode());
+				if (!cm)
+					qFatal("ScribusView::eventFilter cm NULL");
+				cm->setImage(frame);
+				cm->updateList();
 			}
 			ImageAfterDraw = false;
 		}

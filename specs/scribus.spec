@@ -217,6 +217,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}-%{version}.svn/TRANSLATION
 
 %changelog
+* Thu Jan 01 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180201git
+- Snapshot svn 22362
+
 * Fri Jan 12 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180112git
 - Snapshot svn 22342
 

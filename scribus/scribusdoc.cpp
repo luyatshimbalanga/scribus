@@ -7948,15 +7948,15 @@ void ScribusDoc::itemSelection_SetItemPen(QString farbe)
 		if (selectedItemCount > 1 && UndoManager::undoEnabled())
 			activeTransaction = m_undoManager->beginTransaction(Um::SelectionGroup,
 															  Um::IGroup, Um::SetLineColor, farbe, Um::IFill);
-		PageItem *i;
-		for (uint a = 0; a < selectedItemCount; ++a)
+		PageItem *currItem;
+		for (int i = 0; i < selectedItemCount; ++i)
 		{
-			i = m_Selection->itemAt(a);
-			if ((i->asLine()) && (farbe == CommonStrings::None))
+			currItem = m_Selection->itemAt(i);
+			if ((currItem->asLine()) && (farbe == CommonStrings::None))
 				continue;
 
-			i->setLineColor(farbe);
-			i->update();
+			currItem->setLineColor(farbe);
+			currItem->update();
 		}
 		if (activeTransaction)
 			activeTransaction.commit();
@@ -8094,9 +8094,9 @@ void ScribusDoc::itemSelection_SetItemBrush(QString farbe)
 			activeTransaction = m_undoManager->beginTransaction(Um::SelectionGroup,
 															  Um::IGroup, Um::SetFill, farbe, Um::IFill);
 		PageItem *currItem;
-		for (uint a = 0; a < selectedItemCount; ++a)
+		for (int i = 0; i < selectedItemCount; ++i)
 		{
-			currItem = m_Selection->itemAt(a);
+			currItem = m_Selection->itemAt(i);
 			currItem->setFillColor(farbe);
 			currItem->update();
 		}
@@ -8238,9 +8238,9 @@ void ScribusDoc::itemSelection_SetItemGradFill(int typ)
 	PageItem *currItem;
 	if (UndoManager::undoEnabled())
 		trans = m_undoManager->beginTransaction(Um::Selection,Um::IPolygon,Um::SetFill,"",Um::IFill);
-	for (uint a = 0; a < selectedItemCount; ++a)
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		currItem = m_Selection->itemAt(a);
+		currItem = m_Selection->itemAt(i);
 		currItem->setGradientType(typ);
 		switch (currItem->gradientType())
 		{
@@ -10630,10 +10630,10 @@ void ScribusDoc::itemSelection_ToggleSizeLock( )
 			else
 				activeTransaction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::SizeLock, 0, Um::ILock);
 		}
-		for (uint a = 0; a < selectedItemCount; ++a)
+		for (int i = 0; i < selectedItemCount; ++i)
 		{
-			m_Selection->itemAt(a)->toggleSizeLock();
-			m_Selection->itemAt(a)->update();
+			m_Selection->itemAt(i)->toggleSizeLock();
+			m_Selection->itemAt(i)->update();
 		}
 		if (activeTransaction)
 			activeTransaction.commit();
@@ -11458,7 +11458,7 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 														  Um::Delete, tooltip, Um::IDelete);
 	
 	selectedItemCount = delItems.count();
-	for (uint de = 0; de < selectedItemCount; ++de)
+	for (int de = 0; de < selectedItemCount; ++de)
 	{
 		currItem = delItems.at(selectedItemCount - (de + 1));
 		itemList = GroupOfItem(Items, currItem);
@@ -11745,7 +11745,7 @@ void ScribusDoc::itemSelection_DoDeHyphenate()
 	int selectedItemCount = m_Selection->count();
 	if (selectedItemCount == 0)
 		return;
-	for (uint i = 0; i < selectedItemCount; ++i)
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
 		PageItem *currItem = m_Selection->itemAt(i);
 		docHyphenator->slotDeHyphenate(currItem);
@@ -11766,9 +11766,9 @@ void ScribusDoc::itemSelection_SendToLayer(int layerID)
 		QString tooltip = Um::ItemsInvolved + "\n";
 		if (selectedItemCount > Um::ItemsInvolvedLimit)
 			tooltip = Um::ItemsInvolved2 + "\n";
-		for (uint a = 0; a < selectedItemCount; ++a)
+		for (int i = 0; i < selectedItemCount; ++i)
 		{
-			PageItem *currItem = m_Selection->itemAt(a);
+			PageItem *currItem = m_Selection->itemAt(i);
 			currItem->setLayer(layerID);
 			if (selectedItemCount <= Um::ItemsInvolvedLimit)
 				tooltip += "\t" + currItem->getUName() + "\n";
@@ -11805,97 +11805,98 @@ void ScribusDoc::itemSelection_SetImageOffset(double x, double y, Selection* cus
 {
 	Selection* itemSelection = (customSelection!=0) ? customSelection : m_Selection;
 	assert(itemSelection!=0);
-	uint selectedItemCount=itemSelection->count();
-	if (selectedItemCount != 0)
+	int selectedItemCount = itemSelection->count();
+	if (selectedItemCount <= 0)
+		return;
+
+	UndoTransaction activeTransaction;
+	m_updateManager.setUpdatesDisabled();
+	if (UndoManager::undoEnabled() && selectedItemCount > 1)
+		activeTransaction = m_undoManager->beginTransaction();
+	QString tooltip = Um::ItemsInvolved + "\n";
+	if (selectedItemCount > Um::ItemsInvolvedLimit)
+		tooltip = Um::ItemsInvolved2 + "\n";
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		UndoTransaction activeTransaction;
-		m_updateManager.setUpdatesDisabled();
-		if (UndoManager::undoEnabled() && selectedItemCount > 1)
-			activeTransaction = m_undoManager->beginTransaction();
-		QString tooltip = Um::ItemsInvolved + "\n";
-		if (selectedItemCount > Um::ItemsInvolvedLimit)
-			tooltip = Um::ItemsInvolved2 + "\n";
-		for (uint a = 0; a < selectedItemCount; ++a)
+		PageItem *currItem = itemSelection->itemAt(i);
+		currItem->setImageXYOffset(x, y);
+		if (currItem->imageClip.size() != 0)
 		{
-			PageItem *currItem = itemSelection->itemAt(a);
-			currItem->setImageXYOffset(x, y);
-			if (currItem->imageClip.size() != 0)
-			{
-				currItem->imageClip = currItem->pixm.imgInfo.PDSpathData[currItem->pixm.imgInfo.usedPath].copy();
-				QTransform cl;
-				cl.translate(currItem->imageXOffset()*currItem->imageXScale(), currItem->imageYOffset()*currItem->imageYScale());
-				cl.rotate(currItem->imageRotation());
-				cl.scale(currItem->imageXScale(), currItem->imageYScale());
-				currItem->imageClip.map(cl);
-			}
-			if (selectedItemCount <= Um::ItemsInvolvedLimit)
-				tooltip += "\t" + currItem->getUName() + "\n";
-			currItem->update();
+			currItem->imageClip = currItem->pixm.imgInfo.PDSpathData[currItem->pixm.imgInfo.usedPath].copy();
+			QTransform cl;
+			cl.translate(currItem->imageXOffset()*currItem->imageXScale(), currItem->imageYOffset()*currItem->imageYScale());
+			cl.rotate(currItem->imageRotation());
+			cl.scale(currItem->imageXScale(), currItem->imageYScale());
+			currItem->imageClip.map(cl);
 		}
-		if (activeTransaction)
-		{
-			activeTransaction.commit(Um::Selection,
-									 Um::IGroup,
-									 Um::ImageOffset,
-									 tooltip,
-									 Um::IImageScaling);
-		}
-		m_updateManager.setUpdatesEnabled();
-		changed();
+		if (selectedItemCount <= Um::ItemsInvolvedLimit)
+			tooltip += "\t" + currItem->getUName() + "\n";
+		currItem->update();
 	}
+	if (activeTransaction)
+	{
+		activeTransaction.commit(Um::Selection,
+									Um::IGroup,
+									Um::ImageOffset,
+									tooltip,
+									Um::IImageScaling);
+	}
+	m_updateManager.setUpdatesEnabled();
+	changed();
 }
 
 void ScribusDoc::itemSelection_SetImageScale(double x, double y, Selection* customSelection)
 {
 	Selection* itemSelection = (customSelection!=0) ? customSelection : m_Selection;
 	assert(itemSelection!=0);
-	uint selectedItemCount=itemSelection->count();
-	if (selectedItemCount != 0)
+	int selectedItemCount = itemSelection->count();
+	if (selectedItemCount <= 0)
+		return;
+
+	UndoTransaction activeTransaction;
+	m_updateManager.setUpdatesDisabled();
+	if (UndoManager::undoEnabled() && selectedItemCount > 1)
+		activeTransaction = m_undoManager->beginTransaction();
+	QString tooltip = Um::ItemsInvolved + "\n";
+	if (selectedItemCount > Um::ItemsInvolvedLimit)
+		tooltip = Um::ItemsInvolved2 + "\n";
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		UndoTransaction activeTransaction;
-		m_updateManager.setUpdatesDisabled();
-		if (UndoManager::undoEnabled() && selectedItemCount > 1)
-			activeTransaction = m_undoManager->beginTransaction();
-		QString tooltip = Um::ItemsInvolved + "\n";
-		if (selectedItemCount > Um::ItemsInvolvedLimit)
-			tooltip = Um::ItemsInvolved2 + "\n";
-		for (int i = 0; i < selectedItemCount; ++i)
+		PageItem *currItem = itemSelection->itemAt(i);
+		currItem->setImageXYScale(x, y);
+		if (currItem->imageClip.size() != 0)
 		{
-			PageItem *currItem = itemSelection->itemAt(i);
-			currItem->setImageXYScale(x, y);
-			if (currItem->imageClip.size() != 0)
-			{
-				currItem->imageClip = currItem->pixm.imgInfo.PDSpathData[currItem->pixm.imgInfo.usedPath].copy();
-				QTransform cl;
-				cl.translate(currItem->imageXOffset()*currItem->imageXScale(), currItem->imageYOffset()*currItem->imageYScale());
-				cl.rotate(currItem->imageRotation());
-				cl.scale(currItem->imageXScale(), currItem->imageYScale());
-				currItem->imageClip.map(cl);
-			}
-			if (selectedItemCount <= Um::ItemsInvolvedLimit)
-				tooltip += "\t" + currItem->getUName() + "\n";
-			currItem->update();
+			currItem->imageClip = currItem->pixm.imgInfo.PDSpathData[currItem->pixm.imgInfo.usedPath].copy();
+			QTransform cl;
+			cl.translate(currItem->imageXOffset()*currItem->imageXScale(), currItem->imageYOffset()*currItem->imageYScale());
+			cl.rotate(currItem->imageRotation());
+			cl.scale(currItem->imageXScale(), currItem->imageYScale());
+			currItem->imageClip.map(cl);
 		}
-		if (activeTransaction)
-		{
-			activeTransaction.commit(Um::Selection,
-								Um::IGroup,
-								Um::ImageScale,
-								tooltip,
-								Um::IImageScaling);
-		}
-		m_updateManager.setUpdatesEnabled();
-		changed();
+		if (selectedItemCount <= Um::ItemsInvolvedLimit)
+			tooltip += "\t" + currItem->getUName() + "\n";
+		currItem->update();
 	}
+	if (activeTransaction)
+	{
+		activeTransaction.commit(Um::Selection,
+							Um::IGroup,
+							Um::ImageScale,
+							tooltip,
+							Um::IImageScaling);
+	}
+	m_updateManager.setUpdatesEnabled();
+	changed();
 }
 
 void ScribusDoc::itemSelection_SetImageScaleAndOffset(double sx, double sy, double ox, double oy, Selection* customSelection)
 {
 	Selection* itemSelection = (customSelection!=0) ? customSelection : m_Selection;
-	assert(itemSelection!=0);
-	int selectedItemCount=itemSelection->count();
+	assert(itemSelection !=0 );
+	int selectedItemCount = itemSelection->count();
 	if (selectedItemCount == 0)
 		return;
+
 	m_updateManager.setUpdatesDisabled();
 	UndoTransaction outerTransaction;
 	if (UndoManager::undoEnabled() && selectedItemCount > 1)
@@ -11947,10 +11948,11 @@ void ScribusDoc::itemSelection_SetImageScaleAndOffset(double sx, double sy, doub
 void ScribusDoc::itemSelection_SetImageRotation(double rot, Selection* customSelection)
 {
 	Selection* itemSelection = (customSelection!=0) ? customSelection : m_Selection;
-	assert(itemSelection!=0);
-	int selectedItemCount=itemSelection->count();
+	assert(itemSelection != 0);
+	int selectedItemCount = itemSelection->count();
 	if (selectedItemCount == 0)
 		return;
+
 	UndoTransaction trans;
 	if (UndoManager::undoEnabled())
 		trans = m_undoManager->beginTransaction(Um::Selection,Um::IImageFrame,Um::Rotate,"",Um::IRotate);
@@ -12048,7 +12050,7 @@ bool ScribusDoc::startAlign(uint minObjects)
 	m_alignTransaction = m_undoManager->beginTransaction(Um::Selection, 0, Um::AlignDistribute, targetTooltip, Um::IAlignDistribute);
 	if (oneLocked && (t == 0))
 	{
-		for (uint i = 0; i < alignObjectsCount; ++i)
+		for (int i = 0; i < alignObjectsCount; ++i)
 			for (int j = 0; j < AObjects[i].Objects.count(); ++j)
 				if (AObjects[i].Objects.at(j)->locked())
 					AObjects[i].Objects.at(j)->setLocked(false);
@@ -14994,15 +14996,15 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 		activeTransaction = m_undoManager->beginTransaction(Um::Selection, Um::IGroup, Um::Group, "", Um::IGroup);
 	QList<PageItem*> selectedItems = itemSelection->items();
 	qStableSort(selectedItems.begin(), selectedItems.end(), compareItemLevel);
-	uint selectedItemCount = selectedItems.count();
+	int selectedItemCount = selectedItems.count();
 	QString tooltip = Um::ItemsInvolved + "\n";
 	if (selectedItemCount > Um::ItemsInvolvedLimit)
 		tooltip = Um::ItemsInvolved2 + "\n";
 	if (changeLock)
 	{
-		for (uint c=0; c < selectedItemCount; ++c)
+		for (int i = 0; i < selectedItemCount; ++i)
 		{
-			currItem = selectedItems.at(c);
+			currItem = selectedItems.at(i);
 			currItem->setLocked(lock);
 			if (selectedItemCount <= Um::ItemsInvolvedLimit)
 				tooltip += "\t" + currItem->getUName() + "\n";
@@ -15010,9 +15012,9 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 	}
 	itemSelection->getVisualGroupRect(&x, &y, &w, &h);
 	int lowestItem = std::numeric_limits<int>::max();
-	for (uint a=0; a < selectedItemCount; ++a)
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		currItem = selectedItems.at(a);
+		currItem = selectedItems.at(i);
 		currItem->gXpos = currItem->xPos() - x;
 		currItem->gYpos = currItem->yPos() - y;
 		currItem->gWidth = w;
@@ -15023,9 +15025,9 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 	double miny =  std::numeric_limits<double>::max();
 	double maxx = -std::numeric_limits<double>::max();
 	double maxy = -std::numeric_limits<double>::max();
-	for (uint ep = 0; ep < selectedItemCount; ++ep)
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		PageItem* currItem = selectedItems.at(ep);
+		PageItem* currItem = selectedItems.at(i);
 		double x1, x2, y1, y2;
 		currItem->getVisualBoundingRect(&x1, &y1, &x2, &y2);
 		minx = qMin(minx, x1);
@@ -15047,9 +15049,9 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 	groupItem->groupHeight = gh;
 	groupItem->LayerID = objectsLayer;
 	m_undoManager->setUndoEnabled(true);
-	for (uint c = 0; c < selectedItemCount; ++c)
+	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		currItem = selectedItems.at(c);
+		currItem = selectedItems.at(i);
 		int d = Items->indexOf(currItem);
 		groupItem->groupItemList.append(Items->takeAt(d));
 		currItem->Parent = groupItem;

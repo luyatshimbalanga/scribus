@@ -142,9 +142,9 @@ popd
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 
 %check
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}-%{version}.svn.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}-%{version}.desktop
 appstream-util validate-relax --nonet \
-	%{buildroot}/%{_datadir}/metainfo/%{name}-%{version}.svn.appdata.xml
+	%{buildroot}/%{_datadir}/metainfo/%{name}-%{version}.appdata.xml
 
 %post
 touch --no-create %{_datadir}/mime/packages &> /dev/null || :
@@ -177,29 +177,29 @@ update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
 gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %files
-%doc %{_defaultdocdir}/%{name}-%{version}.svn/AUTHORS
-%doc %{_defaultdocdir}/%{name}-%{version}.svn/ChangeLog
+%doc %{_defaultdocdir}/%{name}-%{version}/AUTHORS
+%doc %{_defaultdocdir}/%{name}-%{version}/ChangeLog
 # %%doc %%{_defaultdocdir}/%%{name}-%%{version}/ChangeLogSVN
-%doc %{_defaultdocdir}/%{name}-%{version}.svn/COPYING
-%doc %{_defaultdocdir}/%{name}-%{version}.svn/README
-%{_bindir}/%{name}-%{version}.svn
-%{_libdir}/%{name}-%{version}.svn/
-%{_datadir}/metainfo/%{name}-%{version}.svn.appdata.xml
+%doc %{_defaultdocdir}/%{name}-%{version}/COPYING
+%doc %{_defaultdocdir}/%{name}-%{version}/README
+%{_bindir}/%{name}-%{version}
+%{_libdir}/%{name}-%{version}/
+%{_datadir}/metainfo/%{name}-%{version}.appdata.xml
 #%%{_datadir}/applications/%%{name}.desktop
-%{_datadir}/applications/%{name}-%{version}.svn.desktop
-%{_datadir}/mime/packages/%{name}-%{version}.svn.xml
+%{_datadir}/applications/%{name}-%{version}.desktop
+%{_datadir}/mime/packages/%{name}-%{version}.xml
 #%%{_datadir}/pixmaps/*
-%{_datadir}/icons/hicolor/16x16/apps/%{name}-%{version}.svn.png
-#%%{_datadir}/icons/hicolor/24x24/apps/%%{name}-%%{version}.svn.png
-%{_datadir}/icons/hicolor/32x32/apps/%{name}-%{version}.svn.png
-#%%{_datadir}/icons/hicolor/64x64/apps/%%{name}-%%{version}.svn.png
-%{_datadir}/icons/hicolor/128x128/apps/%{name}-%{version}.svn.png
-%{_datadir}/icons/hicolor/256x256/apps/%{name}-%{version}.svn.png
-%{_datadir}/icons/hicolor/512x512/apps/%{name}-%{version}.svn.png
-%{_datadir}/icons/hicolor/1024x1024/apps/%{name}-%{version}.svn.png
-%{_datadir}/%{name}-%{version}.svn/
-%exclude %{_datadir}/%{name}-%{version}.svn/samples/*.py[co]
-%exclude %{_datadir}/%{name}-%{version}.svn/scripts/*.py[co]
+%{_datadir}/icons/hicolor/16x16/apps/%{name}-%{version}.png
+#%%{_datadir}/icons/hicolor/24x24/apps/%%{name}-%%{version}.png
+%{_datadir}/icons/hicolor/32x32/apps/%{name}-%{version}.png
+#%%{_datadir}/icons/hicolor/64x64/apps/%%{name}-%%{version}.png
+%{_datadir}/icons/hicolor/128x128/apps/%{name}-%{version}.png
+%{_datadir}/icons/hicolor/256x256/apps/%{name}-%{version}.png
+%{_datadir}/icons/hicolor/512x512/apps/%{name}-%{version}.png
+%{_datadir}/icons/hicolor/1024x1024/apps/%{name}-%{version}.png
+%{_datadir}/%{name}-%{version}/
+%exclude %{_datadir}/%{name}-%{version}/samples/*.py[co]
+%exclude %{_datadir}/%{name}-%{version}/scripts/*.py[co]
 %{_mandir}/man1/*
 %{_mandir}/pl/man1/*
 %{_mandir}/de/man1/*
@@ -208,15 +208,18 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %doc AUTHORS COPYING
 
 %files doc
-%dir %{_defaultdocdir}/%{name}-%{version}.svn
-%lang(de) %{_defaultdocdir}/%{name}-%{version}.svn/de
-%lang(en) %{_defaultdocdir}/%{name}-%{version}.svn/en
-%lang(it) %{_defaultdocdir}/%{name}-%{version}.svn/it
-%{_defaultdocdir}/%{name}-%{version}.svn/README*
-%{_defaultdocdir}/%{name}-%{version}.svn/LINKS
-%{_defaultdocdir}/%{name}-%{version}.svn/TRANSLATION
+%dir %{_defaultdocdir}/%{name}-%{version}
+%lang(de) %{_defaultdocdir}/%{name}-%{version}/de
+%lang(en) %{_defaultdocdir}/%{name}-%{version}/en
+%lang(it) %{_defaultdocdir}/%{name}-%{version}/it
+%{_defaultdocdir}/%{name}-%{version}/README*
+%{_defaultdocdir}/%{name}-%{version}/LINKS
+%{_defaultdocdir}/%{name}-%{version}/TRANSLATION
 
 %changelog
+* Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180213git
+- Snapshot svn 22386
+
 * Tue Feb 06 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180206git
 - Snapshot svn 22384
 

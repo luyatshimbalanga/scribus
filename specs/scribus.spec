@@ -126,8 +126,6 @@ pushd build
 	-DWANT_LIB64=YES \
 %endif
 	-DWANT_NORPATH=1 \
-	-DWANT_VERSIONING=YES \
-	-DWANT_CPP11=1 \
 	-DWITH_BOOST=1 \
 	-DWITH_PODOFO=1 ..
 
@@ -142,9 +140,9 @@ popd
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 
 %check
-desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}-%{version}.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 appstream-util validate-relax --nonet \
-	%{buildroot}/%{_datadir}/metainfo/%{name}-%{version}.appdata.xml
+	%{buildroot}/%{_datadir}/metainfo/%{name}.appdata.xml
 
 %post
 touch --no-create %{_datadir}/mime/packages &> /dev/null || :
@@ -177,29 +175,29 @@ update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
 gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %files
-%doc %{_defaultdocdir}/%{name}-%{version}/AUTHORS
-%doc %{_defaultdocdir}/%{name}-%{version}/ChangeLog
+%doc %{_defaultdocdir}/%{name}/AUTHORS
+%doc %{_defaultdocdir}/%{name}/ChangeLog
 # %%doc %%{_defaultdocdir}/%%{name}-%%{version}/ChangeLogSVN
-%doc %{_defaultdocdir}/%{name}-%{version}/COPYING
-%doc %{_defaultdocdir}/%{name}-%{version}/README
-%{_bindir}/%{name}-%{version}
-%{_libdir}/%{name}-%{version}/
-%{_datadir}/metainfo/%{name}-%{version}.appdata.xml
+%doc %{_defaultdocdir}/%{name}/COPYING
+%doc %{_defaultdocdir}/%{name}/README
+%{_bindir}/%{name}
+%{_libdir}/%{name}/
+%{_datadir}/metainfo/%{name}.appdata.xml
 #%%{_datadir}/applications/%%{name}.desktop
-%{_datadir}/applications/%{name}-%{version}.desktop
-%{_datadir}/mime/packages/%{name}-%{version}.xml
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/mime/packages/%{name}.xml
 #%%{_datadir}/pixmaps/*
-%{_datadir}/icons/hicolor/16x16/apps/%{name}-%{version}.png
+%{_datadir}/icons/hicolor/16x16/apps/%{name}.png
 #%%{_datadir}/icons/hicolor/24x24/apps/%%{name}-%%{version}.png
-%{_datadir}/icons/hicolor/32x32/apps/%{name}-%{version}.png
+%{_datadir}/icons/hicolor/32x32/apps/%{name}.png
 #%%{_datadir}/icons/hicolor/64x64/apps/%%{name}-%%{version}.png
-%{_datadir}/icons/hicolor/128x128/apps/%{name}-%{version}.png
-%{_datadir}/icons/hicolor/256x256/apps/%{name}-%{version}.png
-%{_datadir}/icons/hicolor/512x512/apps/%{name}-%{version}.png
-%{_datadir}/icons/hicolor/1024x1024/apps/%{name}-%{version}.png
-%{_datadir}/%{name}-%{version}/
-%exclude %{_datadir}/%{name}-%{version}/samples/*.py[co]
-%exclude %{_datadir}/%{name}-%{version}/scripts/*.py[co]
+%{_datadir}/icons/hicolor/128x128/apps/%{name}.png
+%{_datadir}/icons/hicolor/256x256/apps/%{name}.png
+%{_datadir}/icons/hicolor/512x512/apps/%{name}.png
+%{_datadir}/icons/hicolor/1024x1024/apps/%{name}.png
+%{_datadir}/%{name}/
+%exclude %{_datadir}/%{name}/samples/*.py[co]
+%exclude %{_datadir}/%{name}/scripts/*.py[co]
 %{_mandir}/man1/*
 %{_mandir}/pl/man1/*
 %{_mandir}/de/man1/*
@@ -208,15 +206,18 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %doc AUTHORS COPYING
 
 %files doc
-%dir %{_defaultdocdir}/%{name}-%{version}
-%lang(de) %{_defaultdocdir}/%{name}-%{version}/de
-%lang(en) %{_defaultdocdir}/%{name}-%{version}/en
-%lang(it) %{_defaultdocdir}/%{name}-%{version}/it
-%{_defaultdocdir}/%{name}-%{version}/README*
-%{_defaultdocdir}/%{name}-%{version}/LINKS
-%{_defaultdocdir}/%{name}-%{version}/TRANSLATION
+%dir %{_defaultdocdir}/%{name}
+%lang(de) %{_defaultdocdir}/%{name}/de
+%lang(en) %{_defaultdocdir}/%{name}/en
+%lang(it) %{_defaultdocdir}/%{name}/it
+%{_defaultdocdir}/%{name}/README*
+%{_defaultdocdir}/%{name}/LINKS
+%{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180214git
+- Drop versioning tag for build
+
 * Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180213git
 - Snapshot svn 22386
 

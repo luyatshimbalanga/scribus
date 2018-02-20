@@ -215,6 +215,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Feb 19 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180220git
+- Snapshot svn 22399
+
 * Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180214git
 - Drop versioning tag for build
 

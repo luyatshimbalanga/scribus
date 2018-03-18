@@ -242,6 +242,7 @@
     <ClInclude Include="..\..\..\scribus\colormgmt\sccieilluminants.h" />
     <ClInclude Include="..\..\..\scribus\colormgmt\sccieobservers.h" />
     <ClInclude Include="..\..\..\scribus\colormgmt\sccolorspacedata_labdbl.h" />
+    <ClInclude Include="..\..\..\scribus\colormgmt\sce308tables.h" />
     <ClInclude Include="..\..\..\scribus\colormgmt\scspectralvaluesconvertor.h" />
     <ClInclude Include="..\..\..\scribus\desaxe\actions.h" />
     <ClInclude Include="..\..\..\scribus\desaxe\automata.h" />
@@ -600,6 +601,8 @@
     <moc Include="..\..\..\scribus\ui\pagepropertiesdialog.h" />
     <moc Include="..\..\..\scribus\ui\fontembeddingcombo.h" />
     <moc Include="..\..\..\scribus\ui\fontembeddingmodel.h" />
+    <moc Include="..\..\..\scribus\ui\pdfversioncombo.h" />
+    <moc Include="..\..\..\scribus\ui\pdfversionmodel.h" />
     <ClInclude Include="..\..\..\scribus\ui\propertywidgetbase.h" />
     <moc Include="..\..\..\scribus\pslib.h" />
     <moc Include="..\..\..\scribus\ui\query.h" />
@@ -842,6 +845,7 @@
     <ClCompile Include="..\..\..\scribus\colormgmt\scciedata.cpp" />
     <ClCompile Include="..\..\..\scribus\colormgmt\sccieilluminants.cpp" />
     <ClCompile Include="..\..\..\scribus\colormgmt\sccieobservers.cpp" />
+    <ClCompile Include="..\..\..\scribus\colormgmt\sce308tables.cpp" />
     <ClCompile Include="..\..\..\scribus\colormgmt\scspectralvaluesconvertor.cpp" />
     <ClCompile Include="..\..\..\scribus\desaxe\digester.cpp" />
     <ClCompile Include="..\..\..\scribus\desaxe\digester_parse.cpp" />
@@ -1196,6 +1200,8 @@
     <ClCompile Include="..\..\..\scribus\pdfoptionsio.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\pdfexportdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\pdftoolbar.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\pdfversioncombo.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\pdfversionmodel.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\picsearch.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\picsearchoptions.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\picstatus.cpp" />

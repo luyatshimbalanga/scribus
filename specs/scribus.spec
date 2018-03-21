@@ -215,35 +215,3 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
-* Sat Mar 10 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180310git
-- Snapshot svn 22428
-
-* Tue Mar 06 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180306git
-- Snapshot svn 22420
-
-* Mon Feb 19 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180224git
-- Snapshot svn 22410
-
-* Mon Feb 19 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180220git
-- Snapshot svn 22399
-
-* Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180214git
-- Drop versioning tag for build
-
-* Wed Feb 14 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0.20180213git
-- Snapshot svn 22386
-
-* Tue Feb 06 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180206git
-- Snapshot svn 22384
-
-* Thu Feb 01 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180201git
-- Snapshot svn 22362
-
-* Fri Jan 12 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180112git
-- Snapshot svn 22342
-
-* Tue Jan 09 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180109git
-- Snapshot svn 22338
-
-* Fri Jan 05 2018 Luya Tshimbalanga <luya_tfz@thefinalzone.net> - 1.5.4-0-20180105git
-- Snapshot svn 22331

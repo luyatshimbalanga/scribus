@@ -177,7 +177,6 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %files
 %doc %{_defaultdocdir}/%{name}/AUTHORS
 %doc %{_defaultdocdir}/%{name}/ChangeLog
-# %%doc %%{_defaultdocdir}/%%{name}-%%{version}/ChangeLogSVN
 %doc %{_defaultdocdir}/%{name}/COPYING
 %doc %{_defaultdocdir}/%{name}/README
 %{_bindir}/%{name}
@@ -214,3 +213,4 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+

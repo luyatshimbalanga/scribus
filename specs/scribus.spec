@@ -186,9 +186,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/mime/packages/%{name}.xml
 %{_datadir}/icons/hicolor/16x16/apps/%{name}.png
-#%%{_datadir}/icons/hicolor/24x24/apps/%%{name}-%%{version}.png
 %{_datadir}/icons/hicolor/32x32/apps/%{name}.png
-#%%{_datadir}/icons/hicolor/64x64/apps/%%{name}-%%{version}.png
 %{_datadir}/icons/hicolor/128x128/apps/%{name}.png
 %{_datadir}/icons/hicolor/256x256/apps/%{name}.png
 %{_datadir}/icons/hicolor/512x512/apps/%{name}.png

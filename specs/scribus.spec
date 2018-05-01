@@ -1,7 +1,7 @@
 %global build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:		scribus
-Version:	1.5.4
+Version:	1.5.5
 Release:	0.%{build_timestamp}git%{?dist}
 Summary:	Open Source Page Layout
 License:	GPLv2+
@@ -211,6 +211,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Apr 30 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0.20180430git
+- Snapshot svn 22496
+
 * Mon Apr 23 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.4-0.20180423git
 - Snapshot svn 22473
 

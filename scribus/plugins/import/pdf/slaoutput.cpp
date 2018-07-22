@@ -209,7 +209,7 @@ QString AnoOutputDev::getColor(GfxColorSpace *color_space, GfxColor *color, int 
 		double Mc = colToDbl(cmyk.m);
 		double Yc = colToDbl(cmyk.y);
 		double Kc = colToDbl(cmyk.k);
-		tmp.setColorF(Cc, Mc, Yc, Kc);
+		tmp.setCmykColorF(Cc, Mc, Yc, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	else if ((color_space->getMode() == csCalGray) || (color_space->getMode() == csDeviceGray))
@@ -217,31 +217,54 @@ QString AnoOutputDev::getColor(GfxColorSpace *color_space, GfxColor *color, int 
 		GfxGray gray;
 		color_space->getGray(color, &gray);
 		double Kc = 1.0 - colToDbl(gray);
-		tmp.setColorF(0, 0, 0, Kc);
+		tmp.setCmykColorF(0, 0, 0, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	else if (color_space->getMode() == csSeparation)
 	{
-		GfxCMYK cmyk;
-		QString name = QString(((GfxSeparationColorSpace*)color_space)->getName()->getCString());
-		double Cc, Mc, Yc, Kc;
+		GfxSeparationColorSpace* sepColorSpace = (GfxSeparationColorSpace*)color_space;
+		GfxColorSpace* altColorSpace = sepColorSpace->getAlt();
+		QString name = QString(sepColorSpace->getName()->getCString());
 		bool isRegistrationColor = (name == "All");
-		if (!isRegistrationColor)
+		if (isRegistrationColor)
 		{
-			color_space->getCMYK(color, &cmyk);
-			Cc = colToDbl(cmyk.c);
-			Mc = colToDbl(cmyk.m);
-			Yc = colToDbl(cmyk.y);
-			Kc = colToDbl(cmyk.k);
-		}
-		else
-		{
-			Cc = Mc = Yc = Kc = 1.0;
+			tmp.setCmykColorF(1.0, 1.0, 1.0, 1.0);
 			tmp.setRegistrationColor(true);
 			name = "Registration";
 		}
-		tmp.setColorF(Cc, Mc, Yc, Kc);
+		else if ((altColorSpace->getMode() == csDeviceRGB) || (altColorSpace->getMode() == csCalRGB))
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setRgbColorF(comps[0], comps[1], comps[2]);
+		}
+		else if ((altColorSpace->getMode() == csCalGray) || (altColorSpace->getMode() == csDeviceGray))
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setCmykColorF(0.0, 0.0, 0.0, 1.0 - comps[0]);
+		}
+		else if (altColorSpace->getMode() == csLab)
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setLabColor(comps[0], comps[1], comps[2]);
+		}
+		else
+		{
+			GfxCMYK cmyk;
+			color_space->getCMYK(color, &cmyk);
+			double Cc = colToDbl(cmyk.c);
+			double Mc = colToDbl(cmyk.m);
+			double Yc = colToDbl(cmyk.y);
+			double Kc = colToDbl(cmyk.k);
+			tmp.setCmykColorF(Cc, Mc, Yc, Kc);
+		}
 		tmp.setSpotColor(true);
+
 		fNam = m_doc->PageColors.tryAddColor(name, tmp);
 		*shade = qRound(colToDbl(color->c[0]) * 100);
 	}
@@ -3962,6 +3985,7 @@ QString SlaOutputDev::getColor(GfxColorSpace *color_space, GfxColor *color, int 
 		if (!m_F3Stack.top().colored)
 			return "Black";
 	}*/
+
 	if ((color_space->getMode() == csDeviceRGB) || (color_space->getMode() == csCalRGB))
 	{
 		GfxRGB rgb;
@@ -3980,7 +4004,7 @@ QString SlaOutputDev::getColor(GfxColorSpace *color_space, GfxColor *color, int 
 		double Mc = colToDbl(cmyk.m);
 		double Yc = colToDbl(cmyk.y);
 		double Kc = colToDbl(cmyk.k);
-		tmp.setColorF(Cc, Mc, Yc, Kc);
+		tmp.setCmykColorF(Cc, Mc, Yc, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	else if ((color_space->getMode() == csCalGray) || (color_space->getMode() == csDeviceGray))
@@ -3988,30 +4012,52 @@ QString SlaOutputDev::getColor(GfxColorSpace *color_space, GfxColor *color, int 
 		GfxGray gray;
 		color_space->getGray(color, &gray);
 		double Kc = 1.0 - colToDbl(gray);
-		tmp.setColorF(0, 0, 0, Kc);
+		tmp.setCmykColorF(0, 0, 0, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	else if (color_space->getMode() == csSeparation)
 	{
-		GfxCMYK cmyk;
-		QString name = QString(((GfxSeparationColorSpace*)color_space)->getName()->getCString());
-		double Cc, Mc, Yc, Kc;
+		GfxSeparationColorSpace* sepColorSpace = (GfxSeparationColorSpace*) color_space;
+		GfxColorSpace* altColorSpace = sepColorSpace->getAlt();
+		QString name = QString(sepColorSpace->getName()->getCString());
 		bool isRegistrationColor = (name == "All");
-		if (!isRegistrationColor)
+		if (isRegistrationColor)
 		{
-			color_space->getCMYK(color, &cmyk);
-			Cc = colToDbl(cmyk.c);
-			Mc = colToDbl(cmyk.m);
-			Yc = colToDbl(cmyk.y);
-			Kc = colToDbl(cmyk.k);
-		}
-		else
-		{
-			Cc = Mc = Yc = Kc = 1.0;
+			tmp.setCmykColorF(1.0, 1.0, 1.0, 1.0);
 			tmp.setRegistrationColor(true);
 			name = "Registration";
 		}
-		tmp.setColorF(Cc, Mc, Yc, Kc);
+		else if ((altColorSpace->getMode() == csDeviceRGB) || (altColorSpace->getMode() == csCalRGB))
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setRgbColorF(comps[0], comps[1], comps[2]);
+		}
+		else if ((altColorSpace->getMode() == csCalGray) || (altColorSpace->getMode() == csDeviceGray))
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setCmykColorF(0.0, 0.0, 0.0, 1.0 - comps[0]);
+		}
+		else if (altColorSpace->getMode() == csLab)
+		{
+			double x = 1.0;
+			double comps[gfxColorMaxComps];
+			sepColorSpace->getFunc()->transform(&x, comps);
+			tmp.setLabColor(comps[0], comps[1], comps[2]);
+		}
+		else
+		{
+			GfxCMYK cmyk;
+			color_space->getCMYK(color, &cmyk);
+			double Cc = colToDbl(cmyk.c);
+			double Mc = colToDbl(cmyk.m);
+			double Yc = colToDbl(cmyk.y);
+			double Kc = colToDbl(cmyk.k);
+			tmp.setCmykColorF(Cc, Mc, Yc, Kc);
+		}
 		tmp.setSpotColor(true);
 
 		fNam = m_doc->PageColors.tryAddColor(name, tmp);
@@ -4058,14 +4104,14 @@ QString SlaOutputDev::getAnnotationColor(const AnnotColor *color)
 		double Mc = color_data[1];
 		double Yc = color_data[2];
 		double Kc = color_data[3];
-		tmp.setColorF(Cc, Mc, Yc, Kc);
+		tmp.setCmykColorF(Cc, Mc, Yc, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	else if (color->getSpace() == AnnotColor::colorGray)
 	{
 		const double *color_data = color->getValues();
 		double Kc = 1.0 - color_data[0];
-		tmp.setColorF(0, 0, 0, Kc);
+		tmp.setCmykColorF(0, 0, 0, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
 	}
 	if (fNam == namPrefix+tmp.name())

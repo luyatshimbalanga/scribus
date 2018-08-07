@@ -211,6 +211,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Tue Aug 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180807git
+- Snapshot svn 22620
+
 * Sun Jul 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180722git
 - Snapshot svn 22597 
 

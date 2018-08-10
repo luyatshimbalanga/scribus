@@ -17,6 +17,7 @@ BuildRequires:	cups-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	fontconfig-devel
 BuildRequires:	freetype-devel
+BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
 BuildRequires:	gnutls-devel
 BuildRequires:	GraphicsMagick-devel
@@ -213,6 +214,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %changelog
 * Tue Aug 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180807git
 - Snapshot svn 22620
+- Add gcc-c++ dependencies
 
 * Sun Jul 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180722git
 - Snapshot svn 22597 

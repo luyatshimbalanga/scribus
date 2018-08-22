@@ -72,7 +72,7 @@ void svgimplugin_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-SVGImportPlugin::SVGImportPlugin() : LoadSavePlugin(),
+SVGImportPlugin::SVGImportPlugin() :
 	importAction(new ScrAction(ScrAction::DLL, "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do
@@ -310,7 +310,7 @@ QImage SVGPlug::readThumbnail(const QString& fName)
 	return tmpImage;
 }
 
-bool SVGPlug::import(QString fname, const TransactionSettings& trSettings, int flags)
+bool SVGPlug::import(const QString& fname, const TransactionSettings& trSettings, int flags)
 {
 	if (!loadData(fname))
 	{
@@ -325,7 +325,7 @@ bool SVGPlug::import(QString fname, const TransactionSettings& trSettings, int f
 	return true;
 }
 
-bool SVGPlug::loadData(QString fName)
+bool SVGPlug::loadData(const QString& fName)
 {
 	bool isCompressed = false, success = false;
 	QByteArray bb(3, ' ');
@@ -616,6 +616,7 @@ PageItem *SVGPlug::finishNode(const QDomNode &e, PageItem* item)
 			FPoint wh = getMaxClipF(&item->PoLine);
 			item->setWidthHeight(wh.x(), wh.y());
 			m_Doc->adjustItemSize(item);
+			item->ContourLine = item->PoLine.copy();
 //			item->moveBy(mm.dx(), mm.dy());
 //			item->setWidthHeight(item->width() * mm.m11(), item->height() * mm.m22());
 //			item->setLineWidth(item->lineWidth() * (coeff1 + coeff2) / 2.0);
@@ -1581,7 +1582,7 @@ QList<PageItem*> SVGPlug::parseImage(const QDomElement &e)
 	double h = e.attribute( "height" ).isEmpty() ? 1.0 : parseUnit( e.attribute( "height" ) );
 	setupNode(e);
 	parseClipPathAttr(e, clipPath);
-	int z = m_Doc->itemAdd(PageItem::ImageFrame, PageItem::Unspecified, x+BaseX, y+BaseY, w, h, 1, m_Doc->itemToolPrefs().imageFillColor, m_Doc->itemToolPrefs().imageStrokeColor);
+	int z = m_Doc->itemAdd(PageItem::ImageFrame, PageItem::Unspecified, BaseX, BaseY, w, h, 1, m_Doc->itemToolPrefs().imageFillColor, m_Doc->itemToolPrefs().imageStrokeColor);
 	PageItem* ite = m_Doc->Items->at(z);
 	if (!fname.isEmpty())
 	{
@@ -1613,6 +1614,7 @@ QList<PageItem*> SVGPlug::parseImage(const QDomElement &e)
 	if (!clipPath.empty())
 		ite->PoLine = clipPath.copy();
 	clipPath.resize(0);
+	ite->PoLine.map( QTransform(1.0, 0.0, 0.0, 1.0, x, y) );
 	ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
 	finishNode(e, ite);
 	IElements.append(ite);
@@ -2931,7 +2933,7 @@ void SVGPlug::parseFilter(const QDomElement &b)
 		return;
 	}
 
-	QString blendModeStr = child.attribute("mode");
+	QString blendModeStr(child.attribute("mode"));
 	if (blendModeStr == "normal")
 		fspec.blendMode = 0;
 	if (blendModeStr == "darken")

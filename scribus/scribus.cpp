@@ -290,7 +290,7 @@ bool printDinUse;
 QString DocDir;
 
 
-extern ScribusQApp* ScQApp;
+//extern ScribusQApp* ScQApp;
 extern bool emergencyActivated;
 
 
@@ -469,7 +469,7 @@ ScribusMainWindow::~ScribusMainWindow()
 	delete m_tocGenerator;
 }
 
-void ScribusMainWindow::addScToolBar(ScToolBar *tb, QString name)
+void ScribusMainWindow::addScToolBar(ScToolBar *tb, const QString & name)
 {
 	if (!scrToolBars.contains(name))
 		scrToolBars.insert(name, tb);
@@ -1447,7 +1447,7 @@ void ScribusMainWindow::setTempStatusBarText(const QString &text)
 	}
 }
 
-void ScribusMainWindow::setStatusBarInfoText(QString newText)
+void ScribusMainWindow::setStatusBarInfoText(const QString & newText)
 {
 	if (m_mainWindowStatusLabel)
 		m_mainWindowStatusLabel->setText(newText);
@@ -2075,7 +2075,7 @@ QStringList ScribusMainWindow::findRecoverableFile()
 	return foundFiles.toList();
 }
 
-bool ScribusMainWindow::recoverFile(QStringList foundFiles)
+bool ScribusMainWindow::recoverFile(const QStringList& foundFiles)
 {
 	appModeHelper->setStartupActionsEnabled(false);
 	bool ret = false;
@@ -3888,9 +3888,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 bool ScribusMainWindow::postLoadDoc()
 {
 	//FIXME Just return for now, if we arent using the GUI
-	if (!ScCore->usingGUI())
-		return false;
-	return true;
+	return ScCore->usingGUI();
 }
 
 // This method was once named slotFileOpen(...) but it hasn't had anything to
@@ -5954,12 +5952,12 @@ void ScribusMainWindow::ToggleFrameEdit()
 	if (!doc->m_Selection->isEmpty())
 	{
 		PageItem *currItem = doc->m_Selection->itemAt(0);
-		nodePalette->EditCont->setEnabled(currItem->ContourLine.size() != 0);
+		nodePalette->EditCont->setEnabled(!currItem->ContourLine.empty());
 		nodePalette->ResetCont->setEnabled(false);
 		nodePalette->ResetContClip->setEnabled(false);
 		nodePalette->PolyStatus(currItem->itemType(), currItem->PoLine.size());
 		nodePalette->setDefaults(currItem);
-		if ((currItem->asImageFrame()) && (currItem->imageClip.size() != 0))
+		if ((currItem->asImageFrame()) && (!currItem->imageClip.empty()))
 		{
 			nodePalette->ResetContClip->setSizePolicy(QSizePolicy(static_cast<QSizePolicy::Policy>(3), static_cast<QSizePolicy::Policy>(3)));
 			nodePalette->ResetContClip->show();
@@ -6985,7 +6983,7 @@ void ScribusMainWindow::printPreview()
 	doPrintPreview();
 }
 
-bool ScribusMainWindow::DoSaveAsEps(QString fn, QString& error)
+bool ScribusMainWindow::DoSaveAsEps(const QString& fn, QString& error)
 {
 	QStringList spots;
 	bool return_value = true;
@@ -7473,7 +7471,7 @@ void ScribusMainWindow::StoreBookmarks()
 	doc->Last = bookmarkPalette->BView->Last;
 }
 
-void ScribusMainWindow::slotElemRead(QString xml, double x, double y, bool art, bool loca, ScribusDoc* docc, ScribusView* vie)
+void ScribusMainWindow::slotElemRead(const QString& xml, double x, double y, bool art, bool loca, ScribusDoc* docc, ScribusView* vie)
 {
 	if (doc == docc && docc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
@@ -7681,7 +7679,7 @@ void ScribusMainWindow::editInlineEnd()
 	updateActiveWindowCaption(doc->DocName);
 }
 
-void ScribusMainWindow::editMasterPagesStart(QString temp)
+void ScribusMainWindow::editMasterPagesStart(const QString& temp)
 {
 	if (!HaveDoc)
 		return;
@@ -7854,7 +7852,7 @@ void ScribusMainWindow::GroupObj(bool showLockDia)
 			msgBox.exec();
 			if (msgBox.clickedButton() == abortButton)
 				return;
-			else if (msgBox.clickedButton() == lockButton)
+			if (msgBox.clickedButton() == lockButton)
 				lockObject = true;
 			modifyLock = true;
 		}
@@ -8070,7 +8068,7 @@ void ScribusMainWindow::StatusPic()
 	delete dia;
 }
 
-QString ScribusMainWindow::CFileDialog(QString workingDirectory, QString dialogCaption, QString fileFilter, QString defaultFilename, int optionFlags, bool *useCompression, bool *useFonts, bool *useProfiles)
+QString ScribusMainWindow::CFileDialog(const QString& workingDirectory, const QString& dialogCaption, const QString& fileFilter, const QString& defaultFilename, int optionFlags, bool *useCompression, bool *useFonts, bool *useProfiles)
 {
 	// changed from "this" to qApp->activeWindow() to be sure it will be opened
 	// with the current active window as parent. E.g. it won't hide StoryEditor etc. -- PV
@@ -8733,17 +8731,14 @@ void ScribusMainWindow::dragEnterEvent ( QDragEnterEvent* e)
 				accepted = true;
 				break;
 			}
-			else
+			QUrl url( fileUrls[i] );
+			FileLoader *fileLoader = new FileLoader(url.path());
+			int testResult = fileLoader->testFile();
+			delete fileLoader;
+			if ((testResult != -1) && (testResult >= FORMATID_FIRSTUSER))
 			{
-				QUrl url( fileUrls[i] );
-				FileLoader *fileLoader = new FileLoader(url.path());
-				int testResult = fileLoader->testFile();
-				delete fileLoader;
-				if ((testResult != -1) && (testResult >= FORMATID_FIRSTUSER))
-				{
-					accepted = true;
-					break;
-				}
+				accepted = true;
+				break;
 			}
 		}
 	}
@@ -8964,7 +8959,7 @@ void ScribusMainWindow::slotItemTransform()
 	}
 }
 
-void ScribusMainWindow::PutToInline(QString buffer)
+void ScribusMainWindow::PutToInline(const QString& buffer)
 {
 	if (!HaveDoc)
 		return;

@@ -212,6 +212,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Wed Aug 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180822git
+- Snapshot svn 22641
+
 * Tue Aug 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180807git
 - Snapshot svn 22620
 - Add gcc-c++ dependencies

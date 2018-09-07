@@ -90,7 +90,7 @@ for which a new license (GPL+exception) is in place.
 
 #include <iostream>
 #include <sstream>
-#include <signal.h>
+#include <csignal>
 #include <string>
 
 
@@ -2474,11 +2474,7 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 			for (int ii = 0; ii < allItems.count(); ii++)
 			{
 				PageItem* item = allItems.at(ii);
-#ifdef HAVE_OSG
-				if ((item->itemType() == PageItem::ImageFrame) && (!((item->asLatexFrame()) || (item->asOSGFrame()))))
-#else
-				if ((item->itemType() == PageItem::ImageFrame) && (!(item->asLatexFrame())))
-#endif
+				if ((item->itemType() == PageItem::ImageFrame) && (!item->asLatexFrame()) && (!item->asOSGFrame()))
 				{
 					enablePicManager = true;
 					break;
@@ -6493,10 +6489,8 @@ void ScribusMainWindow::editItemsFromOutlines(PageItem *ite)
 		if (ite->imageVisible())
 			view->requestMode(modeEdit);
 	}
-#ifdef HAVE_OSG
 	else if (ite->asOSGFrame())
 		view->requestMode(submodeEditExternal);
-#endif
 	else if ((ite->itemType() == PageItem::Polygon) || (ite->itemType() == PageItem::PolyLine) || (ite->itemType() == PageItem::Group) || (ite->itemType() == PageItem::ImageFrame) || (ite->itemType() == PageItem::PathText))
 	{
 		if (ite->itemType() == PageItem::ImageFrame)

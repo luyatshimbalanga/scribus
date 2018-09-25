@@ -478,7 +478,7 @@ void CanvasMode_Normal::mouseMoveEvent(QMouseEvent *m)
 				m_doc->DragElements.clear();
 				for (int dre=0; dre<m_doc->m_Selection->count(); ++dre)
 					m_doc->DragElements.append(m_doc->m_Selection->itemAt(dre));
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_doc, m_doc->m_Selection);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_doc, m_doc->m_Selection);
 				QDrag* dr = new QDrag(m_view);
 				dr->setMimeData(md);
 				const QPixmap& pm = IconManager::instance()->loadPixmap("dragpix.png");
@@ -1852,12 +1852,12 @@ void CanvasMode_Normal::importToPage()
 		if (m_doc->m_Selection->count() > 0)
 		{
 			PageItem *newItem = m_doc->m_Selection->itemAt(0);
-			if (dia.TxCodeM->currentIndex() == 1)
+			if (dia.optionCombo->currentIndex() == 1)
 			{
 				if ((newItem->width() > m_doc->currentPage()->width()) || (newItem->height() > m_doc->currentPage()->height()))
 					m_doc->rescaleGroup(newItem, qMin(qMin(m_doc->currentPage()->width() / newItem->width(), m_doc->currentPage()->height() / newItem->height()), 1.0));
 			}
-			else if (dia.TxCodeM->currentIndex() == 2)
+			else if (dia.optionCombo->currentIndex() == 2)
 			{
 				m_doc->rescaleGroup(newItem, qMax(qMin(m_doc->currentPage()->width() / newItem->width(), m_doc->currentPage()->height() / newItem->height()), 1.0));
 			}

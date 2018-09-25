@@ -323,7 +323,7 @@ bool PdfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 					tmpSele->addItem(Elements.at(dre), true);
 				}
 				tmpSele->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSele);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSele);
 				m_Doc->itemSelection_DeleteItem(tmpSele);
 				m_Doc->view()->updatesOn(true);
 				m_Doc->m_Selection->delaySignalsOff();
@@ -548,10 +548,21 @@ bool PdfPlug::convert(const QString& fn)
 									}
 									else
 									{
-										GooList *ocgs;
-										int i;
-										ocgs = ocg->getOCGs ();
-										for (i = 0; i < ocgs->getLength (); ++i)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 69, 0)
+										const auto& ocgs = ocg->getOCGs ();
+										for (const auto& ocg : ocgs)
+										{
+											OptionalContentGroup *oc = ocg.second.get();
+											QString ocgName = UnicodeParsedString(oc->getName());
+											if (!ocgNames.contains(ocgName))
+											{
+												ocgGroups.prepend(oc);
+												ocgNames.append(ocgName);
+											}
+										}
+#else
+										GooList *ocgs = ocg->getOCGs ();
+										for (int i = 0; i < ocgs->getLength (); ++i)
 										{
 											OptionalContentGroup *oc = (OptionalContentGroup *)ocgs->get(i);
 											QString ocgName = UnicodeParsedString(oc->getName());
@@ -561,15 +572,27 @@ bool PdfPlug::convert(const QString& fn)
 												ocgNames.append(ocgName);
 											}
 										}
+#endif
 									}
 								}
 							}
 							else
 							{
-								GooList *ocgs;
-								int i;
-								ocgs = ocg->getOCGs ();
-								for (i = 0; i < ocgs->getLength (); ++i)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 69, 0)
+								const auto& ocgs = ocg->getOCGs ();
+								for (const auto& ocg : ocgs)
+								{
+									OptionalContentGroup *oc = ocg.second.get();
+									QString ocgName = UnicodeParsedString(oc->getName());
+									if (!ocgNames.contains(ocgName))
+									{
+										ocgGroups.prepend(oc);
+										ocgNames.append(ocgName);
+									}
+								}
+#else
+								GooList *ocgs = ocg->getOCGs ();
+								for (int i = 0; i < ocgs->getLength (); ++i)
 								{
 									OptionalContentGroup *oc = (OptionalContentGroup *)ocgs->get(i);
 									QString ocgName = UnicodeParsedString(oc->getName());
@@ -579,6 +602,7 @@ bool PdfPlug::convert(const QString& fn)
 										ocgNames.append(ocgName);
 									}
 								}
+#endif
 							}
 						}
 					}

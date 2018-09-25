@@ -2147,8 +2147,9 @@ void StoryEditor::setCurrentDocumentAndItem(ScribusDoc *doc, PageItem *item)
 		Editor->clear();
 		setWindowTitle( tr( "Story Editor" ));
 	}
-	if (!QApplication::clipboard()->text(QClipboard::Clipboard).isNull())
-		seActions["editPaste"]->setEnabled(true);
+
+	QString clipboardText = QApplication::clipboard()->text(QClipboard::Clipboard);
+	seActions["editPaste"]->setEnabled(!clipboardText.isEmpty());
 }
 
 void StoryEditor::setSpellActive(bool ssa)
@@ -3374,7 +3375,7 @@ void StoryEditor::LoadTextFile()
 		CustomFDialog dia(this, wdir, tr("Open"), tr("Text Files (*.txt);;All Files (*)"), fdExistingFiles | fdShowCodecs | fdDisableOk);
 		if (dia.exec() != QDialog::Accepted)
 			return;
-		LoadEnc = dia.TxCodeM->currentText();
+		LoadEnc = dia.optionCombo->currentText();
 		if (LoadEnc == "UTF-16")
 			LoadEnc = "ISO-10646-UCS-2";
 		fileName =  dia.selectedFile();
@@ -3413,7 +3414,7 @@ void StoryEditor::SaveTextFile()
 		m_blockUpdate = false;
 		return;
 	}
-	LoadEnc = dia.TxCodeM->currentText();
+	LoadEnc = dia.optionCombo->currentText();
 	if (LoadEnc == "UTF-16")
 		LoadEnc = "ISO-10646-UCS-2";
 	fileName =  dia.selectedFile();

@@ -66,7 +66,7 @@ ScriXmlDoc::ScriXmlDoc()
 {
 }
 
-bool ScriXmlDoc::ReadElemHeader(const QString& file, bool isFile, double *x, double *y, double *w, double *h)
+bool ScriXmlDoc::readElemHeader(const QString& file, bool isFile, double *x, double *y, double *w, double *h)
 {
 	QString ff = "";
 	if (isFile)
@@ -110,14 +110,14 @@ bool ScriXmlDoc::ReadElemHeader(const QString& file, bool isFile, double *x, dou
 	return (succeed && !sReader.hasError());
 }
 
-bool ScriXmlDoc::ReadElem(const QString& fileNameOrData, SCFonts &avail, ScribusDoc *doc, double xPos, double yPos, bool isDataFromFile, bool loc, QMap<QString,QString> &FontSub)
+bool ScriXmlDoc::readElem(const QString& fileNameOrData, SCFonts &avail, ScribusDoc *doc, double xPos, double yPos, bool isDataFromFile, bool loc, QMap<QString,QString> &FontSub)
 {
 	// Do not suppose the existence of layer with id = 0
-	// return ReadElemToLayer(fileName, avail, doc, Xp, Yp, Fi, loc, FontSub, view, 0);
-	return ReadElemToLayer(fileNameOrData, avail, doc, xPos, yPos, isDataFromFile, loc, FontSub, doc->activeLayer());
+	// return readElemToLayer(fileName, avail, doc, Xp, Yp, Fi, loc, FontSub, view, 0);
+	return readElemToLayer(fileNameOrData, avail, doc, xPos, yPos, isDataFromFile, loc, FontSub, doc->activeLayer());
 }
 
-bool ScriXmlDoc::ReadElemToLayer(const QString& fileNameOrData, SCFonts &avail, ScribusDoc *doc, double xPos, double yPos, bool isDataFromFile, bool loc, QMap<QString,QString> &FontSub, int toLayer)
+bool ScriXmlDoc::readElemToLayer(const QString& fileNameOrData, SCFonts &avail, ScribusDoc *doc, double xPos, double yPos, bool isDataFromFile, bool loc, QMap<QString,QString> &FontSub, int toLayer)
 {
 	QString elementData;
 	QString fileDir = ScPaths::applicationDataDir();
@@ -152,7 +152,7 @@ bool ScriXmlDoc::ReadElemToLayer(const QString& fileNameOrData, SCFonts &avail, 
 	return false;
 }
 
-QString ScriXmlDoc::WriteElem(ScribusDoc *doc, Selection* selection)
+QString ScriXmlDoc::writeElem(ScribusDoc *doc, Selection* selection)
 {
 	if (selection->count()==0)
 		return "";
@@ -160,14 +160,9 @@ QString ScriXmlDoc::WriteElem(ScribusDoc *doc, Selection* selection)
 	PageItem *item;
 	QString documentStr = "";
 	item = selection->itemAt(0);
-	QList<PageItem*> emG;
-	QMap<int, PageItem*> emMap;
-	emG.clear();
-	for (int cor = 0; cor < selection->count(); ++cor)
-	{
-		emMap.insert(doc->Items->indexOf(selection->itemAt(cor)), selection->itemAt(cor));
-	}
-	emG = emMap.values();
+
+	auto items = getItemsFromSelection(doc, selection);
+
 	double selectionWidth = 0;
 	double selectionHeight = 0;
 	if (selection->isMultipleSelection())
@@ -198,9 +193,9 @@ QString ScriXmlDoc::WriteElem(ScribusDoc *doc, Selection* selection)
 	retImg.fill( qRgba(0, 0, 0, 0) );
 	ScPainter *painter = new ScPainter(&retImg, retImg.width(), retImg.height(), 1, 0);
 	painter->setZoomFactor(scaleI);
-	for (int em = 0; em < emG.count(); ++em)
+	for (int em = 0; em < items.count(); ++em)
 	{
-		PageItem* embedded = emG.at(em);
+		PageItem* embedded = items.at(em);
 		painter->save();
 		painter->translate(-xp, -yp);
 		embedded->invalid = true;
@@ -228,9 +223,19 @@ QString ScriXmlDoc::WriteElem(ScribusDoc *doc, Selection* selection)
 	return documentStr;
 }
 
-ScElemMimeData* ScriXmlDoc::WriteToMimeData(ScribusDoc *doc, Selection *selection)
+ScElemMimeData* ScriXmlDoc::writeToMimeData(ScribusDoc *doc, Selection *selection)
 {
 	ScElemMimeData* md = new ScElemMimeData();
-	md->setScribusElem(WriteElem(doc, selection));
+	md->setScribusElem(writeElem(doc, selection));
 	return md;
+}
+
+QList<PageItem*> ScriXmlDoc::getItemsFromSelection(ScribusDoc *doc, Selection* selection)
+{
+	QMap<int, PageItem*> items;
+
+	const QList<PageItem*> selectedItems = selection->items();
+	for (auto item : selectedItems)
+		items.insert(doc->Items->indexOf(item), item);
+	return items.values();
 }

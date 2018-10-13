@@ -412,7 +412,7 @@ void PSLib::PutStream(const QString& c)
 
 void PSLib::PutStream(const QByteArray& array, bool hexEnc)
 {
-	if(hexEnc)
+	if (hexEnc)
 		WriteASCII85Bytes(array);
 	else
 		spoolStream.writeRawData(array.data(), array.size());
@@ -420,7 +420,7 @@ void PSLib::PutStream(const QByteArray& array, bool hexEnc)
 
 void PSLib::PutStream(const char* array, int length, bool hexEnc)
 {
-	if(hexEnc)
+	if (hexEnc)
 		WriteASCII85Bytes((const unsigned char*) array, length);
 	else
 		spoolStream.writeRawData(array, length);
@@ -572,7 +572,6 @@ bool PSLib::PS_begin_doc(ScribusDoc *doc, double x, double y, double width, doub
 	}
 	else
 	{
-		
 		BBox = "%%BoundingBox: " + IToStr(qRound(x)) + " " + IToStr(qRound(y)) + " " + IToStr(qRound(height)) + " " + IToStr(qRound(width)) + "\n";
 		BBoxH = "%%HiResBoundingBox: " + ToStr(x) + " " + ToStr(y) + " " + ToStr(height) + " " + ToStr(width) + "\n";
 	}
@@ -3483,7 +3482,7 @@ void PSLib::HandleDiamondGradient(PageItem* item)
 	gradient.setRepeatMethod(item->getGradientExtend());
 	QList<VColorStop*> colorStops = gradient.colorStops();
 	QList<double> qStopRampPoints;
-	for (int cst = 0; cst < gradient.Stops(); ++cst)
+	for (int cst = 0; cst < gradient.stops(); ++cst)
 	{
 		if (cst == 0)
 		{
@@ -3894,7 +3893,7 @@ void PSLib::HandleGradientFillStroke(PageItem *item, bool stroke, bool forArrow)
 	PutStream("/PatternType 2\n");
 	PutStream("/Shading\n");
 	PutStream("<<\n");
-	for (int cst = 0; cst < gradient.Stops(); ++cst)
+	for (int cst = 0; cst < gradient.stops(); ++cst)
 	{
 		double actualStop = cstops.at(cst)->rampPoint;
 		if ((cst == 0) && (actualStop != 0.0))
@@ -3911,7 +3910,7 @@ void PSLib::HandleGradientFillStroke(PageItem *item, bool stroke, bool forArrow)
 			if (!spotColorSet.contains(cstops.at(cst)->name))
 				spotColorSet.append(cstops.at(cst)->name);
 		}
-		if ((cst == gradient.Stops()-1) && (actualStop < 1.0))
+		if ((cst == gradient.stops()-1) && (actualStop < 1.0))
 		{
 			StopVec.append(1.0);
 			colorNames.append(cstops.at(cst)->name);

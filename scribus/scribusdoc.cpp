@@ -1158,7 +1158,7 @@ void ScribusDoc::getNamedResources(ResourceCollection& lists) const
 	for (itg = docGradients.begin(); itg != docGradients.end(); ++itg)
 	{
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (int cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			lists.collectColor(cstops.at(cst)->name);
 		}
@@ -1400,7 +1400,7 @@ void ScribusDoc::replaceNamedResources(ResourceCollection& newNames)
 			
 		QMap<QString,QString>::ConstIterator itc;
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (int cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			itc = newNames.colors().find(cstops.at(cst)->name);
 			if (itc != newNames.colors().end())
@@ -2701,9 +2701,9 @@ void ScribusDoc::replaceMasterPage(const QString& oldMasterPage)
 	QMap<QString,int>::Iterator it = MasterNames.begin();
 	QListIterator<ScPage *> dpIt(DocPages);
 	ScPage* docPage=nullptr;
-	while(dpIt.hasNext())
+	while (dpIt.hasNext())
 	{
-		docPage=dpIt.next();
+		docPage = dpIt.next();
 		if (docPage->MPageNam == oldMasterPage)
 		{
 			PageLocation pageLoc = locationOfPage(pageIndex);
@@ -5000,13 +5000,13 @@ void ScribusDoc::recalculateColorsList(QList<PageItem*> *itemList)
 				ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->stroke_gradient.colorStops();
-			for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->mask_gradient.colorStops();
-			for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			if (ite->GrType == 13)
 				ite->createConicalMesh();
@@ -5045,13 +5045,13 @@ void ScribusDoc::recalculateColorItem(PageItem *item)
 			ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 		}
 		QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-		for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		cstops = ite->stroke_gradient.colorStops();
-		for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		cstops = ite->mask_gradient.colorStops();
-		for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		if (ite->GrType == 13)
 			ite->createConicalMesh();
@@ -5069,7 +5069,7 @@ void ScribusDoc::recalculateColors()
 	for (itGrad = docGradients.begin(); itGrad != docGradients.end(); ++itGrad)
 	{
 		QList<VColorStop*> cstops = itGrad.value().colorStops();
-		for (int cst = 0; cst < itGrad.value().Stops(); ++cst)
+		for (int cst = 0; cst < itGrad.value().stops(); ++cst)
 		{
 			if (cstops.at(cst)->name != CommonStrings::None)
 			{
@@ -5120,13 +5120,13 @@ void ScribusDoc::recalculateColors()
 				ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->stroke_gradient.colorStops();
-			for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->mask_gradient.colorStops();
-			for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			if (ite->GrType == 13)
 				ite->createConicalMesh();
@@ -5170,13 +5170,13 @@ void ScribusDoc::recalculateColors()
 					ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 				}
 				QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-				for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				cstops = ite->stroke_gradient.colorStops();
-				for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				cstops = ite->mask_gradient.colorStops();
-				for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				if (ite->asImageFrame())
 					loadPict(ite->Pfile, ite, true, false);
@@ -5323,7 +5323,7 @@ bool ScribusDoc::copyPageToMasterPage(const int pageNumber, const int leftPage, 
 PageItem* ScribusDoc::createPageItem(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, double x, double y, double b, double h, double w, const QString& fill, const QString& outline)
 {
 	PageItem* newItem=nullptr;
-	switch( itemType )
+	switch (itemType)
 	{
 		//Q_ASSERTs here will warn on creation issues when a coder specifies the frameType incorrectly
 		//for items that do not have/need a frameType for creation.
@@ -8173,7 +8173,7 @@ void ScribusDoc::itemSelection_SetItemGradStroke(int typ)
 			{
 				if (!PageColors.contains(currItem->lineColor()))
 				{
-					switch(currItem->itemType())
+					switch (currItem->itemType())
 					{
 						case PageItem::TextFrame:
 						case PageItem::PathText:
@@ -8224,7 +8224,7 @@ void ScribusDoc::itemSelection_SetItemGradFill(int typ)
 				{
 					if (!PageColors.contains(currItem->fillColor()))
 					{
-						switch(currItem->itemType())
+						switch (currItem->itemType())
 						{
 							case PageItem::ImageFrame:
 							case PageItem::LatexFrame:
@@ -11469,7 +11469,7 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 		}
 		else
 		{
-			if (currItem->asTextFrame() && !currItem->hasLinks())
+			if (currItem->asTextFrame() && !currItem->isInChain())
 			{
 				currItem->itemText.selectAll();
 				currItem->asTextFrame()->removeMarksFromText(true);
@@ -16158,7 +16158,7 @@ void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMas
 	}
 }
 
-void ScribusDoc::itemSelection_UnlinkTextFrameAndKeepText( Selection *customSelection, bool cutText)
+void ScribusDoc::itemSelection_UnlinkTextFrameAndCutText( Selection *customSelection)
 {
 	Selection* itemSelection = (customSelection!=nullptr) ? customSelection : m_Selection;
 	assert(itemSelection != nullptr);
@@ -16172,16 +16172,11 @@ void ScribusDoc::itemSelection_UnlinkTextFrameAndKeepText( Selection *customSele
 		if (!currItem || !currItem->asTextFrame())
 			continue;
 		if (currItem->nextInChain() || currItem->prevInChain())
-			currItem->unlinkWithText(cutText);
+			currItem->unlinkWithText();
 	}
 	regionsChanged()->update(QRectF());
 	changed();
 	itemSelection->itemAt(0)->emitAllToGUI();
-}
-
-void ScribusDoc::itemSelection_UnlinkTextFrameAndCutText( Selection *customSelection)
-{
-	itemSelection_UnlinkTextFrameAndKeepText(customSelection, true);
 }
 
 void ScribusDoc::itemSelection_UnWeld()

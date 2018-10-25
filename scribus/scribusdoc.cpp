@@ -1158,7 +1158,7 @@ void ScribusDoc::getNamedResources(ResourceCollection& lists) const
 	for (itg = docGradients.begin(); itg != docGradients.end(); ++itg)
 	{
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (int cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			lists.collectColor(cstops.at(cst)->name);
 		}
@@ -1400,7 +1400,7 @@ void ScribusDoc::replaceNamedResources(ResourceCollection& newNames)
 			
 		QMap<QString,QString>::ConstIterator itc;
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (int cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			itc = newNames.colors().find(cstops.at(cst)->name);
 			if (itc != newNames.colors().end())
@@ -2441,7 +2441,6 @@ void ScribusDoc::resetPage(int fp, MarginStruct* newMargins)
 
 bool ScribusDoc::AddFont(const QString& name, int fsize)
 {
-	bool ret = false;
 	if (UsedFonts.contains(name))
 		return true;
 
@@ -2450,8 +2449,8 @@ bool ScribusDoc::AddFont(const QString& name, int fsize)
 
 	UsedFonts[name] = fsize;
 	(*AllFonts)[name].increaseUsage();
-	ret = true;
-	return ret;
+
+	return true;
 }
 
 
@@ -2701,9 +2700,9 @@ void ScribusDoc::replaceMasterPage(const QString& oldMasterPage)
 	QMap<QString,int>::Iterator it = MasterNames.begin();
 	QListIterator<ScPage *> dpIt(DocPages);
 	ScPage* docPage=nullptr;
-	while(dpIt.hasNext())
+	while (dpIt.hasNext())
 	{
-		docPage=dpIt.next();
+		docPage = dpIt.next();
 		if (docPage->MPageNam == oldMasterPage)
 		{
 			PageLocation pageLoc = locationOfPage(pageIndex);
@@ -5000,13 +4999,13 @@ void ScribusDoc::recalculateColorsList(QList<PageItem*> *itemList)
 				ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->stroke_gradient.colorStops();
-			for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->mask_gradient.colorStops();
-			for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			if (ite->GrType == 13)
 				ite->createConicalMesh();
@@ -5045,13 +5044,13 @@ void ScribusDoc::recalculateColorItem(PageItem *item)
 			ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 		}
 		QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-		for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		cstops = ite->stroke_gradient.colorStops();
-		for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		cstops = ite->mask_gradient.colorStops();
-		for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 			ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 		if (ite->GrType == 13)
 			ite->createConicalMesh();
@@ -5069,7 +5068,7 @@ void ScribusDoc::recalculateColors()
 	for (itGrad = docGradients.begin(); itGrad != docGradients.end(); ++itGrad)
 	{
 		QList<VColorStop*> cstops = itGrad.value().colorStops();
-		for (int cst = 0; cst < itGrad.value().Stops(); ++cst)
+		for (int cst = 0; cst < itGrad.value().stops(); ++cst)
 		{
 			if (cstops.at(cst)->name != CommonStrings::None)
 			{
@@ -5120,13 +5119,13 @@ void ScribusDoc::recalculateColors()
 				ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->stroke_gradient.colorStops();
-			for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			cstops = ite->mask_gradient.colorStops();
-			for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 				ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 			if (ite->GrType == 13)
 				ite->createConicalMesh();
@@ -5170,13 +5169,13 @@ void ScribusDoc::recalculateColors()
 					ite->setMeshPointColor(grow, 4, patch.BL.colorName, patch.BL.shade, patch.BL.transparency, true);
 				}
 				QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-				for (int cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				cstops = ite->stroke_gradient.colorStops();
-				for (int cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				cstops = ite->mask_gradient.colorStops();
-				for (int cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+				for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 					ite->SetQColor(&cstops.at(cst)->color, cstops.at(cst)->name, cstops.at(cst)->shade);
 				if (ite->asImageFrame())
 					loadPict(ite->Pfile, ite, true, false);
@@ -5323,7 +5322,7 @@ bool ScribusDoc::copyPageToMasterPage(const int pageNumber, const int leftPage, 
 PageItem* ScribusDoc::createPageItem(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, double x, double y, double b, double h, double w, const QString& fill, const QString& outline)
 {
 	PageItem* newItem=nullptr;
-	switch( itemType )
+	switch (itemType)
 	{
 		//Q_ASSERTs here will warn on creation issues when a coder specifies the frameType incorrectly
 		//for items that do not have/need a frameType for creation.
@@ -7826,8 +7825,6 @@ void ScribusDoc::itemSelection_SetLineEnd(Qt::PenCapStyle w)
 	changed();
 }
 
-
-
 void ScribusDoc::itemSelection_SetLineSpacing(double w, Selection* customSelection)
 {
 	ParagraphStyle newStyle;
@@ -7835,11 +7832,35 @@ void ScribusDoc::itemSelection_SetLineSpacing(double w, Selection* customSelecti
 	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
 }
 
-void ScribusDoc::itemSelection_SetFont(const QString& fon, Selection* customSelection)
+void ScribusDoc::itemSelection_SetFont(const QString& font, Selection* customSelection)
+{
+	Selection* itemSelection = (customSelection != nullptr) ? customSelection : m_Selection;
+	assert(itemSelection != nullptr);
+
+	uint selectedItemCount = itemSelection->count();
+	if (selectedItemCount == 0)
+		return;
+
+	QString newFont(font);
+	if (!UsedFonts.contains(newFont))
+	{
+		if (!AddFont(font))
+		{
+			PageItem *currItem = m_Selection->itemAt(0);
+			newFont = currItem->currentCharStyle().font().scName();
+		}
+	}
+
+	CharStyle newStyle;
+	newStyle.setFont((*AllFonts)[newFont]);
+	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONT");
+}
+
+void ScribusDoc::itemSelection_SetFontSize(int size, Selection* customSelection)
 {
 	CharStyle newStyle;
-	newStyle.setFont((*AllFonts)[fon]);
-	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONT");
+	newStyle.setFontSize(size);
+	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONT_SIZE");
 }
 
 void ScribusDoc::itemSelection_SetFontFeatures(const QString& fontfeature, Selection* customSelection)
@@ -8173,7 +8194,7 @@ void ScribusDoc::itemSelection_SetItemGradStroke(int typ)
 			{
 				if (!PageColors.contains(currItem->lineColor()))
 				{
-					switch(currItem->itemType())
+					switch (currItem->itemType())
 					{
 						case PageItem::TextFrame:
 						case PageItem::PathText:
@@ -8224,7 +8245,7 @@ void ScribusDoc::itemSelection_SetItemGradFill(int typ)
 				{
 					if (!PageColors.contains(currItem->fillColor()))
 					{
-						switch(currItem->itemType())
+						switch (currItem->itemType())
 						{
 							case PageItem::ImageFrame:
 							case PageItem::LatexFrame:
@@ -8870,39 +8891,6 @@ void ScribusDoc::itemSelection_SetLanguage(const QString & m, Selection* customS
 	CharStyle newStyle;
 	newStyle.setLanguage(m);
 	itemSelection_ApplyCharStyle(newStyle, customSelection, "LANGUAGE");
-}
-
-void ScribusDoc::itemSetFont(const QString &newFont)
-{
-	QString nf2(newFont);
-	if (!UsedFonts.contains(newFont))
-	{
-		if (!AddFont(newFont))
-		{
-			if (m_Selection->count() != 0)
-			{
-				PageItem *currItem = m_Selection->itemAt(0);
-				nf2 = currItem->currentCharStyle().font().scName();
-			}
-		}
-	}
-	PageItem *i2 = m_Selection->itemAt(0);
-	if (appMode == modeEditTable)
-		i2 = m_Selection->itemAt(0)->asTable()->activeCell().textFrame();
-	if (i2 != nullptr)
-	{
-		Selection tempSelection(this, false);
-		tempSelection.addItem(i2, true);
-		itemSelection_SetFont(nf2, &tempSelection);
-	}
-	m_View->DrawNew();
-}
-
-void ScribusDoc::itemSelection_SetFontSize(int size, Selection* customSelection)
-{
-	CharStyle newStyle;
-	newStyle.setFontSize(size);
-	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONT_SIZE");
 }
 
 void ScribusDoc::itemSelection_ToggleBookMark(Selection *customSelection)
@@ -11469,7 +11457,7 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 		}
 		else
 		{
-			if (currItem->asTextFrame() && !currItem->hasLinks())
+			if (currItem->asTextFrame() && !currItem->isInChain())
 			{
 				currItem->itemText.selectAll();
 				currItem->asTextFrame()->removeMarksFromText(true);
@@ -16158,7 +16146,7 @@ void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMas
 	}
 }
 
-void ScribusDoc::itemSelection_UnlinkTextFrameAndKeepText( Selection *customSelection, bool cutText)
+void ScribusDoc::itemSelection_UnlinkTextFrameAndCutText( Selection *customSelection)
 {
 	Selection* itemSelection = (customSelection!=nullptr) ? customSelection : m_Selection;
 	assert(itemSelection != nullptr);
@@ -16172,16 +16160,11 @@ void ScribusDoc::itemSelection_UnlinkTextFrameAndKeepText( Selection *customSele
 		if (!currItem || !currItem->asTextFrame())
 			continue;
 		if (currItem->nextInChain() || currItem->prevInChain())
-			currItem->unlinkWithText(cutText);
+			currItem->unlinkWithText();
 	}
 	regionsChanged()->update(QRectF());
 	changed();
 	itemSelection->itemAt(0)->emitAllToGUI();
-}
-
-void ScribusDoc::itemSelection_UnlinkTextFrameAndCutText( Selection *customSelection)
-{
-	itemSelection_UnlinkTextFrameAndKeepText(customSelection, true);
 }
 
 void ScribusDoc::itemSelection_UnWeld()

@@ -4259,7 +4259,7 @@ void PageItem::setImageScalingMode(bool freeScale, bool keepRatio)
 void PageItem::setOverprint(bool val)
 {
 	if (doOverprint==val)
-			return;
+		return;
 
 	if (UndoManager::undoEnabled())
 	{
@@ -4638,7 +4638,7 @@ void PageItem::convertTo(ItemType newType)
 		SimpleState *ss = new SimpleState(Um::ConvertTo + " " + toType,
 										  QString(Um::FromTo).arg(fromType).arg(toType));
 		ss->set("CONVERT", "convert");
-		ss->set("PAGEITEM", reinterpret_cast<int>(this));
+		ss->set("PAGEITEM", reinterpret_cast<void*>(this));
 		ss->set("OLD_TYPE", m_ItemType);
 		ss->set("NEW_TYPE", newType);
 		undoManager->action(this, ss);
@@ -7049,8 +7049,7 @@ void PageItem::restorePStyle(SimpleState *state, bool isUndo)
 // For now we'll just make it independent of 'this' -- AV
 void PageItem::restoreType(SimpleState *state, bool isUndo)
 {
-	// well, probably not the best way to handle pointers...
-	PageItem * item = reinterpret_cast<PageItem *>(state->getInt("PAGEITEM"));
+	PageItem * item = reinterpret_cast<PageItem *>(state->getVoidPtr("PAGEITEM"));
 	int type = state->getInt("OLD_TYPE");
 	if (!isUndo)
 		type = state->getInt("NEW_TYPE");
@@ -9604,7 +9603,7 @@ bool PageItem::loadImage(const QString& filename, const bool reload, const int g
 void PageItem::drawLockedMarker(ScPainter *p)
 {
 	//TODO: CB clean
-	double scp1 = p->zoomFactor() ;// / ScMW->view->scale();
+	double scp1 = p->zoomFactor() ;
 	double ofwh = 6 * scp1;
 	double ofx = m_width - ofwh/2;
 	double ofy = m_height - ofwh*1.5;
@@ -9740,18 +9739,17 @@ void PageItem::adjustPictScale()
 		br = m.mapRect(br);
 		xs = m_width / br.width();
 		ys = m_height / br.height();
+		double xs2 = AspectRatio ? qMin(xs, ys) : xs;
+		double ys2 = AspectRatio ? qMin(xs, ys) : ys;
 		QLineF wL = QLineF(0, 0, OrigW, 0);
-		wL.setAngle(-m_imageRotation);
 		QLineF hL = QLineF(0, 0, 0, OrigH);
-		hL.setAngle(-m_imageRotation-90);
 		QTransform mm;
-		mm.scale(xs, ys);
+		mm.scale(xs2, ys2);
+		mm.rotate(-m_imageRotation);
 		hL = mm.map(hL);
 		wL = mm.map(wL);
 		xs = wL.length() / static_cast<double>(OrigW);
 		ys = hL.length() / static_cast<double>(OrigH);
-		m_imageXOffset = -br.x();
-		m_imageYOffset = -br.y();
 	}
 	if (AspectRatio)
 	{
@@ -9762,6 +9760,21 @@ void PageItem::adjustPictScale()
 	{
 		m_imageXScale = xs;
 		m_imageYScale = ys;
+	}
+	if (imageRot != 0.0)
+	{
+		QRectF br = QRectF(0, 0, OrigW * xs, OrigH * ys);
+		QTransform m;
+		m.scale(1.0 / xs, 1.0 / ys);
+		m.rotate(m_imageRotation);
+		br = m.mapRect(br);
+		m_imageXOffset = -br.x();
+		m_imageYOffset = -br.y();
+	}
+	else
+	{
+		m_imageXOffset = 0.0;
+		m_imageYOffset = 0.0;
 	}
 	// Disable broken code. Code must be independent from doc in that function
 	/*switch (m_Doc->RotMode)

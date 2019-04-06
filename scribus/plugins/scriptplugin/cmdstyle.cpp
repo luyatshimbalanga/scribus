@@ -98,7 +98,6 @@ PyObject *scribus_createcharstyle(PyObject* /* self */, PyObject* args, PyObject
 		const_cast<char*>("name"),
 		const_cast<char*>("font"),
 		const_cast<char*>("fontsize"),
-		const_cast<char*>("fontfeatures"),
 		const_cast<char*>("features"),
 		const_cast<char*>("fillcolor"),
 		const_cast<char*>("fillshade"),
@@ -117,7 +116,7 @@ PyObject *scribus_createcharstyle(PyObject* /* self */, PyObject* args, PyObject
 		const_cast<char*>("tracking"),
 		const_cast<char*>("language"),
 		nullptr};
-	char *Name = const_cast<char*>(""), *Font = const_cast<char*>("Times"), *Features = const_cast<char*>("inherit"), *FillColor = const_cast<char*>("Black"), *FontFeatures = const_cast<char*>(""), *StrokeColor = const_cast<char*>("Black"), *Language = const_cast<char*>("");
+	char *Name = const_cast<char*>(""), *Font = const_cast<char*>(""), *Features = const_cast<char*>("inherit"), *FillColor = const_cast<char*>("Black"), *FontFeatures = const_cast<char*>(""), *StrokeColor = const_cast<char*>("Black"), *Language = const_cast<char*>("");
 	double FontSize = 200, FillShade = 1, StrokeShade = 1, ScaleH = 1, ScaleV = 1, BaselineOffset = 0, ShadowXOffset = 0, ShadowYOffset = 0, OutlineWidth = 0, UnderlineOffset = 0, UnderlineWidth = 0, StrikethruOffset = 0, StrikethruWidth = 0, Tracking = 0;
 	if (!PyArg_ParseTupleAndKeywords(args, keywords, "es|esdesesdesddddddddddddes", keywordargs,
 																									"utf-8", &Name, "utf-8", &Font, &FontSize, "utf-8", &Features,
@@ -133,17 +132,48 @@ PyObject *scribus_createcharstyle(PyObject* /* self */, PyObject* args, PyObject
 		return nullptr;
 	}
 
+	QString RealFont = QString(Font);
+	if (RealFont.isEmpty())
+	{
+		const StyleSet<CharStyle>& charStyles = ScCore->primaryMainWindow()->doc->charStyles();
+		int index = charStyles.find(CommonStrings::DefaultCharacterStyle);
+		if (index < 0)
+			index = charStyles.find(CommonStrings::trDefaultCharacterStyle);
+		if (index >= 0)
+			RealFont = charStyles[index].font().scName();
+	}
+
+	if (!ScCore->primaryMainWindow()->doc->AllFonts->contains(RealFont))
+	{
+		PyErr_SetString(PyExc_ValueError, QObject::tr("Specified font is not available.", "python error").toLocal8Bit().constData());
+		return nullptr;
+	}
+
+	const ColorList& docColors = ScCore->primaryMainWindow()->doc->PageColors;
+	QString qFillColor = QString(FillColor);
+	QString qStrokeColor = QString(StrokeColor);
+	if ((qFillColor != CommonStrings::None) && (!docColors.contains(qFillColor)))
+	{
+		PyErr_SetString(PyExc_ValueError, QObject::tr("Specified fill color is not available in document.", "python error").toLocal8Bit().constData());
+		return nullptr;
+	}
+	if ((qStrokeColor != CommonStrings::None) && (!docColors.contains(qStrokeColor)))
+	{
+		PyErr_SetString(PyExc_ValueError, QObject::tr("Specified stroke color is not available in document.", "python error").toLocal8Bit().constData());
+		return nullptr;
+	}
+
 	QStringList FeaturesList = QString(Features).split(QString(","));
 
 	CharStyle TmpCharStyle;
 	TmpCharStyle.setName(Name);
-	TmpCharStyle.setFont((*ScCore->primaryMainWindow()->doc->AllFonts)[QString(Font)]);
+	TmpCharStyle.setFont((*ScCore->primaryMainWindow()->doc->AllFonts)[RealFont]);
 	TmpCharStyle.setFontSize(FontSize * 10);
 	TmpCharStyle.setFontFeatures(FontFeatures);
 	TmpCharStyle.setFeatures(FeaturesList);
-	TmpCharStyle.setFillColor(QString(FillColor));
+	TmpCharStyle.setFillColor(qFillColor);
 	TmpCharStyle.setFillShade(FillShade * 100);
-	TmpCharStyle.setStrokeColor(QString(StrokeColor));
+	TmpCharStyle.setStrokeColor(qStrokeColor);
 	TmpCharStyle.setStrokeShade(StrokeShade * 100);
 	TmpCharStyle.setBaselineOffset(BaselineOffset);
 	TmpCharStyle.setShadowXOffset(ShadowXOffset);
@@ -184,50 +214,66 @@ PyObject *scribus_createcustomlinestyle(PyObject * /* self */, PyObject* args)
 	}
 
 	multiLine ml;
-	for (int i = 0; i < PyList_Size(obj); i++) {
+	const ColorList& docColors = ScCore->primaryMainWindow()->doc->PageColors;
+
+	for (int i = 0; i < PyList_Size(obj); i++)
+	{
 		PyObject *line = PyList_GetItem(obj, i);
-		if (!PyDict_Check(line)) {
+		if (!PyDict_Check(line))
+		{
 			PyErr_SetString(PyExc_TypeError, "elements of list must be Dictionary.");
 			return nullptr;
 		}
 		struct SingleLine sl;
 		PyObject *val;
+
 		val = PyDict_GetItemString(line, "Color");
-		if (val) {
+		if (val)
 			sl.Color = PyString_AsString(val);
-		} else 
-			sl.Color = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineColor;;
+		else 
+			sl.Color = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineColor;
+
 		val = PyDict_GetItemString(line, "Dash");
-		if (val) {
+		if (val)
 			sl.Dash = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.Dash = Qt::SolidLine;
+
 		val = PyDict_GetItemString(line, "LineEnd");
-		if (val) {
+		if (val)
 			sl.LineEnd = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.LineEnd = Qt::FlatCap;
+
 		val = PyDict_GetItemString(line, "LineJoin");
-		if (val) {
+		if (val)
 			sl.LineJoin = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.LineJoin = Qt::MiterJoin;
+
 		val = PyDict_GetItemString(line, "Shade");
-		if (val) {
+		if (val)
 			sl.Shade = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.Shade = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineColorShade;
+
 		val = PyDict_GetItemString(line, "Width");
-		if (val) {
+		if (val)
 			sl.Width = PyFloat_AsDouble(val);
-		} else 
+		else 
 			sl.Width = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineWidth;
 
 		val = PyDict_GetItemString(line, "Shortcut");
-		if (val) {
+		if (val)
 			ml.shortcut = PyString_AsString(val);
-		} else 
+		else 
 			ml.shortcut = "";
+
+		if (!docColors.contains(sl.Color))
+		{
+			PyErr_SetString(PyExc_ValueError, QObject::tr("Specified color is not available in document.", "python error").toLocal8Bit().constData());
+			return nullptr;
+		}
 		ml.push_back(sl);
 	}
 	if (!ml.empty())

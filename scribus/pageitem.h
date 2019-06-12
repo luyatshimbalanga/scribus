@@ -231,7 +231,7 @@ public:	// Start enumerator definitions
 public: // Start public functions
 
 	PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
-	virtual ~PageItem();
+	~PageItem() override;
 
 	/* these do essentially the same as a dynamic cast but might be more readable */
 	virtual PageItem_Arc * asArc()							{ return nullptr; } ///< Return self if Arc item, otherwise null
@@ -279,14 +279,14 @@ public: // Start public functions
 
 	//<< ********* Functions related to drawing the item *********
 
-	void DrawObj(ScPainter *p, QRectF e);
+	void DrawObj(ScPainter *p, QRectF cullingArea);
 	void DrawObj_Pre(ScPainter *p);
 	virtual void DrawObj_Post(ScPainter *p);
 	virtual void DrawObj_Decoration(ScPainter *p);
 	virtual void DrawObj_Item(ScPainter *p, QRectF e) = 0;
 	QImage DrawObj_toImage(double maxSize, int options = 0);
 	QImage DrawObj_toImage(QList<PageItem*> &emG, double scaling);
-	void DrawObj_Embedded(ScPainter *p, QRectF e, const CharStyle& style, PageItem* cembedded);
+	void DrawObj_Embedded(ScPainter *p, QRectF cullingArea, const CharStyle& style, PageItem* cembedded);
 	void DrawStrokePattern(ScPainter *p, QPainterPath &path);
 	void DrawSoftShadow(ScPainter *p);
 	/**
@@ -333,7 +333,7 @@ public: // Start public functions
 		  @param y Y position
 	   * @return bool true if x, i in the item
 	   */
-	bool pointWithinItem(const int x, const int y) const;
+	bool pointWithinItem(int x, int y) const;
 	/**
 	   * @brief Check if the mouse is within the items boundaries
 	   * This method performs necessary page to device transformations
@@ -350,8 +350,8 @@ public: // Start public functions
 
 
 	int level() const; ///< Get item level relative to its parent doc or group
-	void saxx(SaxHandler& handler, const Xml_string& elemtag) const {}
-	void saxx(SaxHandler& handler) const {}
+	void saxx(SaxHandler& handler, const Xml_string& elemtag) const override {}
+	void saxx(SaxHandler& handler) const override {}
 
 
 	/**
@@ -487,43 +487,43 @@ public: // Start public functions
 	double visualXPos() const;
 	double visualYPos() const;
 	FPoint xyPos() const { return FPoint(m_xPos, m_yPos); }
-	void setXPos(const double, bool drawingOnly=false);
-	void setYPos(const double, bool drawingOnly=false);
-	void setXYPos(const double, const double, bool drawingOnly=false);
-	void moveBy(const double, const double, bool drawingOnly=false);
+	void setXPos(double, bool drawingOnly=false);
+	void setYPos(double, bool drawingOnly=false);
+	void setXYPos(double, double, bool drawingOnly=false);
+	void moveBy(double, double, bool drawingOnly=false);
 	//Size
-	double width() const { return m_width; }
-	double height() const { return m_height; }
+	double width() const override { return m_width; }
+	double height() const override { return m_height; }
 	double visualWidth() const;
 	double visualHeight() const;
 	double visualLineWidth() const;
 	void setWidth(const double);
 	void setHeight(const double);
-	void setWidthHeight(const double, const double, bool drawingOnly);
-	void setWidthHeight(const double, const double);
-	void resizeBy(const double, const double);
+	void setWidthHeight(double, double, bool drawingOnly);
+	void setWidthHeight(double, double);
+	void resizeBy(const double, double);
 	//Rotation
 	double rotation() const { return m_rotation; }
-	void setRotation(const double, bool drawingOnly);
-	void setRotation(const double r) { setRotation(r, false); }  ///< needed for deSaXe
-	void rotateBy(const double);
+	void setRotation(double, bool drawingOnly);
+	void setRotation(double r) { setRotation(r, false); }  ///< needed for deSaXe
+	void rotateBy(double);
 	//Selection
 	bool isSelected() const { return m_isSelected; }
-	void setSelected(const bool);
+	void setSelected(bool);
 	//Image Data
 	double imageXScale() const { return m_imageXScale; }
 	double imageYScale() const { return m_imageYScale; }
-	void setImageXScale(const double);
-	void setImageYScale(const double);
-	void setImageXYScale(const double, const double);
+	void setImageXScale(double);
+	void setImageYScale(double);
+	void setImageXYScale(double, double);
 	double imageXOffset() const { return m_imageXOffset; }
 	double imageYOffset() const { return m_imageYOffset; }
-	void setImageXOffset(const double);
-	void setImageYOffset(const double);
-	void moveImageXYOffsetBy(const double, const double);
-	void setImageXYOffset(const double, const double);
+	void setImageXOffset(double);
+	void setImageYOffset(double);
+	void moveImageXYOffsetBy(double, double);
+	void setImageXYOffset(double, double);
 	double imageRotation() const { return m_imageRotation; }
-	void setImageRotation(const double newRotation);
+	void setImageRotation(double newRotation);
 	//Rounded Corners
 	double cornerRadius() const { return m_roundedCorderRadius; }
 	void setCornerRadius(double);
@@ -1145,7 +1145,7 @@ public: // Start public functions
 	void changeImageScaleUndoAction();
 	/*@}*/
 	/** @brief Required by the UndoObject */
-	void restore(UndoState *state, bool isUndo);
+	void restore(UndoState *state, bool isUndo) override;
 
 	virtual void getNamedResources(ResourceCollection& lists) const;
 	virtual void replaceNamedResources(ResourceCollection& newNames);
@@ -1191,7 +1191,7 @@ public: // Start public functions
 	 * @brief Load an image into an image frame, moved from ScribusView
 	 * @return True if load succeeded
 	 */
-	virtual bool loadImage(const QString& filename, const bool reload, const int gsResolution=-1, bool showMsg = false);
+	virtual bool loadImage(const QString& filename, bool reload, int gsResolution=-1, bool showMsg = false);
 
 
 	/**

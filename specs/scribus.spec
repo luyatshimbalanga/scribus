@@ -11,35 +11,26 @@ URL:		http://www.scribus.net/
 Source0:	https://github.com/%{name}project/%{name}/archive/master.tar.gz#/%{name}-%{version}-%{build_timestamp}git.tar.gz
 
 BuildRequires:	boost-devel
-BuildRequires:	cairo-devel
 BuildRequires:	cmake
 BuildRequires:	cups-devel
 BuildRequires:	desktop-file-utils
-BuildRequires:	fontconfig-devel
-BuildRequires:	freetype-devel
 BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
-BuildRequires:	gnutls-devel
 BuildRequires:	GraphicsMagick-devel
 BuildRequires:	GraphicsMagick-c++-devel
-BuildRequires:	harfbuzz-devel
 BuildRequires:	hyphen-devel
 BuildRequires:	hunspell-devel
 BuildRequires:	lcms2-devel
 BuildRequires:	libappstream-glib
 BuildRequires:	libcdr-devel
 BuildRequires:	libfreehand-devel
-BuildRequires:	libicu-devel
 BuildRequires:	libjpeg-turbo-devel
 BuildRequires:	libmspub-devel
 BuildRequires:	libpagemaker-devel
-BuildRequires:	libpng-devel
 BuildRequires:	librevenge-devel
-BuildRequires:	libtiff-devel
 BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel
 BuildRequires:	libwpg-devel
-BuildRequires:	libxml2-devel
 BuildRequires:	OpenSceneGraph-devel
 BuildRequires:	openssl-devel
 BuildRequires:	podofo-devel
@@ -54,13 +45,30 @@ BuildRequires:	python3-pillow-devel
 BuildRequires:	python-pillow-devel
 %endif
 BuildRequires:	python-qt5-devel
-BuildRequires:	qt5-qtbase-devel
-BuildRequires:	qt5-qtdeclarative-devel
-BuildRequires:	qt5-qttools-devel
-BuildRequires:	qt5-qtwebkit-devel
 BuildRequires:	tk-devel
 BuildRequires:	tkinter
-BuildRequires:	zlib-devel
+
+# Some libraries have pkconfig files so use them
+BuildRequires:	pkgconfig(cairo)
+BuildRequires:	pkgconfig(fontconfig)
+BuildRequires:	pkgconfig(freetype2)
+BuildRequires:	pkgconfig(gnutls)
+BuildRequires:	pkgconfig(harfbuzz)
+BuildRequires:	pkgconfig(icu-uc)
+BuildRequires:	pkgconfig(libpng)
+BuildRequires:	pkgconfig(libtiff-4)
+BuildRequires:	pkgconfig(Qt5)
+BuildRequires:	pkgconfig(Qt5Core)
+BuildRequires:	pkgconfig(Qt5Gui)
+BuildRequires:	pkgconfig(Qt5LinguistTools)
+BuildRequires:	pkgconfig(Qt5Network)
+BuildRequires:	pkgconfig(Qt5OpenGL)
+BuildRequires:	pkgconfig(Qt5PrintSupport)
+BuildRequires:	pkgconfig(Qt5Quick)
+BuildRequires:	pkgconfig(Qt5Webkit)
+BuildRequires:	pkgconfig(Qt5WebkitWidgets)
+BuildRequires:	pkgconfig(Qt5Xml)
+BuildRequires:	pkgconf(zlib)
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7
@@ -211,6 +219,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Wed Jun 12 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190614git
+- Use pkgconfig files from some libraries
+
 * Wed Jun 12 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190612git
 - Snapshot svn 23022
 

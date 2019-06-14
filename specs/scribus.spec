@@ -60,15 +60,12 @@ BuildRequires:	pkgconfig(libtiff-4)
 BuildRequires:	pkgconfig(Qt5)
 BuildRequires:	pkgconfig(Qt5Core)
 BuildRequires:	pkgconfig(Qt5Gui)
-BuildRequires:	pkgconfig(Qt5LinguistTools)
 BuildRequires:	pkgconfig(Qt5Network)
 BuildRequires:	pkgconfig(Qt5OpenGL)
 BuildRequires:	pkgconfig(Qt5PrintSupport)
 BuildRequires:	pkgconfig(Qt5Quick)
-BuildRequires:	pkgconfig(Qt5Webkit)
-BuildRequires:	pkgconfig(Qt5WebkitWidgets)
 BuildRequires:	pkgconfig(Qt5Xml)
-BuildRequires:	pkgconf(zlib)
+BuildRequires:	pkgconfig(zlib)
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7

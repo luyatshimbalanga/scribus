@@ -31,6 +31,8 @@ BuildRequires:	librevenge-devel
 BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel
 BuildRequires:	libwpg-devel
+# Dependency needed for development repository
+BuildRequires:	libzmf-devel
 BuildRequires:	OpenSceneGraph-devel
 BuildRequires:	openssl-devel
 BuildRequires:	podofo-devel

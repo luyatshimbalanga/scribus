@@ -47,7 +47,7 @@ BuildRequires:	python-pillow-devel
 BuildRequires:	python-qt5-devel
 BuildRequires:	qt5-qtbase-devel
 BuildRequires:	qt5-qtdeclarative-devel
-BuildRequires:	qt5-qttools-devel
+BuildRequires:	qt5-qttools-deve
 BuildRequires:	qt5-qtwebkit-devel
 BuildRequires:	tk-devel
 BuildRequires:	tkinter
@@ -61,7 +61,6 @@ BuildRequires:	pkgconfig(harfbuzz)
 BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(libpng)
 BuildRequires:	pkgconfig(libtiff-4)
-BuildRequires:	pkgconfig(libzmf)
 BuildRequires:	pkgconfig(zlib)
 
 

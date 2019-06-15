@@ -45,6 +45,10 @@ BuildRequires:	python3-pillow-devel
 BuildRequires:	python-pillow-devel
 %endif
 BuildRequires:	python-qt5-devel
+BuildRequires:	qt5-qtbase-devel
+BuildRequires:	qt5-qtdeclarative-devel
+BuildRequires:	qt5-qttools-devel
+BuildRequires:	qt5-qtwebkit-devel
 BuildRequires:	tk-devel
 BuildRequires:	tkinter
 
@@ -58,15 +62,6 @@ BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(libpng)
 BuildRequires:	pkgconfig(libtiff-4)
 BuildRequires:	pkgconfig(libzmf)
-BuildRequires:	pkgconfig(Qt5)
-BuildRequires:	pkgconfig(Qt5Concurrent)
-BuildRequires:	pkgconfig(Qt5Core)
-BuildRequires:	pkgconfig(Qt5Gui)
-BuildRequires:	pkgconfig(Qt5Network)
-BuildRequires:	pkgconfig(Qt5OpenGL)
-BuildRequires:	pkgconfig(Qt5PrintSupport)
-BuildRequires:	pkgconfig(Qt5Widgets)
-BuildRequires:	pkgconfig(Qt5Xml)
 BuildRequires:	pkgconfig(zlib)
 
 

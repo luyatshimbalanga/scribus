@@ -27,6 +27,7 @@ BuildRequires:	libfreehand-devel
 BuildRequires:	libjpeg-turbo-devel
 BuildRequires:	libmspub-devel
 BuildRequires:	libpagemaker-devel
+BuildRequires:	libqxp-devel
 BuildRequires:	librevenge-devel
 BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel

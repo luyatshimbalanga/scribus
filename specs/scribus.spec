@@ -215,6 +215,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Wed Jun 19 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190619git
+- Snapshot svn 23030
+
 * Wed Jun 12 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190614git
 - Use pkgconfig files from some libraries
 

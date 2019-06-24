@@ -48,6 +48,7 @@ BuildRequires:	python3-pillow-devel
 BuildRequires:	python-pillow-devel
 %endif
 BuildRequires:	python3-qt5-devel
+BuildRequires:	qt5-devel
 BuildRequires:	qt5-qtbase-devel
 BuildRequires:	qt5-qtdeclarative-devel
 BuildRequires:	qt5-qttools-devel

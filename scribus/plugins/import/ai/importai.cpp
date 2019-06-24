@@ -1412,7 +1412,7 @@ void AIPlug::processData(const QString& data)
 			dataString = "";
 			if (fObjectMode)
 			{
-				FPoint wh = currentSpecialPath.WidthHeight();
+				FPoint wh = currentSpecialPath.widthHeight();
 				if ((currentSpecialPath.size() > 3) && (wh.x() != 0.0) && (wh.y() != 0.0))
 				{
 					z = m_Doc->itemAdd(PageItem::ImageFrame, PageItem::Unspecified, baseX, baseY, 10, 10, 0, CommonStrings::None, CommonStrings::None);
@@ -1447,7 +1447,7 @@ void AIPlug::processData(const QString& data)
 					if (ite->imageIsAvailable)
 						ite->setImageXYScale(ite->width() / ite->pixm.width(), ite->height() / ite->pixm.height());
 					ite->setImageFlippedV(true);
-					ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+					ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 					ite->setRedrawBounding();
 					if (importerFlags & LoadSavePlugin::lfCreateDoc)
 						ite->setLocked(itemLocked);
@@ -1590,7 +1590,7 @@ void AIPlug::processData(const QString& data)
 /* Start Object creation commands */
 		else if ((command == "b") || (command == "B") || (command == "f") || (command == "F") || (command == "s") || (command == "S"))
 		{
-			FPoint wh = Coords.WidthHeight();
+			FPoint wh = Coords.widthHeight();
 			if ((Coords.size() > 3) && (wh.x() != 0.0) && (wh.y() != 0.0))
 			{
 				if ((!WasU) || ((WasU) && (FirstU)))
@@ -2565,7 +2565,7 @@ void AIPlug::processData(const QString& data)
 					ite->setRotation(rotation * 180 / M_PI);
 					ite->SetRectFrame();
 					m_Doc->setRedrawBounding(ite);
-					ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+					ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 					ite->setTextFlowMode(PageItem::TextFlowDisabled);
 					ite->setFillShade(CurrFillShade);
 					ite->setLineShade(CurrStrokeShade);
@@ -3036,7 +3036,7 @@ void AIPlug::processRaster(QDataStream &ts)
 	ite->setRotation(rotation * 180 / M_PI);
 	ite->SetRectFrame();
 	m_Doc->setRedrawBounding(ite);
-	ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+	ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 	ite->setTextFlowMode(PageItem::TextFlowDisabled);
 	ite->setFillShade(CurrFillShade);
 	ite->setLineShade(CurrStrokeShade);

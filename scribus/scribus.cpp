@@ -837,14 +837,15 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->addMenuItemString("editCut", "Edit");
 	scrMenuMgr->addMenuItemString("editCopy", "Edit");
 	scrMenuMgr->addMenuItemString("editPaste", "Edit");
-	scrMenuMgr->createMenu("EditPasteRecent", tr("Paste Recent"), "Edit",false,true);
-	scrMenuMgr->createMenu("EditContents", tr("Contents"), "Edit");
+	scrMenuMgr->createMenu("EditPasteRecent", tr("Paste Recent"), "Edit", false, true);
+	scrMenuMgr->addMenuItemString("itemDelete", "Edit");
+	scrMenuMgr->createMenu("EditContents", tr("Contents"), "Edit", false, true);
+	scrMenuMgr->addMenuItemString("EditContents", "Edit");
 	scrMenuMgr->addMenuItemString("editCopyContents", "EditContents");
 	scrMenuMgr->addMenuItemString("editPasteContents", "EditContents");
 	scrMenuMgr->addMenuItemString("editPasteContentsAbs", "EditContents");
 	scrMenuMgr->addMenuItemString("editClearContents", "EditContents");
-	scrMenuMgr->addMenuItemString("editTruncateContents", "EditTruncateContents");
-	scrMenuMgr->addMenuItemString("itemDelete", "Edit");
+	scrMenuMgr->addMenuItemString("editTruncateContents", "EditContents");
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Edit");
 	scrMenuMgr->addMenuItemString("editSelectAll", "Edit");
 	scrMenuMgr->addMenuItemString("editSelectAllOnLayer", "Edit");
@@ -1145,7 +1146,7 @@ void ScribusMainWindow::initMenuBar()
 //	scrMenuMgr->addMenuItemString("extrasTestQTQuick2_1", "Extras");
 
 	//Window menu
-	scrMenuMgr->createMenu("Windows", ActionManager::defaultMenuNameEntryTranslated("Windows"), QString::null, true);
+	scrMenuMgr->createMenu("Windows", ActionManager::defaultMenuNameEntryTranslated("Windows"), QString(), true);
 
 	//Help menu
 	scrMenuMgr->createMenu("Help", ActionManager::defaultMenuNameEntryTranslated("Help"));
@@ -2007,7 +2008,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 	// Clean up plugins, THEN save prefs to disk
 	ScCore->pluginManager->cleanupPlugins();
 	if (!m_prefsManager->appPrefs.scrapbookPrefs.persistentScrapbook)
-		scrapbookPalette->CleanUpTemp();
+		scrapbookPalette->cleanUpTemp();
 	m_prefsManager->appPrefs.scrapbookPrefs.RecentScrapbooks.clear();
 	m_prefsManager->appPrefs.scrapbookPrefs.RecentScrapbooks = scrapbookPalette->getOpenScrapbooks();
 	if (!emergencyActivated)
@@ -4629,7 +4630,7 @@ void ScribusMainWindow::slotEditCut()
 		QString BufferS = ss.writeElem(doc, doc->m_Selection);
 		if ((m_prefsManager->appPrefs.scrapbookPrefs.doCopyToScrapbook) && (!internalCopy))
 		{
-			scrapbookPalette->ObjFromCopyAction(BufferS, currItem->itemName());
+			scrapbookPalette->objFromCopyAction(BufferS, currItem->itemName());
 			rebuildRecentPasteMenu();
 		}
 		ScElemMimeData* mimeData = new ScElemMimeData();
@@ -4713,7 +4714,7 @@ void ScribusMainWindow::slotEditCopy()
 		{
 			if ((m_prefsManager->appPrefs.scrapbookPrefs.doCopyToScrapbook) && (!internalCopy))
 			{
-				scrapbookPalette->ObjFromCopyAction(BufferS, currItem->itemName());
+				scrapbookPalette->objFromCopyAction(BufferS, currItem->itemName());
 				rebuildRecentPasteMenu();
 			}
 			ScElemMimeData* mimeData = new ScElemMimeData();
@@ -5441,8 +5442,8 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 	ScPage* currentPage = doc->currentPage();
 	for (int i = 0; i < numPages; ++i)
 	{
-		slotNewPage(wot, base[(wot + pageSet.FirstPage) % pageSet.Columns], mov); //Avoid the master page application with QString::null
-//		slotNewPage(wot, QString::null, mov); //Avoid the master page application with QString::null
+		slotNewPage(wot, base[(wot + pageSet.FirstPage) % pageSet.Columns], mov); //Avoid the master page application with QString()
+//		slotNewPage(wot, QString(), mov); //Avoid the master page application with QString()
 		//CB: #8212: added overrideMasterPageSizing, but keeping default to true for other calls for now, off for calls from InsPage
 		if (overrideMasterPageSizing)
 		{	
@@ -7323,7 +7324,7 @@ void ScribusMainWindow::doSaveAsPDF()
 		QString pdfViewer(PrefsManager::instance()->appPrefs.extToolPrefs.pdfViewerExecutable);
 		if (pdfViewer.isEmpty())
 		{
-			pdfViewer = QFileDialog::getOpenFileName(this, tr("Locate your PDF viewer"), QString::null, QString::null);
+			pdfViewer = QFileDialog::getOpenFileName(this, tr("Locate your PDF viewer"), QString(), QString());
 			if (!QFileInfo::exists(pdfViewer))
 				pdfViewer="";
 			PrefsManager::instance()->appPrefs.extToolPrefs.pdfViewerExecutable=pdfViewer;
@@ -8223,7 +8224,7 @@ void ScribusMainWindow::PutScrap(int scID)
 		DOC = DOC.nextSibling();
 	}
 	objectString = docu.toString();
-	scrapbookPalette->ObjFromMainMenu(objectString, scID);
+	scrapbookPalette->objFromMainMenu(objectString, scID);
  }
 
 void ScribusMainWindow::changeLayer(int )
@@ -8378,7 +8379,7 @@ QString ScribusMainWindow::fileCollect(bool compress, bool withFonts, const bool
 {
 	if ((doc->hasName) && doc->documentFileName().endsWith(".gz"))
 		compress=true;
-	CollectForOutput_UI c(this, doc, QString::null, withFonts, withProfiles, compress);
+	CollectForOutput_UI c(this, doc, QString(), withFonts, withProfiles, compress);
 	QString newFileName;
 	QString errorMsg=c.collect(newFileName);
 	qDebug()<<errorMsg;

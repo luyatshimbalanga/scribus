@@ -38,15 +38,7 @@ QVector< QPair<QString, QStringList> > ActionManager::defNonMenuNames;
 QVector< QPair<QString, QStringList> > ActionManager::defNonMenuActions;
 
 ActionManager::ActionManager ( QObject * parent ) :
-	QObject ( parent),
-	mainWindow(nullptr),
-	undoManager(nullptr),
-	im(nullptr),
-	scrActions(nullptr),
-	scrActionGroups(nullptr),
-	modeActionNames(nullptr),
-	nonEditActionNames(nullptr),
-	unicodeCharActionNames(nullptr)
+	QObject ( parent)
 {
 }
 
@@ -2536,14 +2528,14 @@ void ActionManager::languageChangeActions()
 {
 	//Here we mangle the URL based on the current GUI language, returning English if we don't get one of these hard coded options.
 	//CB TODO make more flexible one day.
-	QString language="EN";
+	QString language("EN");
 	QString langpref(ScCore->getGuiLanguage().left(2));
 	if (langpref=="de" || langpref=="fr" || langpref=="po" || langpref=="pt" || langpref=="ru")
 		language=langpref.toUpper();
 	(*scrActions)["helpOnlineTutorial1"]->setActionQString("http://wiki.scribus.net/index.php/tutorial"+language);
 }
 
-QKeySequence ActionManager::defaultKey(const QString & actionName)
+QKeySequence ActionManager::defaultKey(const QString& actionName)
 {
 	if (defKeys.contains(actionName))
 		return defKeys.value(actionName);
@@ -2558,6 +2550,6 @@ QString ActionManager::defaultMenuNameEntryTranslated(const QString& index)
 		if (defMenuNames.at(i).first == index)
 			return defMenuNames.at(i).second.at(2);
 	}
-	return QString::null;
+	return QString();
 }
 

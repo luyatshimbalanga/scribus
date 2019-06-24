@@ -1463,7 +1463,7 @@ void ScribusView::TransformPoly(int mode, int rot, double scaling)
 	{
 		FPoint tp2(getMinClipF(&currItem->ContourLine));
 		FPoint tp(getMaxClipF(&currItem->ContourLine));
-		FPoint tpS = currItem->ContourLine.WidthHeight();
+		FPoint tpS = currItem->ContourLine.widthHeight();
 		currItem->ContourLine.translate(-qRound((tp.x() + tp2.x()) / 2.0), -qRound((tp.y() + tp2.y()) / 2.0));
 		switch (mode)
 		{
@@ -3189,7 +3189,7 @@ void ScribusView::TextToPath()
 				newItem->FrameType = 3;
 				newItem->OldB2 = newItem->width();
 				newItem->OldH2 = newItem->height();
-				newItem->Clip = FlattenPath(newItem->PoLine, newItem->Segments);
+				newItem->Clip = flattenPath(newItem->PoLine, newItem->Segments);
 				newItem->ContourLine = newItem->PoLine.copy();
 				newGroupedItems.prepend(newItem);
 			}

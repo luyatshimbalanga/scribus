@@ -40,14 +40,14 @@ BuildRequires:	podofo-devel
 BuildRequires:	poppler-cpp-devel
 BuildRequires:	poppler-data-devel
 BuildRequires:	poppler-devel
-BuildRequires:	python-devel
+BuildRequires:	python3-devel
 %if 0%{?fedora} > 24
 BuildRequires:	python2-pillow-devel
 BuildRequires:	python3-pillow-devel
 %else
 BuildRequires:	python-pillow-devel
 %endif
-BuildRequires:	python-qt5-devel
+BuildRequires:	python3-qt5-devel
 BuildRequires:	qt5-qtbase-devel
 BuildRequires:	qt5-qtdeclarative-devel
 BuildRequires:	qt5-qttools-devel
@@ -215,6 +215,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Jun 24 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190624git
+- Snapshot svn 23049
+
 * Wed Jun 19 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190619git
 - Snapshot svn 23030
 

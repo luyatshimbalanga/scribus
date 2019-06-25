@@ -16,7 +16,6 @@ BuildRequires:	cups-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
-BuildRequires:	glibc-headers
 BuildRequires:	GraphicsMagick-devel
 BuildRequires:	GraphicsMagick-c++-devel
 BuildRequires:	hyphen-devel
@@ -33,6 +32,7 @@ BuildRequires:	librevenge-devel
 BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel
 BuildRequires:	libwpg-devel
+BuildRequires:	libxml2-devel
 # Dependency needed for development repository
 BuildRequires:	libzmf-devel
 BuildRequires:	OpenSceneGraph-devel

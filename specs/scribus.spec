@@ -16,6 +16,7 @@ BuildRequires:	cups-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
+BuildRequires:	glibc-headers
 BuildRequires:	GraphicsMagick-devel
 BuildRequires:	GraphicsMagick-c++-devel
 BuildRequires:	hyphen-devel

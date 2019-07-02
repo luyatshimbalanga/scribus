@@ -188,7 +188,6 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_bindir}/%{name}
 %{_libdir}/%{name}/
 %{_datadir}/metainfo/%{name}.appdata.xml
-#%%{_datadir}/applications/%%{name}.desktop
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/mime/packages/%{name}.xml
 %{_datadir}/icons/hicolor/16x16/apps/%{name}.png
@@ -217,6 +216,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Jul 01 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190630git
+- Snapshot svn 23058
+
 * Mon Jun 24 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190624git
 - Snapshot svn 23049
 

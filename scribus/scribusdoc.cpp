@@ -4281,7 +4281,7 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(const GlyphCluster& gc)
+	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isControlGlyphs())
 			return;
@@ -4300,15 +4300,15 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphCluster& gc, bool)
+	void drawGlyphOutline(const GlyphCluster& gc, bool) override
 	{
 		drawGlyph(gc);
 	}
 
 	// we don't need this one
-	void drawLine(QPointF, QPointF) {}
-	void drawRect(QRectF) {}
-	void drawObject(PageItem*) {}
+	void drawLine(QPointF, QPointF) override {}
+	void drawRect(QRectF) override {}
+	void drawObject(PageItem*) override {}
 
 private:
 	QMap<QString, QMap<uint, FPointArray> > & m_really;
@@ -16059,13 +16059,14 @@ void ScribusDoc::setNewPrefs(const ApplicationPrefs& prefsData, const Applicatio
 			Items->at(i)->setImageVisible(m_docPrefsData.guidesPrefs.showPic);
 	}
 
-	double oldBaseGridValue  = oldPrefsData.guidesPrefs.valueBaselineGrid;
-	double oldBaseGridOffset = oldPrefsData.guidesPrefs.offsetBaselineGrid;
-	if (oldBaseGridValue  != prefsData.guidesPrefs.valueBaselineGrid ||
-		oldBaseGridOffset != prefsData.guidesPrefs.offsetBaselineGrid )
-	{
+	bool   mustInvalidateAll = false;
+	mustInvalidateAll |= (oldPrefsData.guidesPrefs.valueBaselineGrid  != prefsData.guidesPrefs.valueBaselineGrid);
+	mustInvalidateAll |= (oldPrefsData.guidesPrefs.offsetBaselineGrid != prefsData.guidesPrefs.offsetBaselineGrid);
+	mustInvalidateAll |= (oldPrefsData.typoPrefs != prefsData.typoPrefs);
+	mustInvalidateAll |= (oldPrefsData.docSectionMap != prefsData.docSectionMap);
+
+	if (mustInvalidateAll)
 		this->invalidateAll();
-	}
 }
 
 void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMasterPages, bool resizePageMargins, bool resizeMasterPageMargins)

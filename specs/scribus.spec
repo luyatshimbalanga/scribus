@@ -216,6 +216,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Jul 15 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190715git
+- Snapshot svn 23080
+
 * Mon Jul 01 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190705git
 - Snapshot svn 23067
 
@@ -248,106 +251,3 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 * Fri May 03 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190503	git
 - Snapshot svn 22975
-
-* Wed Apr 24 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190429	git
-- Snapshot svn 22970
-
-* Wed Apr 24 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190424	git
-- Snapshot svn 22964
-
-* Wed Apr 17 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190417git
-- Snapshot svn 22955
-
-* Thu Apr 04 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190404git
-- Snapshot svn 22930
-
-* Wed Apr 03 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190329git
-- Snapshot svn 22922
-
-* Mon Mar 04 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190320git
-- Snapshot svn 22905
-
-* Mon Mar 04 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190304git
-- Snapshot svn 22867
-
-* Tue Jan 15 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190121git
-- Snapshot svn 22812
-
-* Tue Jan 15 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190113git
-- Snapshot svn 22805
-
-* Sat Dec 15 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181227git
-- Snapshot svn 22797
-
-* Sat Dec 15 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181215git
-- Snapshot svn 22789
-
-* Fri Dec 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181205git
-- Snapshot svn 22779
-
-* Thu Nov 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181122git
-- Snapshot svn 22773
-
-* Wed Nov 14 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181114git
-- Snapshot svn 22756
-
-* Sat Nov 03 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181101git
-- Snapshot svn 22751
-
-* Thu Oct 25 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181022git
-- Snapshot svn 22741
-
-* Thu Oct 25 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181021git
-- Snapshot svn 22740
-
-* Sat Oct 13 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0.20181013git
-- Snapshot svn 22730
-
-* Mon Oct 01 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20181001git
-- Snapshot svn 22716
-
-* Mon Sep 24 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180924git
-- Snapshot svn 22704
-
-* Fri Sep 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180907git
-- Snapshot svn 22672
-
-* Fri Aug 24 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180824git
-- Snapshot svn 22649
-
-* Wed Aug 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180822git
-- Snapshot svn 22641
-
-* Tue Aug 07 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180807git
-- Snapshot svn 22620
-- Add gcc-c++ dependencies
-
-* Sun Jul 22 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180722git
-- Snapshot svn 22597 
-
-* Thu Jun 21 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180621git
-- New snapshot
-
-* Wed Jun 06 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180606git
-- Snapshot svn 22578
-
-* Tue May 29 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180529git
-- Snapshot svn 22563
-
-* Fri May 04 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180504git
-- Snapshot svn 22522
-
-* Wed May 02 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20180502git
-- Snapshot svn 22514
-
-* Mon Apr 30 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0.20180430git
-- Snapshot svn 22496
-
-* Mon Apr 23 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.4-0.20180423git
-- Snapshot svn 22473
-
-* Wed Apr 18 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.4-0-20180418git
-- Snapshot svn 22469
-
-* Tue Apr 10 2018 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.4-0.20180410git
-- Snapshot svn 22466

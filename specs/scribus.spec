@@ -1,7 +1,7 @@
 %global build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:		scribus
-Version:	1.5.5
+Version:	1.5.6
 Release:	0.%{build_timestamp}git%{?dist}
 Summary:	Open Source Page Layout
 License:	GPLv2+
@@ -55,7 +55,9 @@ BuildRequires:	qt5-qtdeclarative-devel
 BuildRequires:	qt5-qttools-devel
 BuildRequires:	qt5-qtwebkit-devel
 BuildRequires:	tk-devel
+%if 0%{?fedora} < 31
 BuildRequires:	tkinter
+%endif
 
 # Some libraries have pkconfig files so use them
 BuildRequires:	pkgconfig(cairo)
@@ -216,6 +218,9 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Sun Aug 04 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20190804git
+- Update to 1.5.6 snapshot svn 23099
+
 * Mon Jul 15 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190715git
 - Snapshot svn 23086
 

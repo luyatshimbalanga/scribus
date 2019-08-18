@@ -20,7 +20,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "scconfig.h"
 
-#include "color.h"
 #include "commonstrings.h"
 #include "fpointarray.h"
 #include "pageitem.h"
@@ -1053,11 +1052,11 @@ void OODPlug::parseParagraphStyle(ParagraphStyle& style, const QDomElement &e)
 	{
 		QString attValue = m_styleStack.attribute("fo:text-align");
 		if (attValue == "left")
-			style.setAlignment(ParagraphStyle::Leftaligned);
+			style.setAlignment(ParagraphStyle::LeftAligned);
 		if (attValue == "center")
 			style.setAlignment(ParagraphStyle::Centered);
 		if (attValue == "right")
-			style.setAlignment(ParagraphStyle::Rightaligned);
+			style.setAlignment(ParagraphStyle::RightAligned);
 	}
 	if (m_styleStack.hasAttribute("fo:font-size"))
 	{
@@ -1355,13 +1354,6 @@ double OODPlug::parseUnit(const QString &unit)
 	return value;
 }
 
-QColor OODPlug::parseColorN( const QString &rgbColor )
-{
-	int r, g, b;
-	keywordToRGB( rgbColor, r, g, b );
-	return QColor( r, g, b );
-}
-
 QString OODPlug::parseColor( const QString &s )
 {
 	QColor c;
@@ -1391,13 +1383,8 @@ QString OODPlug::parseColor( const QString &s )
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith( "#" ))
-			c.setNamedColor(rgbColor);
-		else
-			c = parseColorN(rgbColor);
-	}
+		c.setNamedColor(s.trimmed());
+
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);

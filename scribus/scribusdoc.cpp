@@ -351,7 +351,7 @@ void ScribusDoc::init()
 	pstyle.setName(CommonStrings::DefaultParagraphStyle);
 	pstyle.setLineSpacingMode(ParagraphStyle::FixedLineSpacing);
 	pstyle.setLineSpacing(15);
-	pstyle.setAlignment(ParagraphStyle::Leftaligned);
+	pstyle.setAlignment(ParagraphStyle::LeftAligned);
 	pstyle.setDirection(ParagraphStyle::LTR);
 	pstyle.setLeftMargin(0);
 	pstyle.setFirstIndent(0);
@@ -2454,7 +2454,7 @@ ScPage* ScribusDoc::addPage(const int pageIndex, const QString& masterPageName, 
 	addedPage->Margins.setBottom(m_docPrefsData.docSetupPrefs.margins.bottom());
 	addedPage->initialMargins = m_docPrefsData.docSetupPrefs.margins;
 	addedPage->setPageNr(pageIndex);
-	addedPage->m_pageSize = m_docPrefsData.docSetupPrefs.pageSize;
+	addedPage->setSize(m_docPrefsData.docSetupPrefs.pageSize);
 	addedPage->setOrientation(m_docPrefsData.docSetupPrefs.pageOrientation);
 	addedPage->marginPreset = m_docPrefsData.docSetupPrefs.marginPreset;
 	DocPages.insert(pageIndex, addedPage);
@@ -2476,10 +2476,10 @@ ScPage* ScribusDoc::addMasterPage(const int pageNumber, const QString& pageName)
 	addedPage->setDocument(this);
 	addedPage->Margins = m_docPrefsData.docSetupPrefs.margins;
 	addedPage->initialMargins = m_docPrefsData.docSetupPrefs.margins;
-	addedPage->m_pageSize = m_docPrefsData.docSetupPrefs.pageSize;
+	addedPage->setSize(m_docPrefsData.docSetupPrefs.pageSize);
 	addedPage->setOrientation(m_docPrefsData.docSetupPrefs.pageOrientation);
 	addedPage->marginPreset = m_docPrefsData.docSetupPrefs.marginPreset;
-	addedPage->MPageNam = "";
+	addedPage->clearMasterPageName();
 	int pgN = pageNumber;
 	if (pageNumber > MasterPages.count())
 		pgN = MasterPages.count();
@@ -2519,8 +2519,8 @@ bool ScribusDoc::renameMasterPage(const QString& oldPageName, const QString& new
 	for (int i=0; i < DocPages.count(); ++i )
 	{
 		docPage=DocPages[i];
-		if (docPage->MPageNam == oldPageName)
-			docPage->MPageNam = newPageName;
+		if (docPage->masterPageName() == oldPageName)
+			docPage->setMasterPageName(newPageName);
 	}
 	//Update any items that were linking to our old name
 	int masterItemsCount=MasterItems.count();
@@ -2579,35 +2579,35 @@ void ScribusDoc::replaceMasterPage(const QString& oldMasterPage)
 	while (dpIt.hasNext())
 	{
 		docPage = dpIt.next();
-		if (docPage->MPageNam == oldMasterPage)
+		if (docPage->masterPageName() == oldMasterPage)
 		{
 			PageLocation pageLoc = locationOfPage(pageIndex);
 			if (pageLoc == LeftPage)
 			{
-				if (MasterNames.contains( CommonStrings::trMasterPageNormalLeft))
-					docPage->MPageNam = CommonStrings::trMasterPageNormalLeft;
-				else if (MasterNames.contains( CommonStrings::trMasterPageNormal))
-					docPage->MPageNam = CommonStrings::trMasterPageNormal;
+				if (MasterNames.contains(CommonStrings::trMasterPageNormalLeft))
+					docPage->setMasterPageName(CommonStrings::trMasterPageNormalLeft);
+				else if (MasterNames.contains(CommonStrings::trMasterPageNormal))
+					docPage->setMasterPageNameNormal();
 				else
-					docPage->MPageNam = it.key();
+					docPage->setMasterPageName(it.key());
 			}
 			else if (pageLoc == RightPage)
 			{
-				if (MasterNames.contains( CommonStrings::trMasterPageNormalRight))
-					docPage->MPageNam = CommonStrings::trMasterPageNormalRight;
-				else if (MasterNames.contains( CommonStrings::trMasterPageNormal))
-					docPage->MPageNam = CommonStrings::trMasterPageNormal;
+				if (MasterNames.contains(CommonStrings::trMasterPageNormalRight))
+					docPage->setMasterPageName(CommonStrings::trMasterPageNormalRight);
+				else if (MasterNames.contains(CommonStrings::trMasterPageNormal))
+					docPage->setMasterPageNameNormal();
 				else
-					docPage->MPageNam = it.key();
+					docPage->setMasterPageName(it.key());
 			}
 			else
 			{
-				if (MasterNames.contains( CommonStrings::trMasterPageNormalMiddle))
-					docPage->MPageNam = CommonStrings::trMasterPageNormalMiddle;
-				else if (MasterNames.contains( CommonStrings::trMasterPageNormal))
-					docPage->MPageNam = CommonStrings::trMasterPageNormal;
+				if (MasterNames.contains(CommonStrings::trMasterPageNormalMiddle))
+					docPage->setMasterPageName(CommonStrings::trMasterPageNormalMiddle);
+				else if (MasterNames.contains(CommonStrings::trMasterPageNormal))
+					docPage->setMasterPageNameNormal();
 				else
-					docPage->MPageNam = it.key();
+					docPage->setMasterPageName(it.key());
 			}
 		}
 		pageIndex++;
@@ -4622,17 +4622,17 @@ bool ScribusDoc::applyMasterPage(const QString& pageName, const int pageNumber)
 
 	if (UndoManager::undoEnabled())
 	{
-		if (DocPages.at(pageNumber)->MPageNam != pageName)
+		if (DocPages.at(pageNumber)->masterPageName() != pageName)
 		{
-			SimpleState *ss = new SimpleState(Um::ApplyMasterPage, QString(Um::FromTo).arg(DocPages.at(pageNumber)->MPageNam, pageName));
+			SimpleState *ss = new SimpleState(Um::ApplyMasterPage, QString(Um::FromTo).arg(DocPages.at(pageNumber)->masterPageName(), pageName));
 			ss->set("PAGE_NUMBER", pageNumber);
-			ss->set("OLD_MASTERPAGE", DocPages.at(pageNumber)->MPageNam);
+			ss->set("OLD_MASTERPAGE", DocPages.at(pageNumber)->masterPageName());
 			ss->set("NEW_MASTERPAGE", pageName);
 			m_undoManager->action(this, ss);
 		}
 	}
 	ScPage* Ap = DocPages.at(pageNumber);
-	Ap->MPageNam = pageName;
+	Ap->setMasterPageName(pageName);
 	const int MpNr = MasterNames[pageName];
 	ScPage* Mp = MasterPages.at(MpNr);
 	PageItem *currItem;
@@ -4701,7 +4701,7 @@ bool ScribusDoc::applyMasterPage(const QString& pageName, const int pageNumber)
 		Ap->setHeight(Mp->height());
 		Ap->setWidth(Mp->width());
 		Ap->setOrientation(Mp->orientation());
-		Ap->m_pageSize = Mp->m_pageSize;
+		Ap->setSize(Mp->size());
 	}
 	//TODO make a return false if not possible to apply the master page
 	if (!isLoading())
@@ -4806,7 +4806,7 @@ bool ScribusDoc::changePageProperties(const double initialTop, const double init
 		ss->set("OLD_PAGE_HEIGHT", m_currentPage->height());
 		ss->set("OLD_PAGE_WIDTH", m_currentPage->width());
 		ss->set("OLD_PAGE_ORIENTATION", m_currentPage->orientation());
-		ss->set("OLD_PAGE_SIZE", m_currentPage->m_pageSize);
+		ss->set("OLD_PAGE_SIZE", m_currentPage->size());
 		ss->set("OLD_PAGE_TYPE", m_currentPage->LeftPg);
 		ss->set("OLD_PAGE_MARGINPRESET", m_currentPage->marginPreset);
 		ss->set("OLD_PAGE_MOVEOBJECTS", moveObjects);
@@ -4835,7 +4835,7 @@ bool ScribusDoc::changePageProperties(const double initialTop, const double init
 	m_currentPage->setHeight(height);
 	m_currentPage->setWidth(width);
 	m_currentPage->setOrientation(orientation);
-	m_currentPage->m_pageSize = pageSize;
+	m_currentPage->setSize(pageSize);
 	m_currentPage->LeftPg = pageType;
 	m_currentPage->marginPreset = marginPreset;
 	reformPages(moveObjects);
@@ -5116,13 +5116,13 @@ bool ScribusDoc::copyPageToMasterPage(const int pageNumber, const int leftPage, 
 	//Copy the items from our current document page's applied *master* page
 	if (copyFromAppliedMaster)
 	{
-		if (!sourcePage->MPageNam.isEmpty() && MasterNames.contains(sourcePage->MPageNam))
+		if (!sourcePage->masterPageNameEmpty() && MasterNames.contains(sourcePage->masterPageName()))
 		{
 			ScPage* pageMaster = nullptr;
 			for (int i=0; i < MasterPages.count(); ++i )
 			{
 				pageMaster=MasterPages[i];
-				if (pageMaster->pageName() == sourcePage->MPageNam)
+				if (pageMaster->pageName() == sourcePage->masterPageName())
 					break;
 			}
 			if (Layers.count()!= 0 && pageMaster!=nullptr)
@@ -5189,7 +5189,7 @@ bool ScribusDoc::copyPageToMasterPage(const int pageNumber, const int leftPage, 
 		PageItem *newItem = MasterItems.at(a);
 		newItem->setMasterPage(MasterNames[masterPageName], masterPageName);
 	}
-	targetPage->MPageNam.clear();
+	targetPage->clearMasterPageName();
 	setLoading(false);
 	GroupCounter = GrMax + 1;
 	//Reset the current page..
@@ -6240,7 +6240,7 @@ void ScribusDoc::getBleeds(const ScPage* page, const MarginStruct& baseValues, M
 	else
 	{
 		PageLocation pageLocation = MiddlePage;
-		if (page->pageName().isEmpty()) // Standard page
+		if (page->pageNameEmpty()) // Standard page
 			pageLocation = locationOfPage(page->pageNr());
 		else if (page->LeftPg == 1) // Left Master page
 			pageLocation = LeftPage;
@@ -6531,8 +6531,8 @@ void ScribusDoc::setSymbolEditMode(bool mode, const QString& symbolName)
 		addedPage->Margins.set(0, 0, 0, 0);
 		addedPage->initialMargins.set(0, 0, 0, 0);
 		addedPage->setPageNr(0);
-		addedPage->MPageNam = "";
-		addedPage->setPageName("");
+		addedPage->clearMasterPageName();
+		addedPage->setPageName(QString());
 		TempPages.clear();
 		TempPages.append(addedPage);
 		Pages = &TempPages;
@@ -6674,8 +6674,8 @@ void ScribusDoc::setInlineEditMode(bool mode, int id)
 		addedPage->Margins.set(0, 0, 0, 0);
 		addedPage->initialMargins.set(0, 0, 0, 0);
 		addedPage->setPageNr(0);
-		addedPage->MPageNam = "";
-		addedPage->setPageName("");
+		addedPage->clearMasterPageName();
+		addedPage->resetPageName();
 		TempPages.clear();
 		TempPages.append(addedPage);
 		Pages = &TempPages;
@@ -7126,11 +7126,11 @@ void ScribusDoc::copyPage(int pageNumberToCopy, int existingPage, int whereToIns
 		lastDest = destination;
 		DocPages.insert(destLocation, destination);
 		setLocationBasedPageLRMargins(destLocation);
-		applyMasterPage(from->MPageNam, destLocation);
+		applyMasterPage(from->masterPageName(), destLocation);
 		destination->setInitialHeight(from->height());
 		destination->setInitialWidth(from->width());
 		destination->setOrientation(from->orientation());
-		destination->m_pageSize = from->m_pageSize;
+		destination->setSize(from->size());
 		//CB: Can possibly partially use the code from applyMasterPage here instead of runnin all of this again..
 		//TODO make a function to do this margin stuff and use elsewhere too
 		destination->initialMargins.setTop(from->initialMargins.top());
@@ -8229,42 +8229,27 @@ void ScribusDoc::itemSelection_SetItemGradFill(int typ)
 				}
 				break;
 			case 1:
-				currItem->setGradientStartX(0);
-				currItem->setGradientStartY(currItem->height() / 2.0);
-				currItem->setGradientEndX(currItem->width());
-				currItem->setGradientEndY(currItem->height() / 2.0);
+				currItem->setGradientStart(0.0, currItem->height() / 2.0);
+				currItem->setGradientEnd(currItem->width(), currItem->height() / 2.0);
 				break;
 			case 2:
-				currItem->setGradientStartX(currItem->width() / 2.0);
-				currItem->setGradientStartY(0);
-				currItem->setGradientEndX(currItem->width() / 2.0);
-				currItem->setGradientEndY(currItem->height());
+				currItem->setGradientStart(currItem->width() / 2.0, 0.0);
+				currItem->setGradientEnd(currItem->width() / 2.0, currItem->height());
 				break;
 			case 3:
-				currItem->setGradientStartX(0);
-				currItem->setGradientStartY(0);
-				currItem->setGradientEndX(currItem->width());
-				currItem->setGradientEndY(currItem->height());
+				currItem->setGradientStart(0.0, 0.0);
+				currItem->setGradientEnd(currItem->width(), currItem->height());
 				break;
 			case 4:
-				currItem->setGradientStartX(0);
-				currItem->setGradientStartY(currItem->height());
-				currItem->setGradientEndX(currItem->width());
-				currItem->setGradientEndY(0);
+				currItem->setGradientStart(0.0, currItem->height());
+				currItem->setGradientEnd(currItem->width(), 0.0);
 				break;
 			case 5:
-				currItem->setGradientStartX(currItem->width() / 2.0);
-				currItem->setGradientStartY(currItem->height() / 2.0);
+				currItem->setGradientStart(currItem->width() / 2.0, currItem->height() / 2.0);
 				if (currItem->width() >= currItem->height())
-				{
-					currItem->setGradientEndX(currItem->width());
-					currItem->setGradientEndY(currItem->height() / 2.0);
-				}
+					currItem->setGradientEnd(currItem->width(), currItem->height() / 2.0);
 				else
-				{
-					currItem->setGradientEndX(currItem->width() / 2.0);
-					currItem->setGradientEndY(currItem->height());
-				}
+					currItem->setGradientEnd(currItem->width() / 2.0, currItem->height());
 				break;
 			default:
 				currItem->selectedMeshPointX = -1;
@@ -11057,7 +11042,8 @@ void ScribusDoc::itemSelection_Rotate(double angle, Selection* customSelection)
 	Selection* itemSelection = (customSelection!=nullptr) ? customSelection : m_Selection;
 	assert(itemSelection != nullptr);
 
-	if (itemSelection->count() == 0) return;
+	if (itemSelection->isEmpty())
+		return;
 	
 	if (itemSelection->count() > 1)
 		rotateGroup(angle, itemSelection);
@@ -11464,7 +11450,7 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 
 	if (itemSelection->isGUISelection() && !itemSelection->signalsDelayed())
 	{
-		if (itemSelection->count() == 0)
+		if (itemSelection->isEmpty())
 			emit firstSelectedItemType(-1);
 		else
 			itemSelection->itemAt(0)->emitAllToGUI();
@@ -14135,7 +14121,7 @@ void ScribusDoc::moveRotated(PageItem *currItem, const FPoint& npv)
 	moveItem(-mxc, -myc, currItem);
 }
 
-bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, bool DoUpdateClip, bool redraw)
+bool ScribusDoc::sizeItem(double newW, double newH, PageItem *pi, bool fromMP, bool DoUpdateClip, bool redraw)
 {
 	PageItem *currItem = pi;
 	if (currItem->locked())
@@ -14146,8 +14132,8 @@ bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, b
 	/*
 	if (!currItem->asLine())
 	{
-		newX = qMax(newX, 1);
-		newY = qMax(newY, 1);
+		newW = qMax(newW, 1);
+		newH = qMax(newH, 1);
 	}
 	*/
 	UndoTransaction activeTransaction;
@@ -14157,31 +14143,31 @@ bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, b
 		int unitPrecision  = unitGetPrecisionFromIndex(this->unitIndex());
 		QString owString  = QString::number(currItem->oldWidth * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
 		QString ohString  = QString::number(currItem->oldHeight * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString nwString  = QString::number(newX * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString nhString  = QString::number(newY * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
+		QString nwString  = QString::number(newW * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
+		QString nhString  = QString::number(newH * m_docUnitRatio, 'f', unitPrecision) + " " + unitSuffix;
 		QString transacDesc = QString(Um::ResizeFromTo).arg(owString, ohString, nwString, nhString);
 		activeTransaction = m_undoManager->beginTransaction(currItem->getUName(), currItem->getUPixmap(), Um::Resize, transacDesc, Um::IResize);
 	}
 	int ph = static_cast<int>(qMax(1.0, currItem->lineWidth() / 2.0));
 	QTransform ma;
 	ma.rotate(currItem->rotation());
-	double dX = ma.m11() * (currItem->width() - newX) + ma.m21() * (currItem->height() - newY) + ma.dx();
-	double dY = ma.m22() * (currItem->height() - newY) + ma.m12() * (currItem->width() - newX) + ma.dy();
+	double dX = ma.m11() * (currItem->width() - newW) + ma.m21() * (currItem->height() - newH) + ma.dx();
+	double dY = ma.m22() * (currItem->height() - newH) + ma.m12() * (currItem->width() - newW) + ma.dy();
 //	#8541, #8761: "when resizing with ALT-arrow, the size values in the PP aren't updated"
-//	currItem->setWidthHeight(newX, newY, true);
-	currItem->setWidthHeight(newX, newY);
+//	currItem->setWidthHeight(newW, newH, true);
+	currItem->setWidthHeight(newW, newH);
 	if ((m_rotMode != 0) && (fromMP) && (!isLoading()) && (appMode == modeNormal))
 	{
 		double moveX=dX, moveY=dY;
-		if (m_rotMode==2)
+		if (m_rotMode == 2)
 		{
-			moveX/=2.0;
-			moveY/=2.0;
+			moveX /= 2.0;
+			moveY /= 2.0;
 		}
-		else if (m_rotMode==3)
-			moveX=0.0;
-		else if (m_rotMode==1)
-			moveY=0.0;
+		else if (m_rotMode == 3)
+			moveX = 0.0;
+		else if (m_rotMode == 1)
+			moveY = 0.0;
 		moveItem(moveX, moveY, currItem);
 	}
 	if ((currItem->asImageFrame()) && (!currItem->Sizing) && (appMode != modeEditClip))
@@ -14199,9 +14185,9 @@ bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, b
 			currItem->setWidthHeight( sqrt(pow(t.x(), 2) + pow(t.y(), 2)), 1.0);
 			//currItem->setXYPos(currItem->xPos(), currItem->yPos());
 		}
-		currItem->Clip.setPoints(4, -ph,-ph, static_cast<int>(currItem->width()+ph),-ph,
-		                  static_cast<int>(currItem->width()+ph),static_cast<int>(currItem->height()+ph),
-		                  -ph,static_cast<int>(currItem->height()+ph));
+		currItem->Clip.setPoints(4, -ph,-ph, static_cast<int>(currItem->width() + ph), -ph,
+		                  static_cast<int>(currItem->width() + ph), static_cast<int>(currItem->height() + ph),
+		                  -ph, static_cast<int>(currItem->height() + ph));
 	}
 	setRedrawBounding(currItem);
 	currItem->OwnPage = OnPage(currItem);
@@ -14229,16 +14215,16 @@ bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, b
 		if (fromMP)
 		{
 			if (currItem->imageFlippedH())
-				nX=-(currItem->width() - currItem->OldB2)/currItem->imageXScale();
+				nX = -(currItem->width() - currItem->OldB2) / currItem->imageXScale();
 			if (currItem->imageFlippedV())
-				nY=-(currItem->height() - currItem->OldH2)/currItem->imageYScale();
+				nY = -(currItem->height() - currItem->OldH2) / currItem->imageYScale();
 		}
 		else
 		{
 			if (!currItem->imageFlippedH())
-				nX=(currItem->width() - currItem->OldB2)/currItem->imageXScale();
+				nX = (currItem->width() - currItem->OldB2) / currItem->imageXScale();
 			if (!currItem->imageFlippedV())
-				nY=(currItem->height() - currItem->OldH2)/currItem->imageYScale();
+				nY = (currItem->height() - currItem->OldH2) / currItem->imageYScale();
 		}
 		if (nX!=0.0 || nY!=0.0)
 			currItem->moveImageInFrame(dX,dY);*/
@@ -14273,7 +14259,7 @@ bool ScribusDoc::sizeItem(double newX, double newY, PageItem *pi, bool fromMP, b
 			emit widthAndHeight(gw, gh);
 		}
 	}
-	currItem->setCornerRadius(qMin(currItem->cornerRadius(), qMin(currItem->width(),currItem->height())/2));
+	currItem->setCornerRadius(qMin(currItem->cornerRadius(), qMin(currItem->width(), currItem->height()) / 2));
 	if (activeTransaction)
 	{
 		currItem->checkChanges();
@@ -14360,9 +14346,9 @@ void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup, bool move
 		else
 			moveItem(tp2.x(), tp2.y(), currItem);
 		if (!currItem->imageFlippedH())
-			currItem->moveImageInFrame(-tp2.x()/currItem->imageXScale(), 0);
+			currItem->moveImageInFrame(-tp2.x() / currItem->imageXScale(), 0);
 		if (!currItem->imageFlippedV())
-			currItem->moveImageInFrame(0, -tp2.y()/currItem->imageYScale());
+			currItem->moveImageInFrame(0, -tp2.y() / currItem->imageYScale());
 		FPoint tp(clipRect.width(), clipRect.height());
 		if (currItem->imageFlippedH())
 			currItem->moveImageInFrame((currItem->width() - tp.x())/currItem->imageXScale(), 0);
@@ -14374,8 +14360,9 @@ void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup, bool move
 		{
 			currItem->groupWidth = oldgW * (currItem->width() / oldW);
 			currItem->groupHeight = oldgH * (currItem->height() / oldH);
-			double dx = (currItem->xPos() - oldX) / (currItem->width() / currItem->groupWidth);
-			double dy = (currItem->yPos() - oldY) / (currItem->height() / currItem->groupHeight);
+			// #15759: the division by item dimension looks incorrect
+			double dx = (currItem->xPos() - oldX) / (/*currItem->width() /*/ currItem->groupWidth);
+			double dy = (currItem->yPos() - oldY) / (/*currItem->height() /*/ currItem->groupHeight);
 			for (int em = 0; em < currItem->groupItemList.count(); ++em)
 			{
 				PageItem* embedded = currItem->groupItemList.at(em);
@@ -14511,9 +14498,8 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 	if (selectedItemCount == 0)
 		return;
 	
-	PageItem *bb;
+	PageItem *item;
 	double gx, gy, gh, gw; //, x, y;
-	int aa;
 	double sc = 1; //FIXME:av Scale;
 	int drm = m_rotMode;
 	m_rotMode = 0;
@@ -14530,181 +14516,181 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 
 	for (int i = 0; i < selectedItemCount; ++i)
 	{
-		bb = itemSelection->itemAt(i);
-		if ((bb->locked()) || (bb->sizeLocked()))
+		item = itemSelection->itemAt(i);
+		if ((item->locked()) || (item->sizeLocked()))
 			continue;
-		bb->OldB = bb->width();
-		bb->OldH = bb->height();
-		bb->OldB2 = bb->width();
-		bb->OldH2 = bb->height();
-		double dw = (bb->width() * scx) - bb->width();
-		double dh = (bb->height() * scy) - bb->height();
+		item->OldB = item->width();
+		item->OldH = item->height();
+		item->OldB2 = item->width();
+		item->OldH2 = item->height();
+		double dw = (item->width() * scx) - item->width();
+		double dh = (item->height() * scy) - item->height();
 		double dsch = 1.0;
 		double dscw = 1.0;
-		if (bb->isArc())
+		if (item->isArc())
 		{
-			PageItem_Arc* item = bb->asArc();
-			if (bb->height() != 0.0)
-				dsch = item->arcHeight / bb->height();
-			if (bb->width() != 0.0)
-				dscw = item->arcWidth / bb->width();
+			PageItem_Arc* arcItem = item->asArc();
+			if (arcItem->height() != 0.0)
+				dsch = arcItem->arcHeight / arcItem->height();
+			if (arcItem->width() != 0.0)
+				dscw = arcItem->arcWidth / arcItem->width();
 		}
-		bb->Sizing = false;
+		item->Sizing = false;
 		double oldRot, oldLocalX, oldLocalY;
-		oldRot = bb->rotation();
-		oldLocalX = bb->imageXOffset();
-		oldLocalY = bb->imageYOffset();
+		oldRot = item->rotation();
+		oldLocalX = item->imageXOffset();
+		oldLocalY = item->imageYOffset();
 		FPointArray gr;
-		gr.addPoint(bb->GrStartX, bb->GrStartY);
-		gr.addPoint(bb->GrEndX, bb->GrEndY);
-		gr.addPoint(bb->GrFocalX, bb->GrFocalY);
-		gr.addPoint(bb->GrControl1);
-		gr.addPoint(bb->GrControl2);
-		gr.addPoint(bb->GrControl3);
-		gr.addPoint(bb->GrControl4);
-		gr.addPoint(bb->GrControl5);
+		gr.addPoint(item->GrStartX, item->GrStartY);
+		gr.addPoint(item->GrEndX, item->GrEndY);
+		gr.addPoint(item->GrFocalX, item->GrFocalY);
+		gr.addPoint(item->GrControl1);
+		gr.addPoint(item->GrControl2);
+		gr.addPoint(item->GrControl3);
+		gr.addPoint(item->GrControl4);
+		gr.addPoint(item->GrControl5);
 		FPoint g(gx, gy);
-		FPoint b(0, 0, bb->xPos(), bb->yPos(), bb->rotation(), 1, 1);
+		FPoint b(0, 0, item->xPos(), item->yPos(), item->rotation(), 1, 1);
 		b -= g;
 		FPoint b1(b.x(), b.y(), 0, 0, 0, scx, scy);
-		FPoint t(bb->width(), 0, bb->xPos(), bb->yPos(), bb->rotation(), 1, 1);
+		FPoint t(item->width(), 0, item->xPos(), item->yPos(), item->rotation(), 1, 1);
 		t -= g;
 		FPoint t1(t.x(), t.y(), 0, 0, 0, scx, scy);
-		FPoint h(0, bb->height(), bb->xPos(), bb->yPos(), bb->rotation(), 1, 1);
+		FPoint h(0, item->height(), item->xPos(), item->yPos(), item->rotation(), 1, 1);
 		h -= g;
 		FPoint h1(h.x(), h.y(), 0, 0, 0, scx, scy);
-		if (bb->isGroup() || scaleLine)				// change the LineWidth only when the item is within a real Group
+		if (item->isGroup() || scaleLine)				// change the LineWidth only when the item is within a real Group
 		{
-			if (bb->lineWidth() != 0)				// don't try to scale hairlines
-				bb->setLineWidth(qMax(bb->lineWidth()*((scx+scy)/2), 0.01));
+			if (item->lineWidth() != 0)				// don't try to scale hairlines
+				item->setLineWidth(qMax(item->lineWidth() * ((scx + scy) / 2), 0.01));
 		}
-		if (bb->itemType() == PageItem::Line)
+		if (item->itemType() == PageItem::Line)
 		{
-			bb->setRotation(atan2(t1.y()-b1.y(),t1.x()-b1.x())*(180.0/M_PI));
-			bb->setWidth(sqrt(pow(t1.x()-b1.x(),2)+pow(t1.y()-b1.y(),2)));
-			bb->setXYPos(b1.x()+gx, b1.y()+gy);
+			item->setRotation(atan2(t1.y() - b1.y(), t1.x() - b1.x()) * (180.0 / M_PI));
+			item->setWidth(sqrt(pow(t1.x() - b1.x(), 2) + pow(t1.y() - b1.y(), 2)));
+			item->setXYPos(b1.x() + gx, b1.y() + gy);
 		}
 		else
 		{
-			FPoint oldPos(bb->xPos(), bb->yPos());
+			FPoint oldPos(item->xPos(), item->yPos());
 			QTransform ma;
-			ma.rotate(bb->rotation());
-			bb->PoLine.map(ma);
+			ma.rotate(item->rotation());
+			item->PoLine.map(ma);
 			QTransform ma2;
-			ma2.translate(gx-bb->xPos(), gy-bb->yPos());
+			ma2.translate(gx - item->xPos(), gy - item->yPos());
 			ma2.scale(scx, scy);
-			bb->PoLine.map(ma2);
-			bb->setRotation(0.0);
-			bb->ClipEdited = true;
-			if (bb->isArc())
+			item->PoLine.map(ma2);
+			item->setRotation(0.0);
+			item->ClipEdited = true;
+			if (item->isArc())
 			{
-				PageItem_Arc* item = bb->asArc();
-				item->arcWidth += dw * dscw;
-				item->arcHeight += dh * dsch;
-				item->recalcPath();
+				PageItem_Arc* arc = item->asArc();
+				arc->arcWidth += dw * dscw;
+				arc->arcHeight += dh * dsch;
+				arc->recalcPath();
 			}
-			if (bb->isSpiral())
+			if (item->isSpiral())
 			{
-				PageItem_Spiral* item = bb->asSpiral();
-				item->recalcPath();
+				PageItem_Spiral* spiral = item->asSpiral();
+				spiral->setWidthHeight(spiral->width() * scx, spiral->height() * scy, true);
+				spiral->recalcPath();
 			}
-			else if (bb->isRegularPolygon())
+			else if (item->isRegularPolygon())
 			{
-				PageItem_RegularPolygon* item = bb->asRegularPolygon();
-				item->setWidthHeight(item->width() * scx, item->height() * scy, true);
-				item->recalcPath();
+				PageItem_RegularPolygon* poly = item->asRegularPolygon();
+				poly->setWidthHeight(poly->width() * scx, poly->height() * scy, true);
+				poly->recalcPath();
 			}
-			else if (bb->isGroup() || bb->isSymbol())
+			else if (item->isGroup() || item->isSymbol())
 			{
-				double oldGW = bb->groupWidth;
-				double oldGH = bb->groupHeight;
-				adjustItemSize(bb, true, false);
-				bb->groupWidth = oldGW;
-				bb->groupHeight = oldGH;
+				double oldGW = item->groupWidth;
+				double oldGH = item->groupHeight;
+				adjustItemSize(item, true, false);
+				item->groupWidth = oldGW;
+				item->groupHeight = oldGH;
 			}
 			else
-				adjustItemSize(bb, true, false);
-			if (bb->isArc() || bb->isSpiral() || bb->isRegularPolygon())
-				bb->setXYPos(b1.x() + gx, b1.y() + gy);
+				adjustItemSize(item, true, false);
+			if (item->isArc() || item->isSpiral() || item->isRegularPolygon())
+				item->setXYPos(b1.x() + gx, b1.y() + gy);
 			else
 			{
 				QTransform ma3;
 				ma3.translate(gx, gy);
 				ma3.scale(scx, scy);
-				FPoint n(gx-oldPos.x(), gy-oldPos.y());
+				FPoint n(gx - oldPos.x(), gy - oldPos.y());
 				double x = ma3.m11() * n.x() + ma3.m21() * n.y() + ma3.dx();
 				double y = ma3.m22() * n.y() + ma3.m12() * n.x() + ma3.dy();
-				//MoveItem(gx-x, gy-y, bb);
-				bb->moveBy(gx - x, gy - y);
+				//moveItem(gx - x, gy - y, item);
+				item->moveBy(gx - x, gy - y);
 			}
 			if (oldRot != 0)
 			{
-				bb->setRotation(atan2(t1.y()-b1.y(),t1.x()-b1.x())*(180.0/M_PI));
-				if (!bb->isArc() && !bb->isSpiral() && !bb->isRegularPolygon())
+				item->setRotation(atan2(t1.y() - b1.y(), t1.x() - b1.x()) * (180.0 / M_PI));
+				if (!item->isArc() && !item->isSpiral() && !item->isRegularPolygon())
 				{
 					QTransform ma;
-					ma.rotate(-bb->rotation());
-					bb->PoLine.map(ma);
+					ma.rotate(-item->rotation());
+					item->PoLine.map(ma);
 				}
-				if (bb->isGroup() || bb->isSymbol())
+				if (item->isGroup() || item->isSymbol())
 				{
-					double oldGW = bb->groupWidth;
-					double oldGH = bb->groupHeight;
-					adjustItemSize(bb, true, false);
-					bb->groupWidth = oldGW;
-					bb->groupHeight = oldGH;
+					// #15759: save/restoring group dimensiosn looks unnecessary
+					// after fixing adjustItemSize() for groups
+					//double oldGW = item->groupWidth;
+					//double oldGH = item->groupHeight;
+					adjustItemSize(item, true, false);
+					//item->groupWidth = oldGW;
+					//item->groupHeight = oldGH;
 				}
 				else
-					adjustItemSize(bb, true, false);
+					adjustItemSize(item, true, false);
 			}
 		}
 		if (scaleText)
 		{
-			if (bb->itemText.length() != 0)
+			if (item->itemText.length() != 0)
 			{
-				for (aa = 0; aa < bb->itemText.length(); ++aa)
+				for (int j = 0; j < item->itemText.length(); ++j)
 				{
 					CharStyle fsStyle;
-					fsStyle.setFontSize(qMax(qRound(bb->itemText.charStyle(aa).fontSize()*((scx+scy)/2)), 1));
-					bb->itemText.applyCharStyle(aa, 1, fsStyle);
+					fsStyle.setFontSize(qMax(qRound(item->itemText.charStyle(j).fontSize()*((scx+scy)/2)), 1));
+					item->itemText.applyCharStyle(j, 1, fsStyle);
 				}
-				if (bb->asPathText())
-					bb->updatePolyClip();
+				if (item->asPathText())
+					item->updatePolyClip();
 			}
 		}
 
-		bb->checkChanges();
+		item->checkChanges();
 
-		bb->setImageXYOffset(oldLocalX, oldLocalY);
-		bb->OldB2 = bb->width();
-		bb->OldH2 = bb->height();
+		item->setImageXYOffset(oldLocalX, oldLocalY);
+		item->OldB2 = item->width();
+		item->OldH2 = item->height();
 		QTransform ma4;
 		ma4.rotate(oldRot);
 		ma4.scale(scx, scy);
 		gr.map(ma4);
-		for (int grow = 0; grow < bb->meshGradientArray.count(); grow++)
+		for (int grow = 0; grow < item->meshGradientArray.count(); grow++)
 		{
-			for (int gcol = 0; gcol < bb->meshGradientArray[grow].count(); gcol++)
+			for (int gcol = 0; gcol < item->meshGradientArray[grow].count(); gcol++)
 			{
-				bb->meshGradientArray[grow][gcol].transform(ma4);
+				item->meshGradientArray[grow][gcol].transform(ma4);
 			}
 		}
-		bb->ContourLine.map(ma4);
-		bb->GrStartX = gr.point(0).x();
-		bb->GrStartY = gr.point(0).y();
-		bb->GrEndX = gr.point(1).x();
-		bb->GrEndY = gr.point(1).y();
-		bb->GrFocalX = gr.point(2).x();
-		bb->GrFocalY = gr.point(2).y();
-		bb->GrControl1 = gr.point(3);
-		bb->GrControl2 = gr.point(4);
-		bb->GrControl3 = gr.point(5);
-		bb->GrControl4 = gr.point(6);
-		bb->GrControl5 = gr.point(7);
-		bb->updateGradientVectors();
+		item->ContourLine.map(ma4);
+		item->setGradientStart(gr.point(0).x(), gr.point(0).y());
+		item->setGradientEnd(gr.point(1).x(), gr.point(1).y());
+		item->setGradientFocal(gr.point(2).x(), gr.point(2).y());
+		item->setGradientControl1(gr.point(3));
+		item->setGradientControl2(gr.point(4));
+		item->setGradientControl3(gr.point(5));
+		item->setGradientControl4(gr.point(6));
+		item->setGradientControl5(gr.point(7));
+		item->updateGradientVectors();
 	}
-	bb = itemSelection->itemAt(0);
-	GroupOnPage(bb);
+	item = itemSelection->itemAt(0);
+	GroupOnPage(item);
 	itemSelection->setGroupRect();
 	itemSelection->getGroupRect(&gx, &gy, &gw, &gh);
 	m_rotMode = drm;
@@ -15018,7 +15004,7 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 void ScribusDoc::itemSelection_UnGroupObjects(Selection* customSelection)
 {
 	Selection* itemSelection = (customSelection!=nullptr) ? customSelection : m_Selection;
-	if (itemSelection->count() == 0)
+	if (itemSelection->isEmpty())
 		return;
 
 	uint docSelectionCount = itemSelection->count();
@@ -15345,7 +15331,7 @@ void ScribusDoc::resizeGroupToContents(PageItem* group)
 void ScribusDoc::itemSelection_resizeGroupToContents(Selection* customSelection)
 {
 	Selection* itemSelection = (customSelection!=nullptr) ? customSelection : m_Selection;
-	if (itemSelection->count() == 0)
+	if (itemSelection->isEmpty())
 		return;
 	int docSelectionCount = itemSelection->count();
 	for (int a = 0; a < docSelectionCount; ++a)
@@ -16080,7 +16066,7 @@ void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMas
 			pp->setInitialHeight(pageHeight());
 			pp->setHeight(pageHeight());
 			pp->setWidth(pageWidth());
-			pp->m_pageSize = pageSize();
+			pp->setSize(pageSize());
 			pp->setOrientation(pageOrientation());
 		}
 		if (resizePageMargins)
@@ -16094,7 +16080,7 @@ void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMas
 			//CB #6796: find the master page (*mp) for the current page (*pp)
 			//check if *pp's margins are the same as the *mp's current margins
 			//apply new margins if same
-			const int masterPageNumber = MasterNames[pp->MPageNam];
+			const int masterPageNumber = MasterNames[pp->masterPageName()];
 			const ScPage* mp = MasterPages.at(masterPageNumber);
 			if (pp->initialMargins.left() == mp->initialMargins.left() &&
 				pp->initialMargins.top() == mp->initialMargins.top() &&
@@ -16115,7 +16101,7 @@ void ScribusDoc::applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMas
 			pp->setInitialHeight(pageHeight());
 			pp->setHeight(pageHeight());
 			pp->setWidth(pageWidth());
-			pp->m_pageSize = pageSize();
+			pp->setSize(pageSize());
 			pp->setOrientation(pageOrientation());
 		}
 		if (resizeMasterPageMargins)

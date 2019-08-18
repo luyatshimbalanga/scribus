@@ -2320,13 +2320,12 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 	QMdiArea* qwsp = nullptr;
 	if (requiresGUI)
 		qwsp = mdiArea;
+
 	ScribusWin* w = new ScribusWin(qwsp, tempDoc);
 	w->setMainWindow(this);
 	if (requiresGUI && view!=nullptr)
-	{
 		actionManager->disconnectNewViewActions();
-		disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
-	}
+
 	ScribusView* tempView = new ScribusView(w, this, tempDoc);
 	if (requiresGUI)
 		view = tempView;
@@ -2358,10 +2357,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 	tempView->reformPages(true);
 	//>>
 	if (requiresGUI)
-	{
 		w->setSubWin(mdiArea->addSubWindow(w));
-			connect(tempView, SIGNAL(signalGuideInformation(int,qreal)), alignDistributePalette, SLOT(setGuide(int,qreal)));
-	}
 	//Independent finishing tasks after tempDoc setup
 	if (showView)
 	{
@@ -2576,7 +2572,6 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 	if (view!=nullptr)
 	{
 		actionManager->disconnectNewViewActions();
-		disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
 		if (ScCore->usingGUI())
 			doc->m_Selection->disconnect(SIGNAL(selectionIsMultiple(bool)));
 	}
@@ -2587,7 +2582,6 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 	actionManager->connectNewViewActions(view);
 	actionManager->disconnectNewDocActions();
 	actionManager->connectNewDocActions(doc);
-	connect(view, SIGNAL(signalGuideInformation(int,qreal)), alignDistributePalette, SLOT(setGuide(int,qreal)));
 	if (ScCore->usingGUI())
 		connect(doc->m_Selection, SIGNAL(selectionIsMultiple(bool)), actionManager, SLOT( handleMultipleSelections(bool)));
 	pagePalette->setView(view);
@@ -2738,29 +2732,19 @@ void ScribusMainWindow::HaveNewDoc()
 	connect(view->horizRuler, SIGNAL(DocChanged(bool)), this, SLOT(slotDocCh(bool)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ClipPo(double,double)), nodePalette, SLOT(SetXY(double,double)), Qt::UniqueConnection);
 	connect(view, SIGNAL(PolyOpen()), nodePalette, SLOT(IsOpen()), Qt::UniqueConnection);
-	connect(view, SIGNAL(PStatus(int,uint)), nodePalette, SLOT(PolyStatus(int,uint)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemGeom()), propertiesPalette->xyzPal, SLOT(handleSelectionChanged()), Qt::UniqueConnection);
 	connect(view, SIGNAL(ChBMText(PageItem*)), this, SLOT(BookMarkTxT(PageItem*)), Qt::UniqueConnection);
 	connect(view, SIGNAL(HaveSel()), this, SLOT(HaveNewSel()), Qt::UniqueConnection);
-	connect(view, SIGNAL(PaintingDone()), this, SLOT(slotSelect()), Qt::UniqueConnection);
 	connect(view, SIGNAL(DocChanged()), this, SLOT(slotDocCh()), Qt::UniqueConnection);
 	connect(view, SIGNAL(MousePos(double,double)), this, SLOT(setStatusBarMousePosition(double,double)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemCharStyle(const CharStyle&)), textPalette->textPal, SLOT(updateCharStyle(const CharStyle&)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemTextEffects(int)), this, SLOT(setStyleEffects(int)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemTextAlign(int)), this, SLOT(setAlignmentValue(int)), Qt::UniqueConnection);
-	connect(view, SIGNAL(HasTextSel()), this, SLOT(EnableTxEdit()), Qt::UniqueConnection);
-	connect(view, SIGNAL(HasNoTextSel()), this, SLOT(DisableTxEdit()), Qt::UniqueConnection);
-	connect(view, SIGNAL(CopyItem()), this, SLOT(slotEditCopy()), Qt::UniqueConnection);
-	connect(view, SIGNAL(CutItem()), this, SLOT(slotEditCut()), Qt::UniqueConnection);
 	connect(view, SIGNAL(LoadPic()), this, SLOT(slotGetContent()), Qt::UniqueConnection);
 	connect(view, SIGNAL(StatusPic()), this, SLOT(StatusPic()), Qt::UniqueConnection);
-	connect(view, SIGNAL(AppendText()), this, SLOT(slotFileAppend()), Qt::UniqueConnection);
-	connect(view, SIGNAL(AnnotProps()), this, SLOT(ModifyAnnot()), Qt::UniqueConnection);
 	connect(view, SIGNAL(LoadElem(QString,double,double,bool,bool,ScribusDoc*,ScribusView*)), this, SLOT(slotElemRead(QString,double,double,bool,bool,ScribusDoc*,ScribusView*)), Qt::UniqueConnection);
 	connect(view, SIGNAL(AddBM(PageItem*)), this, SLOT(AddBookMark(PageItem*)), Qt::UniqueConnection);
 	connect(view, SIGNAL(DelBM(PageItem*)), this, SLOT(DelBookMark(PageItem*)), Qt::UniqueConnection);
-	connect(view, SIGNAL(DoGroup()), this, SLOT(GroupObj()), Qt::UniqueConnection);
-	connect(view, SIGNAL(callGimp()), this, SLOT(callImageEditor()), Qt::UniqueConnection);
 }
 
 void ScribusMainWindow::HaveNewSel()
@@ -3537,11 +3521,8 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 			m_prefsManager.appPrefs.fontPrefs.AvailFonts.addScalableFonts(fi.absolutePath()+"/Document fonts", filename);
 		m_prefsManager.appPrefs.fontPrefs.AvailFonts.updateFontMap();
 		if (view != nullptr)
-		{
 			actionManager->disconnectNewViewActions();
-			disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
-		}
-		doc=new ScribusDoc();
+		doc = new ScribusDoc();
 		doc->saveFilePermissions(QFile::permissions(fileName));
 		doc->is12doc=is12doc;
 		doc->appMode = modeNormal;
@@ -3759,7 +3740,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 		{
 			ScPage *docPage = doc->Pages->at(0);
 			ScPage *addedPage = doc->addMasterPage(0, CommonStrings::masterPageNormal);
-			addedPage->m_pageSize = docPage->m_pageSize;
+			addedPage->setSize(docPage->size());
 			addedPage->setInitialHeight(docPage->height());
 			addedPage->setInitialWidth(docPage->width());
 			addedPage->setHeight(docPage->height());
@@ -3821,7 +3802,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 		doc->setLoading(true);
 		for (int p = 0; p < doc->DocPages.count(); ++p)
 		{
-			Apply_MasterPage(doc->DocPages.at(p)->MPageNam, p, false);
+			Apply_MasterPage(doc->DocPages.at(p)->masterPageName(), p, false);
 		}
 		view->reformPages(false);
 		doc->setLoading(false);
@@ -4303,11 +4284,10 @@ bool ScribusMainWindow::DoFileClose()
 {
 	slotEndSpecialEdit();
 	view->Deselect(false);
-	if (doc==storyEditor->currentDocument())
+	if (doc == storyEditor->currentDocument())
 		storyEditor->close();
 	actionManager->disconnectNewDocActions();
 	actionManager->disconnectNewViewActions();
-	disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
 	m_undoManager->removeStack(doc->documentFileName());
 	closeActiveWindowMasterPageEditor();
 	slotSelect();
@@ -5468,7 +5448,7 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 			doc->currentPage()->setInitialHeight(height);
 			doc->currentPage()->setInitialWidth(width);
 			doc->currentPage()->setOrientation(orient);
-			doc->currentPage()->m_pageSize = siz;
+			doc->currentPage()->setSize(siz);
 		}
 		//CB If we want to add this master page setting into the slotnewpage call, the pagenumber must be +1 I think
 	//Apply_MasterPage(base[(doc->currentPage()->pageNr()+doc->pageSets[doc->currentPageLayout].FirstPage) % doc->pageSets[doc->currentPageLayout].Columns],
@@ -5489,9 +5469,7 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 	m_undoManager->setUndoEnabled(true);
 
 	if (activeTransaction)
-	{
 		activeTransaction.commit();
-	}
 }
 
 void ScribusMainWindow::slotNewMasterPage(int w, const QString& name)
@@ -6238,7 +6216,7 @@ void ScribusMainWindow::deletePage(int from, int to)
 			ss->set("DELETE_PAGE");
 			ss->set("PAGENR", a + 1);
 			ss->set("PAGENAME",   doc->Pages->at(a)->pageName());
-			ss->set("MASTERPAGE", doc->Pages->at(a)->MPageNam);
+			ss->set("MASTERPAGE", doc->Pages->at(a)->masterPageName());
 			ss->set("MASTER_PAGE_MODE",  doc->masterPageMode());
 			// replace the deleted page in the undostack by a dummy object that will
 			// replaced with the "undone" page if user choose to undo the action
@@ -6248,7 +6226,7 @@ void ScribusMainWindow::deletePage(int from, int to)
 			ss->set("DUMMY_ID", id);
 			m_undoManager->action(this, ss);
 		}
-		bool isMasterPage = !(doc->Pages->at(a)->pageName().isEmpty());
+		bool isMasterPage = !(doc->Pages->at(a)->pageNameEmpty());
 		if (doc->masterPageMode())
 			doc->deleteMasterPage(a);
 		else
@@ -6327,7 +6305,7 @@ void ScribusMainWindow::changePageProperties()
 		return;
 	if (doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
-	QString currPageMasterPageName(doc->currentPage()->MPageNam);
+	QString currPageMasterPageName(doc->currentPage()->masterPageName());
 	QScopedPointer<PagePropertiesDialog> dia(new PagePropertiesDialog(this, doc));
 	if (!dia->exec())
 		return;
@@ -7564,8 +7542,8 @@ void ScribusMainWindow::editSymbolStart(const QString& temp)
 	}
 	patternsDependingOnThis.prepend(temp);
 	symbolPalette->editingStart(patternsDependingOnThis);
-	propertiesPalette->Cpal->hideEditedPatterns(patternsDependingOnThis);
-	propertiesPalette->Tpal->hideEditedPatterns(patternsDependingOnThis);
+	propertiesPalette->colorPalette->hideEditedPatterns(patternsDependingOnThis);
+	propertiesPalette->transparencyPalette->hideEditedPatterns(patternsDependingOnThis);
 	if (outlinePalette->isVisible())
 		outlinePalette->BuildTree(false);
 	updateActiveWindowCaption( tr("Editing Symbol: %1").arg(temp));
@@ -7677,7 +7655,7 @@ void ScribusMainWindow::editMasterPagesStart(const QString& temp)
 	m_pagePalVisible = pagePalette->isVisible();
 	QString mpName;
 	if (temp.isEmpty())
-		mpName = doc->currentPage()->MPageNam;
+		mpName = doc->currentPage()->masterPageName();
 	else
 		mpName = temp;
 	view->Deselect(true);
@@ -7730,7 +7708,7 @@ void ScribusMainWindow::editMasterPagesEnd()
 	appModeHelper->setMasterPageEditMode(false, doc);
 	int pageCount=doc->DocPages.count();
 	for (int i=0; i<pageCount; ++i)
-		Apply_MasterPage(doc->DocPages.at(i)->MPageNam, i, false);
+		Apply_MasterPage(doc->DocPages.at(i)->masterPageName(), i, false);
 
 	pagePalette->endMasterPageMode();
 	if (pagePalette->isFloating())
@@ -7758,11 +7736,11 @@ void ScribusMainWindow::ApplyMasterPage()
 	Q_ASSERT(!doc->masterPageMode());
 
 	QScopedPointer<ApplyMasterPageDialog> dia(new ApplyMasterPageDialog(this));
-	dia->setup(doc, doc->currentPage()->MPageNam);
+	dia->setup(doc, doc->currentPage()->masterPageName());
 	if (!dia->exec())
 		return;
 
-	QString masterPageName = dia->getMasterPageName();
+	QString masterPageName(dia->getMasterPageName());
 	int pageSelection = dia->getPageSelection(); //0=current, 1=even, 2=odd, 3=all
 	if (pageSelection == 0) //current page only
 		Apply_MasterPage(masterPageName, doc->currentPage()->pageNr(), false);
@@ -9317,7 +9295,7 @@ void ScribusMainWindow::manageColorsAndFills()
 			// Update tools colors if needed
 			m_prefsManager.replaceToolColors(dia->replaceColorMap);
 			m_prefsManager.setColorSet(dia->m_colorList);
-			propertiesPalette->Cpal->setColors(m_prefsManager.colorSet());
+			propertiesPalette->colorPalette->setColors(m_prefsManager.colorSet());
 			m_prefsManager.appPrefs.defaultGradients = dia->dialogGradients;
 			m_prefsManager.appPrefs.defaultPatterns = dia->dialogPatterns;
 			QString Cpfad = QDir::toNativeSeparators(ScPaths::applicationDataDir())+"DefaultColors.xml";

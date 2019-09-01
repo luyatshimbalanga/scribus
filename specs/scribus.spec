@@ -41,7 +41,7 @@ BuildRequires:	podofo-devel
 BuildRequires:	poppler-cpp-devel
 BuildRequires:	poppler-data-devel
 BuildRequires:	poppler-devel
-BuildRequires:	python3-devel
+BuildRequires:	pkgconfig(python3)
 %if 0%{?fedora} > 24
 BuildRequires:	python2-pillow-devel
 BuildRequires:	python3-pillow-devel

@@ -179,7 +179,7 @@ update-desktop-database &> /dev/null || :
 %endif
 update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
 
-# Update 
+# Update
 gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %files

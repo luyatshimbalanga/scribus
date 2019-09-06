@@ -130,7 +130,7 @@ pushd build
 	-DWANT_DISTROBUILD=YES \
 	-DWANT_GRAPHICSMAGICK=1 \
 	-DWANT_HUNSPELL=1 \
-%ifarch x86_64 || aarch64 
+%ifarch x86_64 || aarch64
 	-DWANT_LIB64=YES \
 %endif
 	-DWANT_NORPATH=1 \

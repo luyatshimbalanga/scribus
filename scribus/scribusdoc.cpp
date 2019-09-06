@@ -207,12 +207,12 @@ ScribusDoc::ScribusDoc() : UndoObject( tr("Document")), Observable<ScribusDoc>(n
 	m_undoManager(UndoManager::instance()),
 	m_automaticTextFrames(false),
 	m_guardedObject(this),
+	m_documentFileName( tr("Document") + "-"),
 	minCanvasCoordinate(FPoint(0, 0)),
 	m_Selection(new Selection(this, true)),
 	PageSp(1), PageSpa(0),
 	FirstPnum(1),
 	PageColors(this, true),
-	m_documentFileName( tr("Document")+"-"),
 	AllFonts(&m_appPrefsData.fontPrefs.AvailFonts),
 	colorEngine(ScCore->defaultEngine),
 	autoSaveTimer(new QTimer(this)),
@@ -246,12 +246,12 @@ ScribusDoc::ScribusDoc(const QString& docName, int unitindex, const PageSize& pa
 	m_docUnitRatio(unitGetRatioFromIndex(m_appPrefsData.docSetupPrefs.docUnitIndex)),
 	m_automaticTextFrames(pagesSetup.autoTextFrames),
 	m_guardedObject(this),
+	m_documentFileName(docName),
 	minCanvasCoordinate(FPoint(0, 0)),
 	m_Selection(new Selection(this, true)),
 	PageSp(pagesSetup.columnCount), PageSpa(pagesSetup.columnDistance),
 	FirstPnum(pagesSetup.firstPageNumber),
 	PageColors(this, true),
-	m_documentFileName(docName),
 	AllFonts(&m_appPrefsData.fontPrefs.AvailFonts),
 	colorEngine(ScCore->defaultEngine),
 	autoSaveTimer(new QTimer(this)),
@@ -13944,11 +13944,10 @@ void ScribusDoc::getClosestGuides(double xin, double yin, double *xout, double *
 	}
 }
 
-void ScribusDoc::getClosestElementBorder(double xin, double yin, double *xout, double *yout, ScPage* refPage, SelectionSkipBehavior behavior)
+void ScribusDoc::getClosestElementBorder(double xin, double yin, double *xout, double *yout, SelectionSkipBehavior behavior)
 {
 	int gxM = -1;
 	int gyM = -1;
-	ScPage* page = (refPage == nullptr) ? currentPage() : refPage;
 	QMap<double, uint> tmpGuidesSel;
 	double viewScale = m_View->scale();
 	const double snappingDistance = prefsData().guidesPrefs.guideRad / viewScale;
@@ -14075,10 +14074,10 @@ void ScribusDoc::getClosestPageBoundaries(const double xin, const double yin, do
 void ScribusDoc::SnapToGuides(PageItem *currItem)
 {
 	int pg = OnPage(currItem);
-	double xout, yout;
 	if (pg == -1)
 		return;
-	ScPage* page = Pages->at(pg);
+
+	double xout, yout;
 
 	getClosestGuides(0, currItem->yPos(), &xout, &yout);
 	if (currItem->yPos() != yout)
@@ -14136,7 +14135,7 @@ bool ScribusDoc::ApplyGuides(double *x, double *y, bool elementSnap)
 		if (!elementSnap)
 			getClosestGuides(*x, *y, &xout, &yout, page);
 		else
-			getClosestElementBorder(*x, *y, &xout, &yout, page, ExcludeSelection);
+			getClosestElementBorder(*x, *y, &xout, &yout, ExcludeSelection);
 
 		if ((*x != xout) || (*y != yout))
 			ret = true;

@@ -250,6 +250,3 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 * Tue May 21 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190522git
 - Snapshot svn 22982
-
-* Mon May 13 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190513	git
-- Snapshot svn 22977

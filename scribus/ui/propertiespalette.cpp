@@ -342,7 +342,7 @@ void PropertiesPalette::AppModeChanged()
 	}
 }
 
-void PropertiesPalette::setCurrentItem(PageItem *i)
+void PropertiesPalette::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -350,10 +350,10 @@ void PropertiesPalette::setCurrentItem(PageItem *i)
 	//maybe we do if the item has been changed by scripter.. but that should probably
 	//set some status if so.
 	//FIXME: This won't work until when a canvas deselect happens, m_item must be nullptr.
-	//if (m_item == i)
+	//if (m_item == item)
 	//	return;
 
-	if (!i)
+	if (!item)
 	{
 		unsetItem();
 		return;
@@ -362,13 +362,13 @@ void PropertiesPalette::setCurrentItem(PageItem *i)
 	int oldTabIndex = TabStack->currentIndex();
 
 	if (!m_doc)
-		setDoc(i->doc());
+		setDoc(item->doc());
 
 	disconnect(TabStack, SIGNAL(currentChanged2(int)) , this, SLOT(SelTab(int)));
 	disconnect(linePal , SIGNAL(lineModeChanged(int)), this, SLOT(NewLineMode(int)));
 
 	m_haveItem = false;
-	m_item = i;
+	m_item = item;
 
 	tablePal->setItem(m_item);
 	transparencyPalette->setCurrentItem(m_item);
@@ -378,7 +378,7 @@ void PropertiesPalette::setCurrentItem(PageItem *i)
 	connect(linePal , SIGNAL(lineModeChanged(int)), this, SLOT(NewLineMode(int)));
 
 //CB replaces old emits from PageItem::emitAllToGUI()
-	setLocked(i->locked());
+	setLocked(item->locked());
 
 	if ((m_item->isGroup()) && (!m_item->isSingleSel))
 	{

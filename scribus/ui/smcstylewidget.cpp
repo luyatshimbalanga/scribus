@@ -52,6 +52,8 @@ SMCStyleWidget::SMCStyleWidget(QWidget *parent) :
 	strokeColor_->setEnabled(false);
 	fontfeaturesSetting->resetFontFeatures();
 
+	hyphenCharLineEdit->setMaxLength(1);
+
 	connect(effects_, SIGNAL(State(int)), this, SLOT(slotColorChange()));
 	connect(fontFace_, SIGNAL(fontSelected(QString)), this, SLOT(slotEnableFontFeatures(QString)));
 }
@@ -249,8 +251,17 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin(), cstyle->isInhHyphenWordMin());
 		smallestWordSpinBox->setParentValue(parent->hyphenWordMin());
 
-		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1), cstyle->isInhHyphenChar());
-		hyphenCharLineEdit->setParentValue(QString::fromUcs4(&parent->hyphenChar(), 1));
+		uint hyphenChar = cstyle->hyphenChar();
+		QString hyphenText;
+		if (hyphenChar)
+			hyphenText = QString::fromUcs4(&hyphenChar, 1);
+		hyphenCharLineEdit->setValue(hyphenText, cstyle->isInhHyphenChar());
+
+		uint parentHyphenChar = parent->hyphenChar();
+		QString parentHyphenText;
+		if (parentHyphenChar)
+			parentHyphenText = QString::fromUcs4(&parentHyphenChar, 1);
+		hyphenCharLineEdit->setParentValue(parentHyphenText);
 	}
 	else
 	{
@@ -270,7 +281,12 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		fontFace_->setCurrentFont(cstyle->font().scName());
 		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures(), cstyle->font().fontFeatures());
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin());
-		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1));
+
+		uint hyphenChar = cstyle->hyphenChar();
+		QString hyphenText;
+		if (hyphenChar)
+			hyphenText = QString::fromUcs4(&hyphenChar, 1);
+		hyphenCharLineEdit->setValue(hyphenText);
 	}
 
 	effects_->ShadowVal->Xoffset->setValue(cstyle->shadowXOffset() / 10.0);
@@ -658,7 +674,11 @@ void SMCStyleWidget::showHyphenChar(const QList<CharStyle *> &cstyles)
 		}
 		ch = cstyles[i]->hyphenChar();
 	}
-	hyphenCharLineEdit->setValue(QString::fromUcs4(&ch, 1));
+
+	QString hyphenText;
+	if (ch)
+		hyphenText = QString::fromUcs4(&ch, 1);
+	hyphenCharLineEdit->setValue(hyphenText);
 }
 
 void SMCStyleWidget::showParent(const QList<CharStyle*> &cstyles)

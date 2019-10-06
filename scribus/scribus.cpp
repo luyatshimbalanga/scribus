@@ -1433,7 +1433,7 @@ void ScribusMainWindow::setStatusBarTextSelectedItemInfo()
 	}
 	else
 	{
-		setStatusBarInfoText( tr("%1 Objects selected, Selection Size = %2 x %3").arg(docSelectionCount).arg(widthTxt).arg(heightTxt));
+		setStatusBarInfoText( tr("%1 Objects selected, Selection Size = %2 x %3").arg(docSelectionCount).arg(widthTxt, heightTxt));
 	}
 }
 
@@ -3492,9 +3492,9 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 			QString infoMsg = "<qt>" + tr("The file may be damaged or may have been produced in a later version of Scribus.") + "</qt>";
 			ScMessageBox msgBox(QMessageBox::Critical, title, msg, QMessageBox::Ok | QMessageBox::Help, this);
 			msgBox.setInformativeText(infoMsg);
-			int i=msgBox.exec();
-			if (i==QMessageBox::Help)
-					slotOnlineHelp("", "fileproblems.html");
+			int i = msgBox.exec();
+			if (i == QMessageBox::Help)
+				slotOnlineHelp("", "fileproblems.html");
 			return false;
 		}
 		bool is12doc=false;
@@ -4675,7 +4675,7 @@ void ScribusMainWindow::slotEditCopy()
 		
 		// Sort items in Z-order
 		QList<PageItem*> selectedItems = doc->m_Selection->items();
-		qStableSort(selectedItems.begin(), selectedItems.end(), compareItemLevel);
+		std::stable_sort(selectedItems.begin(), selectedItems.end(), compareItemLevel);
 
 		Selection tempSelection(this, false);
 		for (int i = 0; i < selectedItems.count(); ++i)
@@ -5262,10 +5262,10 @@ void ScribusMainWindow::slotResourceManager()
 {
 	if (!resourceManager) // in case its allocated???? maybe can remove in future
 	{
-		resourceManager=new ResourceManager(this);
+		resourceManager = new ResourceManager(this);
 		resourceManager->exec();
 		resourceManager->deleteLater();
-		resourceManager=nullptr;
+		resourceManager = nullptr;
 	}
 }
 
@@ -6662,10 +6662,14 @@ void ScribusMainWindow::slotPrefsOrg()
 	QString newUIStyle = m_prefsManager.guiStyle();
 	if (oldPrefs.uiPrefs.style != newUIStyle)
 	{
-		if (newUIStyle.isEmpty())
-			ScQApp->setStyle(m_prefsManager.guiSystemStyle());
+		QString styleName = m_prefsManager.guiSystemStyle();
+		if (!newUIStyle.isEmpty())
+			styleName = newUIStyle;
+		QStyle * newStyle = QStyleFactory::create(styleName);
+		if (newStyle)
+			ScQApp->setStyle(newStyle);
 		else
-			ScQApp->setStyle(QStyleFactory::create(newUIStyle));
+			m_prefsManager.appPrefs.uiPrefs.style = oldPrefs.uiPrefs.style;
 	}
 	int newUIFontSize = m_prefsManager.guiFontSize();
 	if (oldPrefs.uiPrefs.applicationFontSize != newUIFontSize)
@@ -6687,8 +6691,8 @@ void ScribusMainWindow::slotPrefsOrg()
 	QList<QMdiSubWindow *> windows = mdiArea->subWindowList();
 	if (!windows.isEmpty())
 	{
-		int windowCount=windows.count();
-		for ( int i = 0; i < windowCount; ++i )
+		int windowCount = windows.count();
+		for (int i = 0; i < windowCount; ++i)
 		{
 			QWidget* w = windows.at(i)->widget();
 			ScribusWin* scw = dynamic_cast<ScribusWin *>(w);

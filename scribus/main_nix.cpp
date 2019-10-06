@@ -26,13 +26,11 @@ for which a new license (GPL+exception) is in place.
 ***************************************************************************/
 
 #include <iostream>
-#include <signal.h>
+#include <csignal>
 
 #include <QApplication>
 #include <QMessageBox>
 #include <QDebug>
-
-#define BASE_QM "scribus"
 
 #include "scribusapp.h"
 #include "scribuscore.h"
@@ -78,13 +76,13 @@ int mainApp(int argc, char **argv)
 		return(EXIT_FAILURE);
 	if (app.useGUI)
 		return app.exec();
-	return EXIT_SUCCESS;	
+	return EXIT_SUCCESS;
 }
 
 void initCrashHandler()
 {
 	typedef void (*HandlerType)(int);
-	HandlerType handler	= 0;
+	HandlerType handler	= nullptr;
 	handler = defaultCrashHandler;
 	if (!handler)
 		handler = SIG_DFL;
@@ -106,7 +104,7 @@ void initCrashHandler()
 	signal (SIGABRT, handler);
 	sigaddset(&mask, SIGABRT);
 #endif
-	sigprocmask(SIG_UNBLOCK, &mask, 0);
+	sigprocmask(SIG_UNBLOCK, &mask, nullptr);
 }
 
 void defaultCrashHandler(int sig)

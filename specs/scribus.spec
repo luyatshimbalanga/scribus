@@ -213,6 +213,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %lang(de) %{_defaultdocdir}/%{name}/de
 %lang(en) %{_defaultdocdir}/%{name}/en
 %lang(it) %{_defaultdocdir}/%{name}/it
+	%lang(ru) %{_defaultdocdir}/%{name}/ru
 %{_defaultdocdir}/%{name}/README*
 %{_defaultdocdir}/%{name}/LINKS
 %{_defaultdocdir}/%{name}/TRANSLATION

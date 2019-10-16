@@ -384,22 +384,18 @@ void ScPage::restorePageItemDeletion(ScItemState< QList<PageItem*> > *state, boo
 	if (isUndo)
 	{
 		//CB #3373 reinsert at old position and renumber items
-		PageItem* ite = itemList.at(id2);
-		if (ite->Parent && ite->Parent->isGroup())
-			ite->Parent->asGroupFrame()->groupItemList.insert(id, ite);
+		PageItem* oldItem = itemList.at(id2);
+		if (oldItem->Parent && oldItem->Parent->isGroup())
+			oldItem->Parent->asGroupFrame()->groupItemList.insert(id, oldItem);
 		else
-			m_Doc->Items->insert(id, ite);
-		for (int i = 0; i < itemList.count(); ++i)
-		{
-			PageItem* ite = itemList.at(i);
-			m_Doc->view()->SelectItem(ite);
-		}
+			m_Doc->Items->insert(id, oldItem);
+		m_Doc->m_Selection->addItems(itemList);
 	}
 	else
 	{
 		Selection tmpSelection(m_Doc, false);
 		PageItem* ite = itemList.at(id2);
-		if (m_Doc->m_Selection->findItem(ite)!=-1)
+		if (m_Doc->m_Selection->findItem(ite) != -1)
 		{
 			if (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)
 				m_Doc->view()->requestMode(modeNormal);
@@ -428,10 +424,12 @@ void ScPage::restorePageItemConversion(ScItemState<QPair<PageItem*, PageItem*> >
 		m_Doc->Items->replace(m_Doc->Items->indexOf(newItem), oldItem);
 		oldItem->updatePolyClip();
 		m_Doc->adjustItemSize(oldItem);
+		m_Doc->m_Selection->replaceItem(newItem, oldItem);
 	}
 	else
 	{
 		m_Doc->Items->replace(m_Doc->Items->indexOf(oldItem), newItem);
+		m_Doc->m_Selection->replaceItem(oldItem, newItem);
 	}
 	m_Doc->setMasterPageMode(oldMPMode);
 }
@@ -454,10 +452,12 @@ void ScPage::restorePageItemConversionToSymbol(ScItemState<QPair<PageItem*, Page
 		m_Doc->adjustItemSize(oldItem);
 		if (m_Doc->docPatterns.contains(patternName))
 			m_Doc->removePattern(patternName);
+		m_Doc->m_Selection->replaceItem(newItem, oldItem);
 	}
 	else
 	{
 		m_Doc->Items->replace(m_Doc->Items->indexOf(oldItem), newItem);
+		m_Doc->m_Selection->replaceItem(oldItem, newItem);
 	}
 	m_Doc->setMasterPageMode(oldMPMode);
 }

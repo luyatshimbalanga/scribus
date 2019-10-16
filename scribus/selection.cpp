@@ -154,7 +154,7 @@ bool Selection::connectItemToGUI()
 		return ret;
 	if (m_SelList.count() == 1)
 	{
-		QPointer<PageItem> pi=m_SelList.first();
+		QPointer<PageItem> pi = m_SelList.first();
 		//Quick check to see if the pointer is nullptr, if its nullptr, we should remove it from the list now
 		if (pi.isNull())
 		{
@@ -210,6 +210,35 @@ bool Selection::addItem(PageItem *item, bool /*ignoreGUI*/)
 	return false;
 }
 
+bool Selection::addItems(const QList<PageItem *> items)
+{
+	if (items.isEmpty())
+		return false;
+
+	QList< QPointer<PageItem> > toAdd;
+	toAdd.reserve(items.count());
+	for (int i = 0; i < items.count(); ++i)
+	{
+		PageItem* item = items.at(i);
+		if (m_SelList.contains(item))
+			continue;
+		toAdd.append(item);
+		item->setSelected(true);
+	}
+
+	if (toAdd.count() <= 0)
+		return false;
+
+	m_SelList.append(toAdd);
+	if (m_isGUISelection)
+	{
+		m_sigSelectionChanged = true;
+		m_sigSelectionIsMultiple = true;
+	}
+	sendSignals();
+	return true;
+}
+
 bool Selection::prependItem(PageItem *item, bool /*doEmit*/)
 {
 	if (item == nullptr)
@@ -235,7 +264,7 @@ PageItem *Selection::itemAt_(int index)
 {
 	if (!m_SelList.isEmpty() && index<m_SelList.count())
 	{
-		QPointer<PageItem> pi=m_SelList[index];
+		QPointer<PageItem> pi = m_SelList[index];
 		//If not nullptr return it, otherwise remove from the list and return nullptr
 		if (!pi.isNull())
 			return pi;
@@ -330,6 +359,17 @@ bool Selection::removeItemsOfLayer(int layedID)
 
 	bool itemsRemoved = (oldSelCount != m_SelList.count());
 	return itemsRemoved;
+}
+
+void Selection::replaceItem(PageItem* oldItem, PageItem* newItem)
+{
+	delaySignalsOn();
+
+	int itemIndex = findItem(oldItem);
+	if (itemIndex >= 0)
+		m_SelList.replace(itemIndex, newItem);
+
+	delaySignalsOff();
 }
 
 PageItem* Selection::takeItem(int itemIndex)

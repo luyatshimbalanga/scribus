@@ -42,22 +42,15 @@ BuildRequires:	poppler-cpp-devel
 BuildRequires:	poppler-data-devel
 BuildRequires:	poppler-devel
 BuildRequires:	pkgconfig(python3)
-%if 0%{?fedora} > 24
-BuildRequires:	python2-pillow-devel
 BuildRequires:	python3-pillow-devel
-%else
-BuildRequires:	python-pillow-devel
-%endif
 BuildRequires:	python3-qt5-devel
+BuildRequires:	python3-tkinter
 BuildRequires:	qt5-devel
 BuildRequires:	qt5-qtbase-devel
 BuildRequires:	qt5-qtdeclarative-devel
 BuildRequires:	qt5-qttools-devel
 BuildRequires:	qt5-qtwebkit-devel
 BuildRequires:	tk-devel
-%if 0%{?fedora} < 31
-BuildRequires:	tkinter
-%endif
 
 # Some libraries have pkconfig files so use them
 BuildRequires:	pkgconfig(cairo)
@@ -116,12 +109,8 @@ Obsoletes:      %{name}-doc < 1.3.5-0.12.beta
 chmod a-x scribus/pageitem_latexframe.h
 
 # drop shebang lines from python scripts
-for f in scribus/plugins/scriptplugin/{samples,scripts}/*.py
-do
-    sed '1{/#!\/usr\/bin\/env\|#!\/usr\/bin\/python/d}' $f > $f.new
-    touch -r $f $f.new
-    mv $f.new $f
-done
+pathfix.py -pni "%{__python3} %{py3_shbang_opts}" \
+	scribus/plugins/scriptplugin/{samples,scripts}/*.py
 
 %build
 mkdir build
@@ -150,37 +139,8 @@ find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 %check
 desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 appstream-util validate-relax --nonet \
-	%{buildroot}/%{_datadir}/metainfo/%{name}.appdata.xml
+	%{buildroot}%{_metainfodir}/%{name}.appdata.xml
 
-%post
-touch --no-create %{_datadir}/mime/packages &> /dev/null || :
-touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
-
-%if 0%{?fedora} < 25
-update-desktop-database &> /dev/null || :
-%endif
-
-%postun
-if [ $1 -eq 0 ] ; then
-	touch --no-create %{_datadir}/icons/hicolor &>/dev/null
-	gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
-touch --no-create %{_datadir}/mime/packages &> /dev/null || :
-#
-
-%if 0%{?fedora} < 25
-	update-desktop-database &> /dev/null || :
-%endif
-	update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
-fi
-
-%posttrans
-%if 0%{?fedora} < 25
-update-desktop-database &> /dev/null || :
-%endif
-update-mime-database %{?fedora:-n} %{_datadir}/mime &> /dev/null || :
-
-# Update
-gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %files
 %doc %{_defaultdocdir}/%{name}/AUTHORS
@@ -189,7 +149,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %doc %{_defaultdocdir}/%{name}/README
 %{_bindir}/%{name}
 %{_libdir}/%{name}/
-%{_datadir}/metainfo/%{name}.appdata.xml
+%{_metainfodir}/%{name}.appdata.xml
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/mime/packages/%{name}.xml
 %{_datadir}/icons/hicolor/16x16/apps/%{name}.png
@@ -219,6 +179,11 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Wed Oct 30 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20191030git
+- Snapshot svn 23306
+- Drop no longer needed update database scribus
+- Clean up spec file for adherance to Fedora packaging guideline
+
 * Sun Aug 04 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20190804git
 - Update to 1.5.6 snapshot svn 23099
 

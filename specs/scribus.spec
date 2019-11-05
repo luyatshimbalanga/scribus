@@ -193,5 +193,3 @@ appstream-util validate-relax --nonet \
 * Mon Jul 01 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190705git
 - Snapshot svn 23067
 
-* Mon Jul 01 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.5-0-20190630git
-- Snapshot svn 23058

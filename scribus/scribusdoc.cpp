@@ -9304,7 +9304,7 @@ void ScribusDoc::itemSelection_ApplyCharStyle(const CharStyle & newStyle, Select
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.selectionLength() > 0)
+				if (currItem->itemText.isSelected())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -9435,7 +9435,7 @@ void ScribusDoc::itemSelection_SetCharStyle(const CharStyle & newStyle, Selectio
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.selectionLength() > 0)
+				if (currItem->itemText.isSelected())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -9515,7 +9515,7 @@ void ScribusDoc::itemSelection_EraseCharStyle(Selection* customSelection)
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.selectionLength() > 0)
+				if (currItem->itemText.isSelected())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -11327,7 +11327,7 @@ void ScribusDoc::itemSelection_TruncateItem(Selection* customSelection)
 	changed();
 }
 
-QList<PageItem*>* ScribusDoc::GroupOfItem(QList<PageItem*>* itemList, PageItem* item)
+QList<PageItem*>* ScribusDoc::groupOfItem(QList<PageItem*>* itemList, PageItem* item)
 {
 	if (itemList->contains(item))
 		return itemList;
@@ -11335,7 +11335,7 @@ QList<PageItem*>* ScribusDoc::GroupOfItem(QList<PageItem*>* itemList, PageItem* 
 	{
 		if (itemList->at(i)->isGroup())
 		{
-			QList<PageItem*>* ite = GroupOfItem(&itemList->at(i)->groupItemList, item);
+			QList<PageItem*>* ite = groupOfItem(&itemList->at(i)->groupItemList, item);
 			if (ite != nullptr)
 				return ite;
 		}
@@ -11420,7 +11420,7 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 	for (int de = 0; de < selectedItemCount; ++de)
 	{
 		currItem = delItems.at(selectedItemCount - (de + 1));
-		itemList = GroupOfItem(Items, currItem);
+		itemList = groupOfItem(Items, currItem);
 		if (itemList == nullptr)
 			continue;
 		if ((currItem->asImageFrame()) && ((ScCore->fileWatcher->files().contains(currItem->Pfile) != 0) && (currItem->imageIsAvailable)))
@@ -14470,8 +14470,6 @@ bool ScribusDoc::sizeItem(double newW, double newH, PageItem *pi, bool fromMP, b
 			double gx, gy, gh, gw;
 			m_Selection->setGroupRect();
 			m_Selection->getGroupRect(&gx, &gy, &gw, &gh);
-//			qDebug() << "doc, emit w&h, when was this used?";
-			emit widthAndHeight(gw, gh);
 		}
 	}
 	currItem->setCornerRadius(qMin(currItem->cornerRadius(), qMin(currItem->width(), currItem->height()) / 2));
@@ -14541,12 +14539,12 @@ void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup)
 	currItem->Sizing = false;
 	if ((!(currItem->isGroup() || currItem->isSymbol())) || includeGroup)
 	{
-		double oldX = currItem->xPos();
-		double oldY = currItem->yPos();
-		double oldW = currItem->width();
-		double oldH = currItem->height();
-		double oldgW = currItem->groupWidth;
-		double oldgH = currItem->groupHeight;
+//		double oldX = currItem->xPos();
+//		double oldY = currItem->yPos();
+//		double oldW = currItem->width();
+//		double oldH = currItem->height();
+//		double oldgW = currItem->groupWidth;
+//		double oldgH = currItem->groupHeight;
 		FPointArray clip = currItem->PoLine;
 		QRectF clipRect = clip.toQPainterPath(false).boundingRect();
 		FPoint tp2(clipRect.left(), clipRect.top());

@@ -310,7 +310,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("createParagraphStyle"), (PyCFunction)scribus_createparagraphstyle, METH_VARARGS|METH_KEYWORDS, tr(scribus_createparagraphstyle__doc__)},
 	{const_cast<char*>("createCharStyle"), (PyCFunction)scribus_createcharstyle, METH_VARARGS|METH_KEYWORDS, tr(scribus_createcharstyle__doc__)},
 	{const_cast<char*>("createCustomLineStyle"), scribus_createcustomlinestyle, METH_VARARGS, tr(scribus_createcustomlinestyle__doc__)},
-	{const_cast<char*>("currentPage"), (PyCFunction)scribus_actualpage, METH_NOARGS, tr(scribus_actualpage__doc__)},
+	{const_cast<char*>("currentPage"), (PyCFunction)scribus_currentpage, METH_NOARGS, tr(scribus_currentpage__doc__)},
 	{const_cast<char*>("defineColor"), scribus_newcolor, METH_VARARGS, tr(scribus_newcolor__doc__)},
 	{const_cast<char*>("defineColorLab"), scribus_newcolorlab, METH_VARARGS, tr(scribus_newcolorlab__doc__) },
 	{const_cast<char*>("defineColorRGB"), scribus_newcolorrgb, METH_VARARGS, tr(scribus_newcolorrgb__doc__)},
@@ -363,8 +363,8 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getHGuides"), (PyCFunction)scribus_getHguides, METH_NOARGS, tr(scribus_getHguides__doc__)},
 	{const_cast<char*>("getImageColorSpace"), scribus_getimagecolorspace, METH_VARARGS, tr(scribus_getimagecolorspace__doc__) },
 	{const_cast<char*>("getImageFile"), scribus_getimagefile, METH_VARARGS, tr(scribus_getimagefile__doc__)},
-	{const_cast<char*>("getImageOffset"), scribus_getimgoffset, METH_VARARGS, tr(scribus_getimgoffset__doc__)},
-	{const_cast<char*>("getImageScale"), scribus_getimgscale, METH_VARARGS, tr(scribus_getimgscale__doc__)},
+	{const_cast<char*>("getImageOffset"), scribus_getimageoffset, METH_VARARGS, tr(scribus_getimageoffset__doc__)},
+	{const_cast<char*>("getImageScale"), scribus_getimagescale, METH_VARARGS, tr(scribus_getimagescale__doc__)},
 	{const_cast<char*>("getLayers"), (PyCFunction)scribus_getlayers, METH_NOARGS, tr(scribus_getlayers__doc__)},
 	{const_cast<char*>("getLayerBlendmode"), scribus_glayerblend, METH_VARARGS, tr(scribus_glayerblend__doc__)},
 	{const_cast<char*>("getLayerTransparency"), scribus_glayertrans, METH_VARARGS, tr(scribus_glayertrans__doc__)},
@@ -380,11 +380,11 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getMasterPage"), scribus_getmasterpage, METH_VARARGS, tr(scribus_getmasterpage__doc__)},
 	{const_cast<char*>("getPageItems"), (PyCFunction)scribus_getpageitems, METH_NOARGS, tr(scribus_getpageitems__doc__)},
 	{const_cast<char*>("getPageMargins"), (PyCFunction)scribus_getpagemargins, METH_NOARGS, tr(scribus_getpagemargins__doc__)},
-	{const_cast<char*>("getPageType"), (PyCFunction)scribus_pageposition, METH_VARARGS, tr(scribus_pageposition__doc__)},
+	{const_cast<char*>("getPageType"), (PyCFunction)scribus_getpagetype, METH_VARARGS, tr(scribus_getpagetype__doc__)},
 	{const_cast<char*>("getPageSize"), (PyCFunction)scribus_pagedimension, METH_NOARGS, tr(scribus_pagedimension__doc__)},
-	{const_cast<char*>("getPageNSize"), scribus_pagensize, METH_VARARGS, tr(scribus_pagensize__doc__)},
-	{const_cast<char*>("getPageNMargins"), scribus_pagenmargins, METH_VARARGS, tr(scribus_pagenmargins__doc__)},
-	{const_cast<char*>("getPosition"), scribus_getposi, METH_VARARGS, tr(scribus_getposi__doc__)},
+	{const_cast<char*>("getPageNSize"), scribus_getpagensize, METH_VARARGS, tr(scribus_getpagensize__doc__)},
+	{const_cast<char*>("getPageNMargins"), scribus_getpagenmargins, METH_VARARGS, tr(scribus_getpagenmargins__doc__)},
+	{const_cast<char*>("getPosition"), scribus_getposition, METH_VARARGS, tr(scribus_getposition__doc__)},
 	{const_cast<char*>("getRotation"), scribus_getrotation, METH_VARARGS, tr(scribus_getrotation__doc__)},
 	{const_cast<char*>("getObjectType"), scribus_getobjecttype, METH_VARARGS, tr(scribus_getobjecttype__doc__)},
 	{const_cast<char*>("getObjectAttributes"), scribus_getobjectattributes, METH_VARARGS, tr(scribus_getobjectattributes__doc__)},
@@ -459,11 +459,12 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("replaceColor"), scribus_replcolor, METH_VARARGS, tr(scribus_replcolor__doc__)},
 	{const_cast<char*>("resizeTableColumn"), scribus_resizetablecolumn, METH_VARARGS, tr(scribus_resizetablecolumn__doc__)},
 	{const_cast<char*>("resizeTableRow"), scribus_resizetablerow, METH_VARARGS, tr(scribus_resizetablerow__doc__)},
+	{const_cast<char*>("revertDoc"), (PyCFunction)scribus_revertdoc, METH_NOARGS, tr(scribus_revertdoc__doc__)},
 	{const_cast<char*>("rotateObjectAbs"), scribus_rotobjabs, METH_VARARGS, tr(scribus_rotobjabs__doc__)},
 	{const_cast<char*>("rotateObject"), scribus_rotobjrel, METH_VARARGS, tr(scribus_rotobjrel__doc__)},
 	{const_cast<char*>("getDocName"), (PyCFunction)scribus_getdocname, METH_NOARGS, tr(scribus_getdocname__doc__)},
-	{const_cast<char*>("saveDocAs"), scribus_savedocas, METH_VARARGS, tr(scribus_savedocas__doc__)},
 	{const_cast<char*>("saveDoc"), (PyCFunction)scribus_savedoc, METH_NOARGS, tr(scribus_savedoc__doc__)},
+	{const_cast<char*>("saveDocAs"), scribus_savedocas, METH_VARARGS, tr(scribus_savedocas__doc__)},
 	{const_cast<char*>("savePageAsEPS"), scribus_savepageeps, METH_VARARGS, tr(scribus_savepageeps__doc__)},
 	{const_cast<char*>("savePDFOptions"), (PyCFunction)scribus_savepdfoptions, METH_VARARGS, tr(scribus_savepdfoptions__doc__)},
 	{const_cast<char*>("scaleGroup"), scribus_scalegroup, METH_VARARGS, tr(scribus_scalegroup__doc__)},
@@ -527,9 +528,9 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setLineWidth"), scribus_setlinewidth, METH_VARARGS, tr(scribus_setlinewidth__doc__)},
 	{const_cast<char*>("setMargins"), scribus_setmargins, METH_VARARGS, tr(scribus_setmargins__doc__)},
 	{const_cast<char*>("setBaseLine"), scribus_setbaseline, METH_VARARGS, tr(scribus_setbaseline__doc__)},
+	{const_cast<char*>("setItemName"), scribus_setitemname, METH_VARARGS, tr(scribus_setitemname__doc__)},
 	{const_cast<char*>("setMultiLine"), scribus_setmultiline, METH_VARARGS, tr(scribus_setmultiline__doc__)},
-	{const_cast<char*>("setNewName"), scribus_setnewname, METH_VARARGS, tr(scribus_setnewname__doc__)},
-	// duplicity? {"setMultiLine", scribus_setmultiline, METH_VARARGS, "TODO: docstring"},
+	{const_cast<char*>("setNewName"), scribus_setitemname, METH_VARARGS, tr(scribus_setitemname__doc__)}, // Deprecated, was in fact never documented
 	{const_cast<char*>("setObjectAttributes"), scribus_setobjectattributes, METH_VARARGS, tr(scribus_setobjectattributes__doc__)},
 	{const_cast<char*>("setRedraw"), scribus_setredraw, METH_VARARGS, tr(scribus_setredraw__doc__)},
 	// missing? {"setSelectedObject", scribus_setselobjnam, METH_VARARGS, "Returns the Name of the selecteted Object. \"nr\" if given indicates the Number of the selected Object, e.g. 0 means the first selected Object, 1 means the second selected Object and so on."},
@@ -980,5 +981,5 @@ PV */
 void scriptplugindocwarnings()
 {
 	QStringList s;
-	s <<printer__doc__<<pdffile__doc__<<imgexp__doc__<<imgexp_dpi__doc__<<imgexp_scale__doc__ <<imgexp_quality__doc__<<imgexp_filename__doc__<<imgexp_type__doc__<<imgexp_alltypes__doc__ << imgexp_save__doc__ << imgexp_saveas__doc__;
+	s <<printer__doc__<<pdffile__doc__<<imgexp__doc__<<imgexp_dpi__doc__<<imgexp_scale__doc__ << imgexp_transparentBkgnd__doc__ <<imgexp_quality__doc__<<imgexp_filename__doc__<<imgexp_type__doc__<<imgexp_alltypes__doc__ << imgexp_save__doc__ << imgexp_saveas__doc__;
 }

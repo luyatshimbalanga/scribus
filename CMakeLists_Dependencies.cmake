@@ -166,13 +166,6 @@ endif()
 find_package(Freetype REQUIRED)
 if (FREETYPE_FOUND)
 	message(STATUS "FreeType2 Library Found OK")
-	include(CheckLibraryExists)
-	CHECK_LIBRARY_EXISTS(${FREETYPE_LIBRARY} FT_Get_First_Char "" HAVE_FREETYPE_FIRST)
-	CHECK_LIBRARY_EXISTS(${FREETYPE_LIBRARY} FT_Get_Next_Char "" HAVE_FREETYPE_NEXT)
-	# here we have an alternative
-	# a) Setup CFLAGS with the FREETYPE_INCLUDE_DIR_freetype2 provided by cmake
-	# b) Insert ${FREETYPE_INCLUDE_DIRS} in include sections of CMakeLists that need it
-	# I prefer (b) and at some point & from my opinion it should  be just needed in scribus/fonts/CmakeLists.txt - pm
 else()
 	message(FATAL_ERROR "No Freetype Found")
 endif()
@@ -235,15 +228,11 @@ endif()
 
 #<<FontConfig
 if(NOT WIN32)
-	set(FONTCONFIG_DIR ${CMAKE_MODULE_PATH})
-	find_package(FONTCONFIG)
-	if(FONTCONFIG_FOUND)
+	find_package(Fontconfig REQUIRED)
+	if(Fontconfig_FOUND)
 		message("FontConfig Found OK")
 		set(HAVE_FONTCONFIG ON)
 	endif()
-else()
-	# Windows builds neither use nor require fontconfig
-	set(FONTCONFIG_INCLUDE_DIR)
 endif()
 #>>FontConfig
 

@@ -7716,12 +7716,7 @@ void ScribusDoc::itemSelection_SetLineWidth(double w, Selection* customSelection
 		if (currItem->asPolyLine() || currItem->asSpiral())
 			currItem->setPolyClip(qRound(qMax(currItem->lineWidth() / 2, 1.0)));
 		if (currItem->asLine())
-		{
-			int ph = static_cast<int>(qMax(1.0, w / 2.0));
-			currItem->Clip.setPoints(4, -ph,-ph, static_cast<int>(currItem->width()+ph),-ph,
-									 static_cast<int>(currItem->width()+ph),static_cast<int>(currItem->height()+ph),
-									 -ph,static_cast<int>(currItem->height()+ph));
-		}
+			currItem->asLine()->setLineClip();
 		QRectF newRect = currItem->getVisualBoundingRect();
 		//currItem->update();
 		currItem->invalidateLayout();
@@ -13785,6 +13780,9 @@ void ScribusDoc::itemSelection_ApplyArrowHead(int startArrowID, int endArrowID, 
 	if (selectedItemCount == 0)
 		return;
 
+	if ((startArrowID < 0) && (endArrowID < 0))
+		return;
+
 	UndoTransaction activeTransaction;
 	m_updateManager.setUpdatesDisabled();
 	if (UndoManager::undoEnabled() && selectedItemCount > 1)
@@ -13792,24 +13790,32 @@ void ScribusDoc::itemSelection_ApplyArrowHead(int startArrowID, int endArrowID, 
 	QString tooltip = Um::ItemsInvolved + "\n";
 	if (selectedItemCount > Um::ItemsInvolvedLimit)
 		tooltip = Um::ItemsInvolved2 + "\n";
+
+	QRectF updateRect;
 	for (int i = 0; i < selectedItemCount; ++i)
 	{
 		PageItem *currItem = itemSelection->itemAt(i);
 		if (!(currItem->asLine() || currItem->asPolyLine() || currItem->asSpiral()))
 			continue;
+		updateRect = updateRect.united(currItem->getBoundingRect());
 		if (startArrowID != -1)
 			currItem->setStartArrowIndex(startArrowID);
 		if (endArrowID != -1)
 			currItem->setEndArrowIndex(endArrowID);
+		updateRect = updateRect.united(currItem->getBoundingRect());
 		if (selectedItemCount <= Um::ItemsInvolvedLimit)
 			tooltip += "\t" + currItem->getUName() + "\n";
-		currItem->update();
+		//currItem->update();
 	}
+
+	if (!updateRect.isEmpty())
+		regionsChanged()->update(updateRect);
+
 	QString undoText;
 	if (startArrowID!=-1 && endArrowID!=-1)
-		undoText=Um::StartAndEndArrow;
+		undoText = Um::StartAndEndArrow;
 	else
-		undoText=(startArrowID!=-1) ? Um::StartArrow : Um::EndArrow;
+		undoText = (startArrowID != -1) ? Um::StartArrow : Um::EndArrow;
 	if (activeTransaction)
 	{
 		activeTransaction.commit(Um::Selection,
@@ -14269,8 +14275,8 @@ void ScribusDoc::rotateItem(double angle, PageItem *currItem)
 		switch (m_rotMode)
 		{
 		case 2:
-			ma.translate(currItem->width()/2.0, currItem->height()/2.0);
-			n = FPoint(-currItem->width()/2.0, -currItem->height()/2.0);
+			ma.translate(currItem->width() / 2.0, currItem->height() / 2.0);
+			n = FPoint(-currItem->width() / 2.0, -currItem->height() / 2.0);
 			break;
 		case 4:
 			ma.translate(currItem->width(), currItem->height());
@@ -14391,9 +14397,7 @@ bool ScribusDoc::sizeItem(double newW, double newH, PageItem *pi, bool fromMP, b
 			currItem->setWidthHeight( sqrt(pow(t.x(), 2) + pow(t.y(), 2)), 1.0);
 			//currItem->setXYPos(currItem->xPos(), currItem->yPos());
 		}
-		currItem->Clip.setPoints(4, -ph,-ph, static_cast<int>(currItem->width() + ph), -ph,
-		                  static_cast<int>(currItem->width() + ph), static_cast<int>(currItem->height() + ph),
-		                  -ph, static_cast<int>(currItem->height() + ph));
+		currItem->asLine()->setLineClip();
 	}
 	// In the future, it may be good to adjust embedded group items position here
 	/*if (currItem->isGroup() || currItem->isSymbol())

@@ -1,14 +1,20 @@
-%global build_timestamp %{lua: print(os.date("%Y%m%d"))}
+%global	build_repo https://github.com/scribusproject/scribus/
+%global	build_branch master
+%global	version_string 1.5.6
+%define	build_commit %(git ls-remote %{build_repo} | grep "refs/heads/%{build_branch}" | cut -c1-41)
+%define	build_shortcommit %(c=%{build_commit}; echo ${c:0:7})
+%global	build_timestamp %(date +"%Y%m%d")
+%global	rel_build %{build_timestamp}git%{build_shortcommit}%{?dist}
 
 Name:		scribus
-Version:	1.5.6
-Release:	0.%{build_timestamp}git%{?dist}
+Version:	%{version_string}
+Release:	0.1.%{rel_build}
 Summary:	Open Source Page Layout
 License:	GPLv2+
 URL:		http://www.scribus.net/
 # svn export svn://scribus.net/trunk/Scribus scribus
 # tar --exclude-vcs -cJf scribus-1.5.0-20161204svn21568.tar.xz scribus
-Source0:	https://github.com/%{name}project/%{name}/archive/master.tar.gz#/%{name}-%{version}-%{build_timestamp}git.tar.gz
+Source0:	%{build_repo}/archive/%{build_branch}.tar.gz
 
 BuildRequires:	boost-devel
 BuildRequires:	cmake
@@ -103,7 +109,7 @@ Obsoletes:      %{name}-doc < 1.3.5-0.12.beta
 %{summary}
 
 %prep
-%autosetup -n %{name}-master
+%autosetup -n %{name}-%{build_branch}
 
 # fix permissions
 chmod a-x scribus/pageitem_latexframe.h
@@ -179,6 +185,9 @@ appstream-util validate-relax --nonet \
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
+* Mon Jan 13 2019 Luya Tshimbalanga <luya@fedoraproject.org>
+- Automate build to reduce maintenance
+
 * Wed Oct 30 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20191030git
 - Snapshot svn 23306
 - Drop no longer needed update database scribus

@@ -54,14 +54,14 @@ BuildRequires:  pkgconfig(poppler-cpp)
 BuildRequires:  pkgconfig(poppler-data)
 BuildRequires:	pkgconfig(python3)
 BuildRequires:	pkgconfig(Qt5)
+BuildRequires:  pkgconifg(Qt5Declarative)
+BuildRequires:  pkgconfig(Qt5UiTools)
+BuildRequires:	pkgconfig(Qt5WebKit)
 BuildRequires:	pkgconfig(tk)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	python3-pillow-devel
 BuildRequires:	python3-qt5-devel
 BuildRequires:	python3-tkinter
-BuildRequires:	qt5-qtdeclarative-devel
-BuildRequires:	qt5-qttools-devel
-BuildRequires:	qt5-qtwebkit-devel
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7

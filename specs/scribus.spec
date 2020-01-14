@@ -22,55 +22,46 @@ BuildRequires:	cups-devel
 BuildRequires:	desktop-file-utils
 BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
-BuildRequires:	GraphicsMagick-devel
-BuildRequires:	GraphicsMagick-c++-devel
 BuildRequires:	hyphen-devel
 BuildRequires:	libappstream-glib
 BuildRequires:	libcdr-devel
 BuildRequires:	libfreehand-devel
-BuildRequires:	libmspub-devel
 BuildRequires:	libpagemaker-devel
 BuildRequires:	libqxp-devel
 BuildRequires:	librevenge-devel
-BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel
 BuildRequires:	libwpg-devel
-# Dependency needed for development repository
 BuildRequires:	libzmf-devel
-BuildRequires:	OpenSceneGraph-devel
-BuildRequires:	openssl-devel
-BuildRequires:	podofo-devel
-BuildRequires:	poppler-cpp-devel
-BuildRequires:	poppler-data-devel
-BuildRequires:	poppler-devel
-BuildRequires:	pkgconfig(python3)
-BuildRequires:	python3-pillow-devel
-BuildRequires:	python3-qt5-devel
-BuildRequires:	python3-tkinter
-BuildRequires:	qt5-devel
-BuildRequires:	qt5-qtbase-devel
-BuildRequires:	qt5-qtdeclarative-devel
-BuildRequires:	qt5-qttools-devel
-BuildRequires:	qt5-qtwebkit-devel
-
-# Some libraries have pkconfig files so use them
 BuildRequires:	pkgconfig(cairo)
 BuildRequires:	pkgconfig(fontconfig)
 BuildRequires:	pkgconfig(freetype2)
 BuildRequires:	pkgconfig(gnutls)
+BuildRequires:	pkgconfig(GraphicsMagick)
+BuildRequires:	pkgconfig(GraphicsMagick++)
 BuildRequires:	pkgconfig(harfbuzz)
+BuildRequires:	pkgconfig(hunspell)
 BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(lcms2)
-BuildRequires:	pkgconfig(libhunspell)
 BuildRequires:	pkgconfig(libjpeg)
 BuildRequires:	pkgconfig(libpng)
+BuildRequires:	pkgconfig(libpodofo)
 BuildRequires:	pkgconfig(libtiff-4)
 BuildRequires:  pkgconfig(libxml-2.0)
+BuildRequires:	pkgconfig(OpenSceneGraph)
+BuildRequires:	pkgconfig(openssl)
 BuildRequires:  pkgconfig(poppler)
 BuildRequires:  pkgconfig(poppler-cpp)
 BuildRequires:  pkgconfig(poppler-data)
+BuildRequires:	pkgconfig(python3)
+BuildRequires:	pkgconfig(qt5)
 BuildRequires:	pkgconfig(tk)
 BuildRequires:	pkgconfig(zlib)
+BuildRequires:	python3-pillow-devel
+BuildRequires:	python3-qt5-devel
+BuildRequires:	python3-tkinter
+BuildRequires:	qt5-qtdeclarative-devel
+BuildRequires:	qt5-qttools-devel
+BuildRequires:	qt5-qtwebkit-devel
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7
@@ -131,7 +122,6 @@ pushd build
 %ifarch x86_64 || aarch64
 	-DWANT_LIB64=YES \
 %endif
-	-DWANT_NORPATH=1 \
 	-DWITH_BOOST=1 \
 	-DWITH_PODOFO=1 ..
 
@@ -190,6 +180,7 @@ appstream-util validate-relax --nonet \
 %changelog
 * Mon Jan 13 2020 Luya Tshimbalanga <luya@fedoraproject.org>
 - Automate build to reduce maintenance
+- Use pkgconfig on many build requirements
 
 * Wed Oct 30 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20191030git
 - Snapshot svn 23306

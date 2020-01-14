@@ -8,13 +8,13 @@
 
 Name:		scribus
 Version:	%{version_string}
-Release:	0.1.%{rel_build}
+Release:	0.%{rel_build}
 Summary:	Open Source Page Layout
 License:	GPLv2+
 URL:		http://www.scribus.net/
 # svn export svn://scribus.net/trunk/Scribus scribus
 # tar --exclude-vcs -cJf scribus-1.5.0-20161204svn21568.tar.xz scribus
-Source0:	%{build_repo}/archive/%{build_branch}.tar.gz
+Source:	%{build_repo}/archive/%{build_branch}.tar.gz
 
 BuildRequires:	boost-devel
 BuildRequires:	cmake
@@ -24,14 +24,6 @@ BuildRequires:	gcc-c++
 BuildRequires:	ghostscript
 BuildRequires:	hyphen-devel
 BuildRequires:	libappstream-glib
-BuildRequires:	libcdr-devel
-BuildRequires:	libfreehand-devel
-BuildRequires:	libpagemaker-devel
-BuildRequires:	libqxp-devel
-BuildRequires:	librevenge-devel
-BuildRequires:	libwpd-devel
-BuildRequires:	libwpg-devel
-BuildRequires:	libzmf-devel
 BuildRequires:	pkgconfig(cairo)
 BuildRequires:	pkgconfig(fontconfig)
 BuildRequires:	pkgconfig(freetype2)
@@ -42,13 +34,21 @@ BuildRequires:	pkgconfig(harfbuzz)
 BuildRequires:	pkgconfig(hunspell)
 BuildRequires:	pkgconfig(icu-uc)
 BuildRequires:	pkgconfig(lcms2)
+BuildRequires:	pkgconfig(libcdr-0.1)
+BuildRequires:	pkgconfig(libfreehand-0.1)
 BuildRequires:	pkgconfig(libjpeg)
 BuildRequires:  pkgconfig(libmspub-0.1)
+BuildRequires:  pkgconfig(libpagemaker-0.0)
 BuildRequires:	pkgconfig(libpng)
 BuildRequires:	pkgconfig(libpodofo)
+BuildRequires:	pkgconfig(libqxp-0.0)
+BuildRequires:	pkgconfig(librevenge-0.0)
 BuildRequires:	pkgconfig(libtiff-4)
 BuildRequires:	pkgconfig(libvisio-0.1)
+BuildRequires:	pkgconfig(libwpd-0.10)
+BuildRequires:	pkgconfig(libwpg-0.3)
 BuildRequires:  pkgconfig(libxml-2.0)
+BuildRequires:  pkgconfig(libzmf-0.0)
 BuildRequires:	pkgconfig(openscenegraph)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:  pkgconfig(poppler)

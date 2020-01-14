@@ -25,12 +25,9 @@ BuildRequires:	ghostscript
 BuildRequires:	GraphicsMagick-devel
 BuildRequires:	GraphicsMagick-c++-devel
 BuildRequires:	hyphen-devel
-BuildRequires:	hunspell-devel
-BuildRequires:	lcms2-devel
 BuildRequires:	libappstream-glib
 BuildRequires:	libcdr-devel
 BuildRequires:	libfreehand-devel
-BuildRequires:	libjpeg-turbo-devel
 BuildRequires:	libmspub-devel
 BuildRequires:	libpagemaker-devel
 BuildRequires:	libqxp-devel
@@ -38,7 +35,6 @@ BuildRequires:	librevenge-devel
 BuildRequires:	libvisio-devel
 BuildRequires:	libwpd-devel
 BuildRequires:	libwpg-devel
-BuildRequires:	libxml2-devel
 # Dependency needed for development repository
 BuildRequires:	libzmf-devel
 BuildRequires:	OpenSceneGraph-devel
@@ -56,7 +52,6 @@ BuildRequires:	qt5-qtbase-devel
 BuildRequires:	qt5-qtdeclarative-devel
 BuildRequires:	qt5-qttools-devel
 BuildRequires:	qt5-qtwebkit-devel
-BuildRequires:	tk-devel
 
 # Some libraries have pkconfig files so use them
 BuildRequires:	pkgconfig(cairo)
@@ -65,8 +60,16 @@ BuildRequires:	pkgconfig(freetype2)
 BuildRequires:	pkgconfig(gnutls)
 BuildRequires:	pkgconfig(harfbuzz)
 BuildRequires:	pkgconfig(icu-uc)
+BuildRequires:	pkgconfig(lcms2)
+BuildRequires:	pkgconfig(libhunspell)
+BuildRequires:	pkgconfig(libjpeg)
 BuildRequires:	pkgconfig(libpng)
 BuildRequires:	pkgconfig(libtiff-4)
+BuildRequires:  pkgconfig(libxml-2.0)
+BuildRequires:  pkgconfig(poppler)
+BuildRequires:  pkgconfig(poppler-cpp)
+BuildRequires:  pkgconfig(poppler-data)
+BuildRequires:	pkgconfig(tk)
 BuildRequires:	pkgconfig(zlib)
 
 
@@ -185,7 +188,7 @@ appstream-util validate-relax --nonet \
 %{_defaultdocdir}/%{name}/TRANSLATION
 
 %changelog
-* Mon Jan 13 2019 Luya Tshimbalanga <luya@fedoraproject.org>
+* Mon Jan 13 2020 Luya Tshimbalanga <luya@fedoraproject.org>
 - Automate build to reduce maintenance
 
 * Wed Oct 30 2019 Luya Tshimbalanga <luya@fedoraproject.org> - 1.5.6-0-20191030git

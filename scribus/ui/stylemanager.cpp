@@ -923,7 +923,7 @@ void StyleManager::addNewType(StyleItem *item, bool loadFromDoc)
 		if (m_styleActions.contains(key))
 			continue;
 
-		m_styleActions[key] = new ScrAction(ScrAction::DataQString, QPixmap(), QPixmap(), tr("&Apply"), shortcutValue, m_doc->view(), key);
+		m_styleActions[key] = new ScrAction(ScrAction::DataQString, QString(), QString(), tr("&Apply"), shortcutValue, m_doc->view(), key);
 		connect(m_styleActions[key], SIGNAL(triggeredData(QString)), this, SLOT(slotApplyStyle(QString)));
 	}
 }
@@ -1081,7 +1081,7 @@ void StyleManager::updateActionName(const QString &oldName, const QString &newNa
 	{
 		ScrAction *a = m_styleActions[oldKey];
 		disconnect(a, SIGNAL(triggeredData(QString)), this, SLOT(slotApplyStyle(QString)));
-		ScrAction *b = new ScrAction(ScrAction::DataQString, QPixmap(), QPixmap(), tr("&Apply"),
+		ScrAction *b = new ScrAction(ScrAction::DataQString, QString(), QString(), tr("&Apply"),
 						   a->shortcut(), m_doc->view(), newKey);
 		m_styleActions.remove(oldKey);
 		if (m_selectedStyleAction == a)
@@ -1119,7 +1119,7 @@ void StyleManager::slotShortcutChanged(const QString& shortcut)
 		m_styleActions[key]->setShortcut(shortcut);
 	else
 	{
-		m_styleActions[key] = new ScrAction(ScrAction::DataQString, QPixmap(), QPixmap(), tr("&Apply"), shortcut, m_doc->view(), key);
+		m_styleActions[key] = new ScrAction(ScrAction::DataQString, QString(), QString(), tr("&Apply"), shortcut, m_doc->view(), key);
 		connect(m_styleActions[key], SIGNAL(triggeredData(QString)), this, SLOT(slotApplyStyle(QString)));
 	}
 
@@ -1182,16 +1182,16 @@ void StyleManager::slotSetupWidget()
 	QPair<QString, QStringList> selection = namesFromSelection();
 	QString typeName = selection.first;
 // 	qDebug()<<"slotSetupWidget"<<selection.first<<selection.second.join("|");
-	if (typeName.isNull() && m_widget)
+	if (typeName.isEmpty() && m_widget)
 		m_widget->setEnabled(false); // nothing selected or two or more different types
-	else if (!m_item || m_item->typeName() != typeName || m_widget != m_item->widget())
+	else if (!m_item || (m_item->typeName() != typeName) || (m_widget != m_item->widget()))
 		loadType(typeName); // new type selected
 	else if (m_widget && !m_widget->isEnabled())
 		m_widget->setEnabled(true);
 
 	disconnect(nameEdit, SIGNAL(textChanged(const QString&)),
 	           this, SLOT(slotNameChanged(const QString&)));
-	if (!typeName.isNull())
+	if (!typeName.isEmpty())
 	{
 		m_item->selected(selection.second);
 		if (selection.second.count() > 1)
@@ -1375,6 +1375,7 @@ void StyleManager::loadType(const QString &name)
 	m_layout->addWidget(m_widget, 0, 0);
 	layout()->activate();
 	m_widget->resize(m_widget->minimumSizeHint());
+	m_widget->setEnabled(true);
 	m_widget->show();
 }
 

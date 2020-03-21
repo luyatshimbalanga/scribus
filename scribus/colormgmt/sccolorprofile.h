@@ -8,8 +8,10 @@ for which a new license (GPL+exception) is in place.
 #ifndef SCCOLORPROFILE_H
 #define SCCOLORPROFILE_H
 
+#include <QByteArray>
 #include <QSharedPointer>
 #include <QWeakPointer>
+
 #include "scribusapi.h"
 #include "sccolorprofiledata.h"
 
@@ -28,6 +30,8 @@ public:
 	inline bool isNull()    const { return (m_data.isNull() || m_data->isNull()); }
 	inline operator bool () const { return !isNull(); }
 
+	bool isSuitableForOutput() const;
+
 	QString profilePath() const;
 	QString productDescription() const;
 	
@@ -35,6 +39,9 @@ public:
 	eProfileClass   deviceClass() const;
 	
 	const ScColorProfileData* data() const { return m_data.data(); }
+	QString dataHash() const;
+
+	bool save(QByteArray& profileData) const;
 
 	bool operator==(const ScColorProfile& prof) const;
 	

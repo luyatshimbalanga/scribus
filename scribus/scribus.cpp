@@ -1536,8 +1536,9 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 		if (UndoManager::undoEnabled())
 		{
 			SimpleState *ss = dynamic_cast<SimpleState*>(m_undoManager->getLastUndo());
-			if (ss && ss->get("ETEA") == "insert_frametext")
-				ss->set("TEXT_STR",ss->get("TEXT_STR") + QString(QChar(unicodevalue)));
+			UndoObject *undoTarget = currItem;
+			if (ss && (ss->get("ETEA") == "insert_frametext") && (ss->undoObject() == undoTarget))
+				ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(QChar(unicodevalue)));
 			else
 			{
 				ss = new SimpleState(Um::InsertText,"",Um::ICreate);
@@ -1545,7 +1546,6 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 				ss->set("ETEA", QString("insert_frametext"));
 				ss->set("TEXT_STR", QString(QChar(unicodevalue)));
 				ss->set("START", currItem->itemText.cursorPosition());
-				UndoObject * undoTarget = currItem;
 				if (currItem->isNoteFrame())
 				{
 					undoTarget = doc;
@@ -1572,8 +1572,9 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 		if (UndoManager::undoEnabled())
 		{
 			SimpleState *ss = dynamic_cast<SimpleState*>(m_undoManager->getLastUndo());
-			if (ss && ss->get("ETEA") == "insert_frametext")
-				ss->set("TEXT_STR",ss->get("TEXT_STR") + QString(SpecialChars::SHYPHEN));
+			UndoObject *undoTarget = currItem;
+			if (ss && (ss->get("ETEA") == "insert_frametext") && (ss->undoObject() == undoTarget))
+				ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(SpecialChars::SHYPHEN));
 			else
 			{
 				ss = new SimpleState(Um::InsertText,"", Um::ICreate);
@@ -1581,7 +1582,6 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 				ss->set("ETEA", QString("insert_frametext"));
 				ss->set("TEXT_STR", QString(SpecialChars::SHYPHEN));
 				ss->set("START", currItem->itemText.cursorPosition());
-				UndoObject * undoTarget = currItem;
 				if (currItem->isNoteFrame())
 				{
 					undoTarget = doc;
@@ -3769,6 +3769,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 		/*QTime t;
 		t.start();*/
 		doc->flag_Renumber = false;
+		doc->updateNumbers(true);
 		for (auto iti = doc->Items->begin(); iti != doc->Items->end(); ++iti)
 		{
 			PageItem* ite = *iti;
@@ -3814,7 +3815,6 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 		// Seems to fix crash on loading
 		ActWin = nullptr;
 		newActWin(w->getSubWin());
-		doc->updateNumbers(true);
 		emit UpdateRequest(reqNumUpdate);
 		doc->setCurrentPage(doc->DocPages.at(0));
 		scrActions["viewToggleCMS"]->setChecked(doc->HasCMS);
@@ -4026,10 +4026,10 @@ void ScribusMainWindow::slotGetClipboardImage()
 		QFile::remove(fileName);
 		return;
 	}
-
-	currItem->EmbeddedProfile.clear();
+	
 	currItem->pixm.imgInfo.isRequest = false;
 	currItem->UseEmbedded = true;
+	currItem->EmbeddedProfile.clear();
 	currItem->ImageProfile = doc->cmsSettings().DefaultImageRGBProfile;
 	currItem->ImageIntent = doc->cmsSettings().DefaultIntentImages;
 	qApp->setOverrideCursor( QCursor(Qt::WaitCursor) );
@@ -8880,8 +8880,8 @@ void ScribusMainWindow::slotEditPasteContents(int absolute)
 	if (i != QMessageBox::Yes)
 		return;
 
-	imageItem->EmbeddedProfile.clear();
 	imageItem->pixm.imgInfo.isRequest = false;
+	imageItem->EmbeddedProfile.clear();
 	imageItem->ImageProfile = doc->cmsSettings().DefaultImageRGBProfile;
 	imageItem->ImageIntent  = doc->cmsSettings().DefaultIntentImages;
 	imageItem->effectsInUse = contentsBuffer.effects;
@@ -9494,14 +9494,8 @@ void ScribusMainWindow::slotInsertMarkNote()
 		}
 		NotesStyle* nStyle = doc->m_docNotesStylesList.at(0);
 		QString label = "NoteMark_" + nStyle->name();
-		if (nStyle->range() == NSRsection)
-			label += " in section " + doc->getSectionNameForPageIndex(currItem->OwnPage) + " page " + QString::number(currItem->OwnPage +1);
-		else if (nStyle->range() == NSRpage)
-			label += " on page " + QString::number(currItem->OwnPage +1);
-		else if (nStyle->range() == NSRstory)
+		if (nStyle->range() == NSRstory)
 			label += " in " + currItem->firstInChain()->itemName();
-		else if (nStyle->range() == NSRframe)
-			label += " in frame" + currItem->itemName();
 		if (doc->getMark(label + "_1", MARKNoteMasterType) != nullptr)
 			getUniqueName(label,doc->marksLabelsList(MARKNoteMasterType), "_"); //FIX ME here user should be warned that inserted mark`s label was changed
 		else
@@ -9633,14 +9627,8 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 
 			markdata.notePtr = doc->newNote(NStyle);
 			label = "NoteMark_" + NStyle->name();
-			if (NStyle->range() == NSRsection)
-				label += " in section " + doc->getSectionNameForPageIndex(currItem->OwnPage) + " page " + QString::number(currItem->OwnPage +1);
-			else if (NStyle->range() == NSRpage)
-				label += " on page " + QString::number(currItem->OwnPage +1);
-			else if (NStyle->range() == NSRstory)
+			if (NStyle->range() == NSRstory)
 				label += " in " + currItem->firstInChain()->itemName();
-			else if (NStyle->range() == NSRframe)
-				label += " in frame" + currItem->itemName();
 			break;
 		case MARKIndexType:
 				return false;

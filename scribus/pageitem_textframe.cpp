@@ -3034,7 +3034,13 @@ void PageItem_TextFrame::invalidateLayout(bool wholeChain)
 	}
 }
 
-void PageItem_TextFrame::slotInvalidateLayout(int firstItem, int endItem)
+void PageItem_TextFrame::invalidateLayout(int firstChar)
+{
+	int storyLen = itemText.length();
+	slotInvalidateLayout(firstChar, storyLen);
+}
+
+void PageItem_TextFrame::slotInvalidateLayout(int firstItem, int /*endItem*/)
 {
 	PageItem* firstFrame = firstInChain();
 	firstItem = itemText.prevParagraph(firstItem);
@@ -3948,10 +3954,10 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 						}
 						undoManager->action(undoTarget, ip);
 					}
-					else if (ss && ss->get("ETEA") == "insert_frametext")
+					else if (ss && (ss->get("ETEA") == "insert_frametext") && (ss->undoObject() == undoTarget))
 						ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(QChar(conv)));
 					else {
-						ss = new SimpleState(Um::InsertText,"",Um::ICreate);
+						ss = new SimpleState(Um::InsertText, "", Um::ICreate);
 						ss->set("INSERT_FRAMETEXT");
 						ss->set("ETEA", QString("insert_frametext"));
 						ss->set("TEXT_STR", QString(QChar(conv)));
@@ -4394,11 +4400,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			if (UndoManager::undoEnabled())
 			{
 				SimpleState *ss = dynamic_cast<SimpleState*>(undoManager->getLastUndo());
-				if (ss && ss->get("ETEA") == "insert_frametext")
-					ss->set("TEXT_STR",ss->get("TEXT_STR") + QString(SpecialChars::TAB));
+				UndoObject *undoTarget = this;
+				if (ss && (ss->get("ETEA") == "insert_frametext") && (ss->undoObject() == undoTarget))
+					ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(SpecialChars::TAB));
 				else
 				{
-					ss = new SimpleState(Um::InsertText,"",Um::ICreate);
+					ss = new SimpleState(Um::InsertText, "", Um::ICreate);
 					ss->set("INSERT_FRAMETEXT");
 					ss->set("ETEA", QString("insert_frametext"));
 					ss->set("TEXT_STR", QString(SpecialChars::TAB));
@@ -4439,7 +4446,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 					}
 					undoManager->action(undoTarget, ip);
 				}
-				else if (ss && ss->get("ETEA") == "insert_frametext")
+				else if (ss && (ss->get("ETEA") == "insert_frametext") && (ss->undoObject() == undoTarget))
 					ss->set("TEXT_STR", ss->get("TEXT_STR") + uc);
 				else
 				{
@@ -4831,8 +4838,8 @@ void PageItem_TextFrame::updateBulletsNum()
 		}
 
 	}
-	m_Doc->updateNumbers();
 
+	m_Doc->updateNumbers();
 }
 
 
@@ -5661,17 +5668,11 @@ NotesInFrameMap PageItem_TextFrame::updateNotesFrames(QMap<int, Mark*> noteMarks
 						case NSRdocument:
 							m_Doc->setEndNoteFrame(nF, (void*) nullptr);
 							break;
-						case NSRsection:
-							m_Doc->setEndNoteFrame(nF, m_Doc->getSectionKeyForPageIndex(OwnPage));
-							break;
 						case NSRstory:
 							m_Doc->setEndNoteFrame(nF, (void*) firstInChain());
 							break;
-						case NSRpage:
-							m_Doc->setEndNoteFrame(nF, (void*) m_Doc->DocPages.at(OwnPage));
-							break;
-						case NSRframe:
-							qDebug() << "Frame range is prohibited for end-notes";
+						default:
+							qDebug() << "Deprecated range prohibited for end-notes";
 							Q_ASSERT(false);
 							break;
 					}

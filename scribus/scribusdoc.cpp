@@ -442,7 +442,7 @@ void ScribusDoc::init()
 	Layers.addLayer( tr("Background") );
 	// FIXME: Check PDF version input
 	//TODO: Check if this is needed now we ue appPrefsData --> docPrefsData
-	pdfOptions().Version = (PDFOptions::PDFVersion)m_appPrefsData.pdfPrefs.Version;
+	pdfOptions().Version = m_appPrefsData.pdfPrefs.Version;
 
 	pdfOptions().firstUse = true;
 	docPatterns.clear();
@@ -5441,9 +5441,9 @@ int ScribusDoc::itemAddUserFrame(InsertAFrameData &iafData)
 				if (QFile::exists(iafData.source))
 				{
 					PrefsManager::instance().prefsFile->getContext("dirs")->set("images", iafData.source.left(iafData.source.lastIndexOf("/")));
-					currItem->EmbeddedProfile.clear();
 					currItem->pixm.imgInfo.isRequest = false;
 					currItem->UseEmbedded = true;
+					currItem->EmbeddedProfile.clear();
 					currItem->ImageProfile = m_docPrefsData.colorPrefs.DCMSset.DefaultImageRGBProfile;
 					currItem->ImageIntent = m_docPrefsData.colorPrefs.DCMSset.DefaultIntentImages;
 					qApp->setOverrideCursor( QCursor(Qt::WaitCursor) );
@@ -14565,11 +14565,11 @@ void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup)
 			currItem->moveImageInFrame(-tp2.x() / currItem->imageXScale(), 0);
 		if (!currItem->imageFlippedV())
 			currItem->moveImageInFrame(0, -tp2.y() / currItem->imageYScale());
-		FPoint tp(clipRect.width(), clipRect.height());
+		FPoint tp(clipRect.right(), clipRect.bottom());
 		if (currItem->imageFlippedH())
-			currItem->moveImageInFrame((currItem->width() - tp.x())/currItem->imageXScale(), 0);
+			currItem->moveImageInFrame((currItem->width() - tp.x()) / currItem->imageXScale(), 0);
 		if (currItem->imageFlippedV())
-			currItem->moveImageInFrame(0, (currItem->height() - tp.y())/currItem->imageYScale());
+			currItem->moveImageInFrame(0, (currItem->height() - tp.y()) / currItem->imageYScale());
 		sizeItem(clipRect.width(), clipRect.height(), currItem, true, false, false);
 		currItem->PoLine = clip.copy();
 		if ((currItem->isGroup() || currItem->isSymbol()) && includeGroup)
@@ -15915,25 +15915,55 @@ void ScribusDoc::itemSelection_AdjustFrametoImageSize( Selection *customSelectio
 	for (int i = 0; i < selectedItemCount; ++i)
 	{
 		PageItem *currItem = itemSelection->itemAt(i);
-		if (currItem != nullptr)
+		if (!currItem)
+			continue;
+		if (!currItem->asImageFrame() || !currItem->imageIsAvailable)
+			continue;
+
+		double w = currItem->OrigW * currItem->imageXScale();
+		double h = currItem->OrigH * currItem->imageYScale();
+		double x = currItem->imageXOffset() * currItem->imageXScale();
+		double y = currItem->imageYOffset() * currItem->imageYScale();
+
+		// m determines the position of the upper left corner of the image relative to
+		// the current position of the item. 
+		QTransform m = QTransform().rotate(currItem->rotation());
+		double newRotation = currItem->rotation();
+		if (currItem->imageFlippedH() && currItem->imageFlippedV())
 		{
-			if (currItem->asImageFrame() && currItem->imageIsAvailable)
-			{
-				double w, h, x, y;
-				w = currItem->OrigW * currItem->imageXScale();
-				h = currItem->OrigH * currItem->imageYScale();
-				x = currItem->imageXOffset() * currItem->imageXScale();
-				y = currItem->imageYOffset() * currItem->imageYScale();
-				if ((x != 0.0) || (y != 0.0)) // if the image frame has an offset, its assumed that the user wants the image to stay where it is
-				{
-					sizeItem(w, h, currItem);
-					moveItem(x, y, currItem);
-				}
-				else
-					sizeItem(w, h, currItem, true);
-				currItem->setImageXYOffset(0.0, 0.0);
-			}
+			newRotation += currItem->imageRotation();
+			// Inner rotation happens around the lower right corner. m already contains the item rotation.
+			// Next we have to translate to the rotation point. For flipped images the offsets are subtracted from
+			// the opposite edge. Then we have to adjust for the inner rotation. Finally, we can translate to
+			// to the upper left corner of the image. The transformations in the other cases happen analogously.
+			m.translate(currItem->width() - x, currItem->height() - y).rotate(currItem->imageRotation()).translate(-w, -h);
 		}
+		else if (currItem->imageFlippedH() && !currItem->imageFlippedV())
+		{
+			newRotation -= currItem->imageRotation();
+			// Inner rotation happens around the upper right corner.
+			m.translate(currItem->width() - x, y).rotate(-currItem->imageRotation()).translate(-w, 0);
+		}
+		else if (!currItem->imageFlippedH() && currItem->imageFlippedV())
+		{
+			newRotation -= currItem->imageRotation();
+			// Inner rotation happens around the lower left corner.
+			m.translate(x, currItem->height() - y).rotate(-currItem->imageRotation()).translate(0, -h);
+		}
+		else
+		{
+			/* !FlippedH and !FlippedV */
+			newRotation += currItem->imageRotation();
+			// Inner rotation happens already around the upper left corner.
+			m.translate(x, y);
+		}
+		currItem->setRotation(newRotation);
+		currItem->setImageRotation(0);
+
+		sizeItem(w, h, currItem);
+		QPointF imageUpperLeft = m.map(QPointF(0, 0));
+		moveItem(imageUpperLeft.x(), imageUpperLeft.y(), currItem);
+		currItem->setImageXYOffset(0.0, 0.0);
 	}
 	if (activeTransaction)
 		activeTransaction.commit();
@@ -16688,7 +16718,7 @@ void ScribusDoc::setupNumerations()
 	
 	Numeration num;
 	NumStruct * numS = nullptr;
-	for (int i=0; i < m_docParagraphStyles.count(); ++i)
+	for (int i = 0; i < m_docParagraphStyles.count(); ++i)
 	{
 		ParagraphStyle &style = m_docParagraphStyles[i];
 		if (!style.hasNum())
@@ -16705,13 +16735,14 @@ void ScribusDoc::setupNumerations()
 		num.numFormat = (NumFormat) style.numFormat();
 		num.prefix = style.numPrefix();
 		num.suffix = style.numSuffix();
+		num.range = (NumerationRange) style.numRestart();
 		num.start = style.numStart();
 		int level = style.numLevel();
 		if (level >= numS->m_counters.count())
 		{
-			for (int i=numS->m_counters.count(); i <= level; ++i)
+			for (int i = numS->m_counters.count(); i <= level; ++i)
 			{
-				numS->m_nums.insert(i,num);
+				numS->m_nums.insert(i, num);
 				numS->m_counters.insert(i, 0);
 			}
 		}
@@ -16788,214 +16819,239 @@ void ScribusDoc::setNumerationCounter(const QString& numName, int level, int num
 		numS->m_counters.replace(level, number);
 }
 
-bool ScribusDoc::updateLocalNums(StoryText& itemText)
+int ScribusDoc::updateLocalNums(StoryText& itemText)
 {
-	QVector<Numeration> m_nums;
-	QList<int> m_counters;
-	bool needUpdate = false;
+	int firstInvalidChar = -1;
+	QVector<Numeration> nums;
+	QList<int> counters;
+
 	for (int pos = 0; pos < itemText.length(); ++pos)
 	{
-		if (pos != 0 && itemText.text(pos-1) != SpecialChars::PARSEP)
+		if (pos != 0 && itemText.text(pos - 1) != SpecialChars::PARSEP)
 			continue;
 		Mark* mark = itemText.mark(pos);
-		if (mark != nullptr && mark->isType(MARKBullNumType) && itemText.paragraphStyle(pos).hasNum())
+		if (mark == nullptr)
+			continue;
+		if (!mark->isType(MARKBullNumType) || !itemText.paragraphStyle(pos).hasNum())
+			continue;
+
+		const ParagraphStyle& style = itemText.paragraphStyle(pos);
+		if (style.numName() != "<local block>")
+			continue;
+
+		int level = style.numLevel();
+		while (counters.count() < (level + 1))
 		{
-			const ParagraphStyle& style = itemText.paragraphStyle(pos);
-			if (style.numName() == "<local block>")
-			{
-				int level = style.numLevel();
-				while (m_counters.count() < (level + 1))
-				{
-					m_counters.append(0);
-					Numeration num((NumFormat) style.numFormat());
-					m_nums.append(num);
-				}
-				Numeration num = m_nums.at(level);
-				num.prefix = style.numPrefix();
-				num.suffix = style.numSuffix();
-				num.start = style.numStart();
-				num.numFormat = (NumFormat) style.numFormat();
-				m_nums.replace(level, num);
-				int count = m_counters.at(level);
-				bool reset = false;
-				if (pos == 0)
-					reset = true;
-				else if (pos > 0)
-				{
-					ParagraphStyle prevStyle;
-					prevStyle = itemText.paragraphStyle(pos -1);
-					reset = !prevStyle.hasNum()
-							|| prevStyle.numName() != "<local block>"
-							|| prevStyle.numLevel() < level
-							|| prevStyle.numFormat() != style.numFormat();
-				}
-				if ((level == 0) && (style.numFormat() != (int) num.numFormat))
-				{
-					reset = true;
-					m_counters.clear();
-					m_counters.append(0);
-					m_nums.clear();
-					m_nums.append(num);
-				}
-				if (reset)
-					count = style.numStart();
-				else
-					count++;
-				m_counters.replace(level, count);
-				//m_nums.insert(level, num);
-				QString result;
-				for (int i=0; i <= level; ++i)
-				{
-					result.append(m_nums.at(i).prefix);
-					result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
-					result.append(m_nums.at(i).suffix);
-				}
-				if (mark->getString() != result)
-				{
-					mark->setString(result);
-					needUpdate = true;
-				}
-			}
+			counters.append(0);
+			Numeration num((NumFormat) style.numFormat());
+			num.prefix = style.numPrefix();
+			num.suffix = style.numSuffix();
+			num.start = style.numStart();
+			nums.append(num);
+		}
+		Numeration num = nums.at(level);
+		num.prefix = style.numPrefix();
+		num.suffix = style.numSuffix();
+		// num.range = NSRstory; Shouldn't we add this or num.range = (NumerationRange) style.numRestart() ?
+		num.start = style.numStart();
+		num.numFormat = (NumFormat) style.numFormat();
+		nums.replace(level, num);
+		int count = counters.at(level);
+		bool reset = false;
+		if (pos == 0)
+			reset = true;
+		else if (pos > 0)
+		{
+			ParagraphStyle prevStyle;
+			prevStyle = itemText.paragraphStyle(pos -1);
+			reset = !prevStyle.hasNum()
+					|| prevStyle.numName() != "<local block>"
+					|| prevStyle.numLevel() < level
+					|| prevStyle.numFormat() != style.numFormat();
+		}
+		if ((level == 0) && (style.numFormat() != (int) num.numFormat))
+		{
+			reset = true;
+			counters.clear();
+			counters.append(0);
+			nums.clear();
+			nums.append(num);
+		}
+		if (reset)
+			count = style.numStart();
+		else
+			count++;
+		counters.replace(level, count);
+		//nums.insert(level, num);
+		QString result;
+		for (int i = 0; i <= level; ++i)
+		{
+			result.append(nums.at(i).prefix);
+			result.append(getStringFromNum(nums.at(i).numFormat, counters.at(i)));
+			result.append(nums.at(i).suffix);
+		}
+		if (mark->getString() != result)
+		{
+			mark->setString(result);
+			firstInvalidChar = pos;
 		}
 	}
-	return needUpdate;
+	return firstInvalidChar;
 }
 
 void ScribusDoc::updateNumbers(bool updateNumerations)
 {
+	struct ItemPosInfo
+	{
+		PageItem* item;
+		double xPos; // Absolute x position in document
+		double yPos; // Absolute y position in document
+	};
+
 	if (updateNumerations)
 		//after styles change reset all numerations settings
 		setupNumerations();
 
-	//reset ALL counters
-	QList<NumStruct*> numerationValues = numerations.values();
-	for (NumStruct * numS : numerationValues)
-		for (int l = 0; l < numS->m_nums.count(); ++l)
-			numS->m_counters[l] = numS->m_nums[l].start -1;
+	// Collect all text frames including those placed inside groups;
+	QVector<ItemPosInfo> allTextFramePos;
+	allTextFramePos.reserve(100);
 
-	flag_Renumber = false;
-	//renumbering for doc, sections, page and frame range
-	for (int sec = 0; sec < sections().count(); ++sec)
+	QStack<QList<PageItem*> > itemsStack;
+	itemsStack.push(DocItems);
+
+	while (!itemsStack.isEmpty())
 	{
-		//reset section range counters
-		for (NumStruct * numS : numerationValues)
-			for (int l = 0; l < numS->m_nums.count(); ++l)
-				if (numS->m_nums[l].range == NSRsection)
-					numS->m_counters[l] = numS->m_nums[l].start -1;
-
-		int start = sections().value(sec).fromindex;
-		int stop = sections().value(sec).toindex;
-		for (int page = start; page <= stop; ++page)
+		QList<PageItem*> itemList = itemsStack.pop();
+		for (int i = 0; i < itemList.count(); ++i)
 		{
-			//reset page range counters
-			for (NumStruct * numS : numerationValues)
-				for (int l = 0; l < numS->m_nums.count(); ++l)
-					if (numS->m_nums[l].range == NSRpage)
-						numS->m_counters[l] = numS->m_nums[l].start -1;
-
-			for (int i = 0; i < DocItems.count(); ++i)
+			PageItem* item = itemList.at(i);
+			if (item->isGroup())
 			{
-				PageItem* item = DocItems.at(i);
-				if (item->OwnPage != page)
-					continue;
-				if (!item->isTextFrame())
-					continue;
-				if (item->invalid)
-					continue;
-
-				//reset items and stories range counters
-				for (NumStruct * numS : numerationValues)
-					for (int l = 0; l < numS->m_nums.count(); ++l)
-						if ((numS->m_nums[l].range == NSRframe) || ((numS->m_nums[l].range == NSRstory) && (item->prevInChain() == nullptr)))
-							numS->m_counters[l] = numS->m_nums[l].start -1;
-
-				int pos = item->firstInFrame();
-				int last = item->lastInFrame();
-				if (pos > last)
-					continue;
-
-				if ((pos != 0) && (item->itemText.text(pos - 1) != SpecialChars::PARSEP))
-					pos = item->itemText.nextParagraph(pos) + 1;
-				int len = item->itemText.length();
-				while (pos <= last)
-				{
-					if ((pos == 0) || (item->itemText.text(pos - 1) == SpecialChars::PARSEP))
-					{
-						const ParagraphStyle& style = item->itemText.paragraphStyle(pos);
-						if (style.hasNum() && style.numName() != "<local block>")
-						{
-							if (!numerations.contains(style.numName()))
-							{
-								ParagraphStyle newStyle;
-								newStyle.setNumName("<local block>");
-								Selection tempSelection(this, false);
-								tempSelection.addItem(item, true);
-								itemSelection_ApplyParagraphStyle(newStyle, &tempSelection);
-								continue;
-							}
-							Mark* mark = item->itemText.mark(pos);
-							NumStruct* numStyle = numerations.value(style.numName());
-							bool resetNums = false;
-							if (numStyle->m_lastlevel == -1)
-								resetNums = true;
-							else if (style.numOther())
-							{
-								ParagraphStyle preStyle = item->itemText.paragraphStyle(pos -1);
-								//reset counter if prev style hasn't numeration or has other numeration
-								if (!preStyle.hasNum() || (preStyle.numName() != style.numName()))
-									resetNums = true;
-							}
-							else if (style.numHigher() && (style.numLevel() > numStyle->m_lastlevel))
-								resetNums = true;
-							
-							QString prefixStr = getNumberStr(style.numName(), style.numLevel(), resetNums, style);
-							numStyle->m_lastlevel = style.numLevel();
-							if (mark == nullptr)
-							{
-								BulNumMark* bnMark = new BulNumMark;
-								item->itemText.insertMark(bnMark,pos);
-								CharStyle emptyCS;
-								item->itemText.setCharStyle(pos, 1, emptyCS);
-							}
-							if (mark && mark->getString() != prefixStr)
-							{
-								mark->setString(prefixStr);
-								item->invalid = true;
-								flag_Renumber = true;
-							}
-						}
-						if (pos == last)
-							break;
-						if (item->itemText.text(pos) == SpecialChars::PARSEP)
-							++pos;
-						else
-						{
-							pos = item->itemText.nextParagraph(pos)+1;
-							if (pos == len)
-								break;
-						}
-					}
-				}
+				itemsStack.push(item->asGroupFrame()->groupItemList);
+				continue;
 			}
+			if (!item->isTextFrame())
+				continue;
+			if (item->prevInChain() != nullptr)
+				continue;
+			
+			ItemPosInfo itemPos { item, item->xPos(), item->yPos() };
+			if (item->Parent)
+			{
+				QTransform itemTrans = item->getTransform();
+				QPointF itemPoint = itemTrans.map(QPointF(0.0, 0.0));
+				itemPos.xPos = itemPoint.x();
+				itemPos.yPos = itemPoint.y();
+			}
+			allTextFramePos.append(itemPos);
 		}
 	}
 
-	//update local numbering
-	for (PageItem* item : DocItems)
+	// Start items by y position, x ascending
+	// Note : this will have to be changed once we support document binding on the right
+	std::stable_sort(allTextFramePos.begin(), allTextFramePos.end(), [](const ItemPosInfo & pos1, const ItemPosInfo & pos2) -> bool
 	{
+		if (pos1.yPos < pos2.yPos)
+			return true;
+		if (pos1.yPos == pos2.yPos)
+			return (pos1.xPos < pos2.xPos);
+		return false;
+	});
+
+	// Reset ALL counters
+	QList<NumStruct*> numerationValues = numerations.values();
+	for (NumStruct * numS : numerationValues)
+		for (int l = 0; l < numS->m_nums.count(); ++l)
+			numS->m_counters[l] = numS->m_nums[l].start - 1;
+
+	// Renumbering for doc range
+	for (int i = 0; i < allTextFramePos.count(); ++i)
+	{
+		PageItem* item = allTextFramePos.at(i).item;
+
+		// Reset stories range counters
+		for (NumStruct * numS : numerationValues)
+			for (int l = 0; l < numS->m_nums.count(); ++l)
+				if (numS->m_nums[l].range == NSRstory)
+					numS->m_counters[l] = numS->m_nums[l].start - 1;
+
+		int pos = 0;
 		if (item->itemText.length() <= 0)
 			continue;
+		int firstInvalidChar1 = -1;
 
-		PageItem* itemFirst = item->firstInChain();
-		if (!updateLocalNums(itemFirst->itemText))
-			continue;
+		while (pos < item->itemText.length())
+		{
+			if ((pos == 0) || (item->itemText.text(pos - 1) == SpecialChars::PARSEP))
+			{
+				const ParagraphStyle& style = item->itemText.paragraphStyle(pos);
+				if (style.hasNum() && style.numName() != "<local block>")
+				{
+					if (!numerations.contains(style.numName()))
+					{
+						ParagraphStyle newStyle;
+						newStyle.setNumName("<local block>");
+						Selection tempSelection(this, false);
+						tempSelection.addItem(item, true);
+						itemSelection_ApplyParagraphStyle(newStyle, &tempSelection);
+						continue;
+					}
+					Mark* mark = item->itemText.mark(pos);
+					NumStruct* numStyle = numerations.value(style.numName());
+					bool resetNums = false;
+					if (numStyle->m_lastlevel == -1)
+						resetNums = true;
+					else if (style.numOther())
+					{
+						ParagraphStyle preStyle = item->itemText.paragraphStyle(pos -1);
+						//reset counter if prev style hasn't numeration or has other numeration
+						if (!preStyle.hasNum() || (preStyle.numName() != style.numName()))
+							resetNums = true;
+					}
+					else if (style.numHigher() && (style.numLevel() > numStyle->m_lastlevel))
+						resetNums = true;
+							
+					QString prefixStr = getNumberStr(style.numName(), style.numLevel(), resetNums, style);
+					numStyle->m_lastlevel = style.numLevel();
+					if (mark == nullptr)
+					{
+						BulNumMark* bnMark = new BulNumMark;
+						item->itemText.insertMark(bnMark, pos);
+						CharStyle emptyCS;
+						item->itemText.setCharStyle(pos, 1, emptyCS);
+					}
+					if (mark && mark->getString() != prefixStr)
+					{
+						mark->setString(prefixStr);
+						firstInvalidChar1 = pos;
+					}
+				}
+				if (item->itemText.text(pos) == SpecialChars::PARSEP)
+					++pos;
+				else
+					pos = item->itemText.nextParagraph(pos) + 1;
+			}
+		}
 
-		if (itemFirst->isTextFrame())
-			itemFirst->asTextFrame()->invalidateLayout(true);
+		// Update local numbering
+		int firstInvalidChar2 = updateLocalNums(item->itemText);
+
+		int firstInvalidChar = -1;
+		if (firstInvalidChar1 >= 0 && firstInvalidChar2 >=0)
+			firstInvalidChar = qMin(firstInvalidChar1, firstInvalidChar2);
 		else
-			itemFirst->invalidateLayout();
-	}
+			firstInvalidChar = (firstInvalidChar1 >= 0) ? firstInvalidChar1 : firstInvalidChar2;
 
+		if (firstInvalidChar >= 0)
+		{
+			if (item->isTextFrame())
+				item->asTextFrame()->invalidateLayout(firstInvalidChar);
+			else
+				item->invalidateLayout();
+		}
+	}
+	
+	flag_Renumber = false;
 }
 
 QStringList ScribusDoc::marksLabelsList(MarkType type)
@@ -17617,17 +17673,8 @@ void ScribusDoc::updateItemNotesNums(PageItem_TextFrame* frame, NotesStyle* nSty
 					doUpdate = true;
 					mark->setString(numStr);
 					label = "NoteMark_" + nStyle->name();
-					if (nStyle->range() != NSRdocument)
-					{
-						if (nStyle->range() == NSRsection)
-							label += " in section " + getSectionNameForPageIndex(frame->OwnPage) + " page " + QString::number(frame->OwnPage +1);
-						else if (nStyle->range() == NSRpage)
-							label += " on page " + QString::number(frame->OwnPage +1);
-						else if (nStyle->range() == NSRstory)
-							label += " in " + frame->firstInChain()->itemName();
-						else if (nStyle->range() == NSRframe)
-							label += " in frame " + frame->itemName();
-					}
+					if (nStyle->range() == NSRstory)
+						label += " in " + frame->firstInChain()->itemName();
 					label += "_" + QString::number(noteNum);
 					mark->label = label;
 				}
@@ -17682,7 +17729,7 @@ bool ScribusDoc::updateNotesNums(NotesStyle *nStyle)
 	flag_layoutNotesFrames = false;  //do not layout notes frames while counting notes
 	int num, i;
 	int itemsCount = Items->count();
-	if ((nStyle->range() == NSRdocument) || ((nStyle->range() == NSRsection) && m_docPrefsData.docSectionMap.isEmpty()))
+	if (nStyle->range() == NSRdocument)
 	{
 		//FIX ME: how to change frames order on page? and what about reverse page order?
 		num = nStyle->start();
@@ -17728,65 +17775,7 @@ bool ScribusDoc::updateNotesNums(NotesStyle *nStyle)
 				nF->deleteIt = true;
 		}
 	}
-	else if (nStyle->range() == NSRsection)
-	{
-		Q_ASSERT(!m_docPrefsData.docSectionMap.isEmpty());
-		foreach (DocumentSection section, m_docPrefsData.docSectionMap.values())
-		{
-			num = nStyle->start();
-			for (int page = section.fromindex; page <= (int) section.toindex ; ++page)
-			{
-				if (nStyle->isEndNotes())
-				{
-					endNF = endNoteFrame(nStyle, getSectionKeyForPageIndex(page));
-					if (endNF != nullptr)
-						clearNotesInFrameList(endNF);
-				}
-				for (i = 0; i < itemsCount; ++i)
-				{
-					PageItem* currItem = Items->at(i);
-					if (currItem == nullptr)
-						continue;
-					if ((currItem->OwnPage == page) && currItem->isTextFrame() && !currItem->isNoteFrame() && (currItem->itemText.length() > 0))
-					{
-						if (!currItem->asTextFrame()->isValidChainFromBegin())
-						{
-							currItem->layout();
-							if (flag_restartMarksRenumbering)
-							{
-								//restart whole update as items was changed
-								if (endNF != nullptr)
-									clearNotesInFrameList(endNF);
-								page = section.fromindex -1;
-								i = -1;
-								itemsCount = Items->count();
-								num = nStyle->start();
-								docWasChanged = true;
-								flag_restartMarksRenumbering = false;
-								break;
-							}
-						}
-						if (nStyle->isEndNotes() || currItem->asTextFrame()->hasNoteFrame(nStyle, false))
-							updateItemNotesNums(currItem->asTextFrame(), nStyle, num);
-						if (currItem->asTextFrame()->hasNoteFrame(nStyle, false) && currItem->asTextFrame()->itemNoteFrame(nStyle)->invalid)
-							docWasChanged = true;
-						if (currItem->invalid)
-						{
-							currItem->layout();
-							docWasChanged = true;
-						}
-					}
-				}
-				if ((i != -1) && (num == nStyle->start()) && nStyle->isEndNotes())
-				{
-					PageItem_NoteFrame* nF = endNoteFrame(nStyle);
-					if (nF != nullptr && nF->isAutoNoteFrame())
-						nF->deleteIt = true;
-				}
-			}
-		}
-	}
-	else if (nStyle->range() == NSRstory || nStyle->range() == NSRframe)
+	else if (nStyle->range() == NSRstory)
 	{
 		for (i = 0; i < itemsCount; ++i)
 		{
@@ -17795,7 +17784,7 @@ bool ScribusDoc::updateNotesNums(NotesStyle *nStyle)
 				continue;
 			if (currItem->isTextFrame() && !currItem->isNoteFrame() && (currItem->itemText.length() > 0))
 			{
-				if (nStyle->isEndNotes() && nStyle->range() == NSRstory)
+				if (nStyle->isEndNotes())
 				{
 					endNF = endNoteFrame(nStyle, (void*) currItem);
 					if (endNF != nullptr)
@@ -17816,26 +17805,17 @@ bool ScribusDoc::updateNotesNums(NotesStyle *nStyle)
 						continue;
 					}
 				}
-				if (nStyle->range() == NSRstory)
-				{
-					//restart numeration for all first frames of story chain
-					if (currItem->prevInChain() == nullptr)
-					{
-						num = nStyle->start();
-						PageItem* nextItem = currItem;
-						while (nextItem != nullptr)
-						{
-							if (nStyle->isEndNotes() || nextItem->asTextFrame()->hasNoteFrame(nStyle, false))
-								updateItemNotesNums(nextItem->asTextFrame(), nStyle, num);
-							nextItem = nextItem->nextInChain();
-						}
-					}
-				}
-				else	//restart numeration for each frame
+				//restart numeration for all first frames of story chain
+				if (currItem->prevInChain() == nullptr)
 				{
 					num = nStyle->start();
-					if (nStyle->isEndNotes() || currItem->asTextFrame()->hasNoteFrame(nStyle, false))
-						updateItemNotesNums(currItem->asTextFrame(), nStyle, num);
+					PageItem* nextItem = currItem;
+					while (nextItem != nullptr)
+					{
+						if (nStyle->isEndNotes() || nextItem->asTextFrame()->hasNoteFrame(nStyle, false))
+							updateItemNotesNums(nextItem->asTextFrame(), nStyle, num);
+						nextItem = nextItem->nextInChain();
+					}
 				}
 				if (currItem->asTextFrame()->hasNoteFrame(nStyle, false) && currItem->asTextFrame()->itemNoteFrame(nStyle)->invalid)
 					docWasChanged = true;
@@ -17844,62 +17824,6 @@ bool ScribusDoc::updateNotesNums(NotesStyle *nStyle)
 					currItem->layout();
 					docWasChanged = true;
 				}
-			}
-		}
-	}
-	else if (nStyle->range() == NSRpage)
-	{
-		for (int page = 0; page < Pages->count(); ++page)
-		{
-			if (nStyle->isEndNotes() && nStyle->range() == NSRpage)
-			{
-				endNF = endNoteFrame(nStyle, (void*) DocPages.at(page));
-				if (endNF != nullptr)
-					clearNotesInFrameList(endNF);
-			}
-			//restart numeration for each page
-			num = nStyle->start();
-
-			for (i = 0; i < itemsCount; ++i)
-			{
-				PageItem* currItem = Items->at(i);
-				if (currItem == nullptr)
-					continue;
-				if ((currItem->OwnPage == page) && currItem->isTextFrame() && !currItem->isNoteFrame() && (currItem->itemText.length() > 0))
-				{
-					if (!currItem->asTextFrame()->isValidChainFromBegin())
-					{
-						currItem->layout();
-						if (flag_restartMarksRenumbering)
-						{
-							//restart whole update as items was changed
-							if (endNF != nullptr)
-								clearNotesInFrameList(endNF);
-							page = -1;
-							i = -1;
-							itemsCount = Items->count();
-							num = nStyle->start();
-							docWasChanged = true;
-							flag_restartMarksRenumbering = false;
-							break;
-						}
-					}
-					if (nStyle->isEndNotes() || currItem->asTextFrame()->hasNoteFrame(nStyle, false))
-						updateItemNotesNums(currItem->asTextFrame(), nStyle, num);
-					if (currItem->asTextFrame()->hasNoteFrame(nStyle, false) && currItem->asTextFrame()->itemNoteFrame(nStyle)->invalid)
-						docWasChanged = true;
-					if (currItem->invalid)
-					{
-						currItem->layout();
-						docWasChanged = true;
-					}
-				}
-			}
-			if ((i != -1) && (num == nStyle->start()) && nStyle->isEndNotes())
-			{
-				PageItem_NoteFrame* nF = endNoteFrame(nStyle);
-				if (nF != nullptr && nF->isAutoNoteFrame())
-					nF->deleteIt = true;
 			}
 		}
 	}
@@ -17993,19 +17917,11 @@ QList<PageItem_NoteFrame *> ScribusDoc::listNotesFrames(NotesStyle *NS)
 const ScPage *ScribusDoc::page4EndNotes(NotesStyle *NS, PageItem* item)
 {
 	ScPage* scP = nullptr;
-	if ((NS->range() == NSRdocument) || ((NS->range() == NSRsection) && m_docPrefsData.docSectionMap.isEmpty()))
+	if (NS->range() == NSRdocument)
 		scP = DocPages.last();
 	else if (item != nullptr)
 	{
-		if (NS->range() == NSRpage)
-			scP = DocPages.at(item->OwnPage);
-		else if (NS->range() == NSRsection)
-		{
-			int section = getSectionKeyForPageIndex(item->OwnPage);
-			DocumentSection sec = sections().find(section).value();
-			scP = DocPages.at(sec.toindex);
-		}
-		else if (NS->range() == NSRstory)
+		if (NS->range() == NSRstory)
 			scP = DocPages.at(item->lastInChain()->OwnPage);
 	}
 
@@ -18332,35 +18248,8 @@ PageItem_NoteFrame *ScribusDoc::endNoteFrame(NotesStyle *nStyle, PageItem_TextFr
 {
 	if (nStyle->range() == NSRdocument)
 		return endNoteFrame(nStyle);
-	if (nStyle->range() == NSRsection)
-		return endNoteFrame(nStyle, getSectionKeyForPageIndex(master->OwnPage));
-	if (nStyle->range() == NSRpage)
-		return endNoteFrame(nStyle, (void*) DocPages.at(master->OwnPage));
 	if (nStyle->range() == NSRstory)
 		return endNoteFrame(nStyle, master->firstInChain());
-	return nullptr;
-}
-
-PageItem_NoteFrame* ScribusDoc::endNoteFrame(NotesStyle *nStyle, int sectIndex)
-{
-	if (nStyle->range() != NSRsection)
-		return nullptr;
-	if (m_docEndNotesFramesMap.isEmpty())
-		return nullptr;
-
-	QMap<PageItem_NoteFrame*, rangeItem>::Iterator it = m_docEndNotesFramesMap.begin();
-	QMap<PageItem_NoteFrame*, rangeItem>::Iterator end = m_docEndNotesFramesMap.end();
-	while (it != end)
-	{
-		PageItem_NoteFrame* nF = it.key();
-		if (nF->notesStyle() == nStyle)
-		{
-			rangeItem rItem = it.value();
-			if (rItem.sectionIndex == sectIndex)
-				return nF;
-		}
-		++it;
-	}
 	return nullptr;
 }
 

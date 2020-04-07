@@ -1725,7 +1725,7 @@ int StoryText::endOfRun(uint index) const
 int StoryText::nextChar(int pos)
 {
 	if (pos < length())
-		return pos+1;
+		return pos + 1;
 	return length();
 }
 
@@ -1826,14 +1826,14 @@ int StoryText::prevSentence(int pos)
 int StoryText::nextParagraph(int pos)
 {
 	int len = length();
-	pos = qMin(len, pos+1);
+	pos = qMin(len, pos + 1);
 	while (pos < len && text(pos) != SpecialChars::PARSEP)
 		++pos;
 	return pos;
 }
 int StoryText::prevParagraph(int pos)
 {
-	pos = qMax(0, pos-1);
+	pos = qMax(0, pos - 1);
 	while (pos > 0 && text(pos) != SpecialChars::PARSEP)
 		--pos;
 	return pos;
@@ -2119,7 +2119,7 @@ void StoryText::invalidateAll()
 
 void StoryText::invalidate(int firstItem, int endItem)
 {
-	for (int i=firstItem; i < endItem; ++i)
+	for (int i = firstItem; i < endItem; ++i)
 	{
 		ParagraphStyle* par = item(i)->parstyle;
 		if (par)
@@ -2128,7 +2128,6 @@ void StoryText::invalidate(int firstItem, int endItem)
 	if (!signalsBlocked())
 		emit changed(firstItem, endItem);
 }
-
 
 // physical view
 
@@ -2144,52 +2143,17 @@ void StoryText::validate()
 }
 */
 
-
-
-ScText*  StoryText::item(uint itm)
+ScText*  StoryText::item(int itm)
 {
-	assert( static_cast<int>(itm) < length() );
+	assert( itm < length() );
 	return const_cast<StoryText *>(this)->d->at(itm);
 }
 
-
-const ScText*  StoryText::item(uint itm) const
+const ScText*  StoryText::item(int itm) const
 {
-	assert( static_cast<int>(itm) < length() );
+	assert( itm < length() );
 	return const_cast<StoryText *>(this)->d->at(itm);
 }
-
-
-//const QString StoryText::itemText(uint itm) const
-//{
-	
-//	assert( static_cast<int>(itm) < length() );
-
-//	return text(itm, 1);
-//}
-
-
-//const CharStyle StoryText::itemStyle(uint itm) const
-//{
-//	assert( static_cast<int>(itm) < length() );
-
-//	return charStyle(itm);
-//}
-	
-
-//int StoryText::startOfItem(uint itm) const
-//{
-//	assert( static_cast<int>(itm) < length() );
-
-//	return itm;
-//}
-
-//int StoryText::endOfItem(uint itm) const
-//{
-//	assert( static_cast<int>(itm) < length() );
-
-//	return itm + 1;
-//}
 
 
 using namespace desaxe;

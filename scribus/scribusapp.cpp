@@ -99,14 +99,10 @@ extern const char ARG_CONSOLE_SHORT[] = "-cl";
 
 bool ScribusQApp::useGUI=false;
 
-ScribusQApp::ScribusQApp( int & argc, char ** argv ) : QApplication(argc, argv),
-	m_lang(""),
-	m_GUILang("en_GB")
+ScribusQApp::ScribusQApp( int & argc, char ** argv ) : QApplication(argc, argv)
 {
 	ScQApp = this;
 	ScCore = nullptr;
-	m_scDLMgr = nullptr;
-	m_ScCore = nullptr;
 	initDLMgr();
 	setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 }
@@ -356,8 +352,9 @@ int ScribusQApp::init()
 	if (!m_ScCore)
 		return EXIT_FAILURE;
 	ScCore=m_ScCore;
-	processEvents();
+	processEvents(QEventLoop::ExcludeUserInputEvents|QEventLoop::ExcludeSocketNotifiers, 1000);
 	ScCore->init(useGUI, m_filesToLoad);
+	processEvents();
 	int retVal=EXIT_SUCCESS;
 	/* TODO:
 	 * When Scribus is truly able to run without GUI
@@ -366,7 +363,6 @@ int ScribusQApp::init()
 	 */
 	// if (useGUI)
 	retVal=ScCore->startGUI(m_showSplash, m_showFontInfo, m_showProfileInfo, m_lang);
-
 	// A hook for plugins and scripts to trigger on. Some plugins and scripts
 	// require the app to be fully set up (in particular, the main window to be
 	// built and shown) before running their setup.
@@ -679,6 +675,7 @@ bool ScribusQApp::neverSplashExists()
 
 void ScribusQApp::downloadComplete(const QString &t)
 {
+	Q_UNUSED(t)
 	//qDebug()<<"ScribusQApp: download finished:"<<t;
 }
 

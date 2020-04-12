@@ -17,33 +17,23 @@ for which a new license (GPL+exception) is in place.
 bool ScPrintEngine_PS::print(ScribusDoc& doc, PrintOptions& options)
 {
 	bool retw = false;
-	ColorList usedColors;
-	QMap<QString, QMap<uint, FPointArray> > usedFonts;
 	QString filename(options.filename);
-	doc.getUsedFonts(usedFonts);
-	doc.getUsedColors(usedColors);
 	PrefsManager& prefsManager = PrefsManager::instance();
-	PSLib *dd = new PSLib(options, true, prefsManager.appPrefs.fontPrefs.AvailFonts, usedFonts, usedColors, options.includePDFMarks, options.useSpotColors);
+	PSLib *dd = new PSLib(&doc, options, PSLib::OutputPS);
 	if (dd == nullptr)
 		return false;
 
 	if (!options.toFile)
-		filename = prefsManager.preferencesLocation()+"/tmp.ps";
-	bool psFile = dd->PS_set_file(filename);
-	if (!psFile)
-	{
-		delete dd;
-		return false;
-	}
+		filename = prefsManager.preferencesLocation() + "/tmp.ps";
 
 	// Write the PS to a file
 	filename = QDir::toNativeSeparators(filename);
 
-	int psCreationRetVal=dd->CreatePS(&doc, options);
-	if (psCreationRetVal!=0)
+	int psCreationRetVal = dd->createPS(filename);
+	if (psCreationRetVal != 0)
 	{
 		QFile::remove(filename);
-		if (psCreationRetVal==2)
+		if (psCreationRetVal == 2)
 			return true;
 		m_errorMessage = dd->errorMessage();
 		return false;

@@ -134,6 +134,11 @@ public:
 	* \retval 0 - ok, 1 - no fonts, ...
 	*/
 	int initScMW(bool primaryMainwWindow);
+	void setupMainWindow();
+	int getScreenNumber() const;
+	QScreen* getScreen() const;
+	void getScreenPosition(int& xPos, int& yPos) const;
+	void getScreenDPI(int& dpiX, int& dpiY) const;
 	void addScToolBar(ScToolBar *tb, const QString& name);
 	bool warningVersion(QWidget *parent);
 	void SetShortCut();

@@ -54,6 +54,20 @@ namespace
 		// complicated with several subpaths, etc. We return the simpler one.
 		return (ret_a.elementCount() <= ret_b.elementCount()) ? ret_a : ret_b;
 	}
+
+	// Invert preblending matte values into the color values. Assuming that c and alpha are RGBA components
+	// between 0 and 255.
+	int unblendMatte(int c, int alpha, int matte)
+	{
+		if (alpha == 0)
+			return matte;
+		int ret = matte + ((c - matte) * 255) / alpha;
+		if (ret < 0)
+			return 0;
+		if (ret > 255)
+			return 255;
+		return ret;
+	}
 }
 
 LinkSubmitForm::LinkSubmitForm(Object *actionObj)
@@ -1846,16 +1860,37 @@ GBool SlaOutputDev::axialShadedFill(GfxState *state, GfxAxialShading *shading, d
 	state->getClipBBox(&xmin, &ymin, &xmax, &ymax);
 	QRectF crect = QRectF(QPointF(xmin, ymin), QPointF(xmax, ymax));
 	crect = crect.normalized();
+	QPainterPath out;
+	out.addRect(crect);
+	if (checkClip())
+	{
+		// Apply the clip path early to adjust the gradient vector to the
+		// smaller boundign box.
+		out = intersection(m_currentClipPath, out);
+		crect = out.boundingRect();
+	}
 	const double *ctm = state->getCTM();
 	m_ctm = QTransform(ctm[0], ctm[1], ctm[2], ctm[3], ctm[4], ctm[5]);
 	FPointArray gr;
 	gr.addPoint(GrStartX, GrStartY);
 	gr.addPoint(GrEndX, GrEndY);
 	gr.map(m_ctm);
-	GrStartX = gr.point(0).x() - crect.x();
-	GrStartY = gr.point(0).y() - crect.y();
-	GrEndX = gr.point(1).x() - crect.x();
-	GrEndY = gr.point(1).y() - crect.y();
+	gr.translate(-crect.x(), -crect.y());
+
+	// Undo the rotation and translation of the gradient vector.
+	double angle = m_ctm.map(QLineF(0, 0, 1, 0)).angle();
+	QTransform mm;
+	mm.rotate(angle);
+	out.translate(-crect.x(), -crect.y());
+	out = mm.map(out);
+	QRectF bb = out.boundingRect();
+	gr.map(mm);
+	gr.translate(-bb.left(), -bb.top());
+	GrStartX = gr.point(0).x();
+	GrStartY = gr.point(0).y();
+	GrEndX = gr.point(1).x();
+	GrEndY = gr.point(1).y();
+
 	double xCoor = m_doc->currentPage()->xOffset();
 	double yCoor = m_doc->currentPage()->yOffset();
 	QString output = QString("M %1 %2").arg(0.0).arg(0.0);
@@ -1866,16 +1901,14 @@ GBool SlaOutputDev::axialShadedFill(GfxState *state, GfxAxialShading *shading, d
 	output += QString("Z");
 	pathIsClosed = true;
 	Coords = output;
-	int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Rectangle, xCoor + crect.x(), yCoor + crect.y(), crect.width(), crect.height(), 0, CurrColorFill, CommonStrings::None);
+	int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Rectangle, xCoor + crect.x(), yCoor + crect.y(), bb.width(), bb.height(), 0, CurrColorFill, CommonStrings::None);
 	PageItem* ite = m_doc->Items->at(z);
 	if (checkClip())
 	{
-		QPainterPath out = m_currentClipPath;
-		out.translate(m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset());
-		out.translate(-ite->xPos(), -ite->yPos());
 		ite->PoLine.fromQPainterPath(out, true);
 		ite->setFillEvenOdd(out.fillRule() == Qt::OddEvenFill);
 	}
+	ite->setRotation(-angle);
 	ite->ClipEdited = true;
 	ite->FrameType = 3;
 	ite->setFillShade(CurrFillShade);
@@ -2506,18 +2539,36 @@ void SlaOutputDev::drawSoftMaskedImage(GfxState *state, Object *ref, Stream *str
 	if ((maskWidth != width) || (maskHeight != height))
 		*image = image->scaled(maskWidth, maskHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 	QImage res = image->convertToFormat(QImage::Format_ARGB32);
-	unsigned char cc, cm, cy, ck;
+
+	int matteRc, matteGc, matteBc;
+	POPPLER_CONST_070 GfxColor *matteColor = maskColorMap->getMatteColor();
+	if (matteColor != nullptr)
+	{
+		GfxRGB matteRgb;
+		colorMap->getColorSpace()->getRGB(matteColor, &matteRgb);
+		matteRc = qRound(colToDbl(matteRgb.r) * 255);
+		matteGc = qRound(colToDbl(matteRgb.g) * 255);
+		matteBc = qRound(colToDbl(matteRgb.b) * 255);
+	}
+
+	unsigned char cr, cg, cb, ca;
 	int s = 0;
 	for (int yi=0; yi < res.height(); ++yi)
 	{
 		QRgb *t = (QRgb*)(res.scanLine( yi ));
 		for (int xi=0; xi < res.width(); ++xi)
 		{
-			cc = qRed(*t);
-			cm = qGreen(*t);
-			cy = qBlue(*t);
-			ck = mbuffer[s];
-			(*t) = qRgba(cc, cm, cy, ck);
+			cr = qRed(*t);
+			cg = qGreen(*t);
+			cb = qBlue(*t);
+			ca = mbuffer[s];
+			if (matteColor != nullptr)
+			{
+				cr = unblendMatte(cr, ca, matteRc);
+				cg = unblendMatte(cg, ca, matteGc);
+				cb = unblendMatte(cb, ca, matteBc);
+			}
+			(*t) = qRgba(cr, cg, cb, ca);
 			s++;
 			t++;
 		}
@@ -3203,16 +3254,27 @@ err1:
 
 void SlaOutputDev::drawChar(GfxState *state, double x, double y, double dx, double dy, double originX, double originY, CharCode code, int nBytes, POPPLER_CONST_082 Unicode *u, int uLen)
 {
+//	qDebug() << "SlaOutputDev::drawChar code:" << code << "bytes:" << nBytes << "Unicode:" << u << "ulen:" << uLen << "render:" << state->getRender();
 	double x1, y1, x2, y2;
-	int render;
 	updateFont(state);
 	if (!m_font)
 		return;
-	// check for invisible text -- this is used by Acrobat Capture
-	render = state->getRender();
-	if (render == 3)
+
+	// PDF 1.7 Section 9.3.6 defines eight text rendering modes.
+	// 0 - Fill
+	// 1 - Stroke
+	// 2 - First fill and then stroke
+	// 3 - Invisible
+	// 4 - Fill and use as a clipping path
+	// 5 - Stroke and use as a clipping path
+	// 6 - First fill, then stroke and add as a clipping path
+	// 7 - Only use as a clipping path.
+	// TODO Implement the clipping operations. At least the characters are shown.
+	int textRenderingMode = state->getRender();
+	// Invisible or only used for clipping
+	if (textRenderingMode == 3)
 		return;
-	if (!(render & 1))
+	if (textRenderingMode < 8)
 	{
 		SplashPath * fontPath;
 		fontPath = m_font->getGlyphPath(code);
@@ -3247,10 +3309,17 @@ void SlaOutputDev::drawChar(GfxState *state, double x, double y, double dx, doub
 			FPointArray textPath;
 			textPath.fromQPainterPath(qPath);
 			FPoint wh = textPath.widthHeight();
-			if ((textPath.size() > 3) && ((wh.x() != 0.0) || (wh.y() != 0.0)))
+			if (textRenderingMode > 3)
 			{
-				CurrColorFill = getColor(state->getFillColorSpace(), state->getFillColor(), &CurrFillShade);
-				int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, xCoor, yCoor, 10, 10, 0, CurrColorFill, CommonStrings::None);
+				QTransform mm;
+				mm.scale(1, -1);
+				mm.translate(x, -y);
+				// Remember the glyph for later clipping
+ 				m_clipTextPath.addPath(m_ctm.map(mm.map(qPath)));
+			}
+			if ((textPath.size() > 3) && ((wh.x() != 0.0) || (wh.y() != 0.0)) && (textRenderingMode != 7))
+			{
+				int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, xCoor, yCoor, 10, 10, 0, CommonStrings::None, CommonStrings::None);
 				PageItem* ite = m_doc->Items->at(z);
 				QTransform mm;
 				mm.scale(1, -1);
@@ -3260,22 +3329,30 @@ void SlaOutputDev::drawChar(GfxState *state, double x, double y, double dx, doub
 				ite->PoLine = textPath.copy();
 				ite->ClipEdited = true;
 				ite->FrameType = 3;
-				ite->setFillShade(CurrFillShade);
-				ite->setFillEvenOdd(false);
-				ite->setFillTransparency(1.0 - state->getFillOpacity());
-				ite->setFillBlendmode(getBlendMode(state));
 				ite->setLineEnd(PLineEnd);
 				ite->setLineJoin(PLineJoin);
 				ite->setTextFlowMode(PageItem::TextFlowDisabled);
-				m_doc->adjustItemSize(ite);
-				if ((render & 3) == 1 || (render & 3) == 2)
+				// Fill text rendering modes. See above
+				if (textRenderingMode == 0 || textRenderingMode == 2 || textRenderingMode == 4 || textRenderingMode == 6)
 				{
+					CurrColorFill = getColor(state->getFillColorSpace(), state->getFillColor(), &CurrFillShade);
+					ite->setFillColor(CurrColorFill);
+					ite->setFillShade(CurrFillShade);
+					ite->setFillEvenOdd(false);
+					ite->setFillTransparency(1.0 - state->getFillOpacity());
+					ite->setFillBlendmode(getBlendMode(state));
+				}
+				// Stroke text rendering modes. See above
+				if (textRenderingMode == 1 || textRenderingMode == 2 || textRenderingMode == 5 || textRenderingMode == 6)
+				{
+					CurrColorStroke = getColor(state->getStrokeColorSpace(), state->getStrokeColor(), &CurrStrokeShade);
 					ite->setLineColor(CurrColorStroke);
 					ite->setLineWidth(state->getTransformedLineWidth());
 					ite->setLineTransparency(1.0 - state->getStrokeOpacity());
 					ite->setLineBlendmode(getBlendMode(state));
 					ite->setLineShade(CurrStrokeShade);
 				}
+				m_doc->adjustItemSize(ite);
 				m_Elements->append(ite);
 				if (m_groupStack.count() != 0)
 				{
@@ -3356,7 +3433,12 @@ void SlaOutputDev::beginTextObject(GfxState *state)
 
 void SlaOutputDev::endTextObject(GfxState *state)
 {
-//	qDebug() << "End Text Object";
+//	qDebug() << "SlaOutputDev::endTextObject";
+	if (!m_clipTextPath.isEmpty())
+	{
+		m_currentClipPath = intersection(m_currentClipPath, m_clipTextPath);
+		m_clipTextPath = QPainterPath();
+	}
 	if (m_groupStack.count() != 0)
 	{
 		groupEntry gElements = m_groupStack.pop();

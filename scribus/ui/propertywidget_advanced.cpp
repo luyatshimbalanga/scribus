@@ -9,20 +9,15 @@ for which a new license (GPL+exception) is in place.
 
 #include "appmodes.h"
 #include "iconmanager.h"
+#include "localemgr.h"
 #include "pageitem_table.h"
 #include "scribus.h"
 #include "scribusapp.h"
 #include "scribusdoc.h"
 #include "selection.h"
-#include "units.h"
 
 PropertyWidget_Advanced::PropertyWidget_Advanced(QWidget* parent) : QFrame(parent)
 {
-	m_item = nullptr;
-	m_ScMW = nullptr;
-	m_unitIndex = 0;
-	m_unitRatio = 1.0;
-
 	setupUi(this);
 
 	setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -45,6 +40,7 @@ PropertyWidget_Advanced::PropertyWidget_Advanced(QWidget* parent) : QFrame(paren
 	languageChange();
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
+	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 }
 
 void PropertyWidget_Advanced::setMainWindow(ScribusMainWindow *mw)
@@ -377,4 +373,17 @@ void PropertyWidget_Advanced::iconSetChange()
 void PropertyWidget_Advanced::languageChange()
 {
 	retranslateUi(this);
+}
+
+void PropertyWidget_Advanced::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	textBase->setLocale(l);
+	tracking->setLocale(l);
+	scaleH->setLocale(l);
+	scaleV->setLocale(l);
+	minWordTrackingSpinBox->setLocale(l);
+	normWordTrackingSpinBox->setLocale(l);
+	minGlyphExtSpinBox->setLocale(l);
+	maxGlyphExtSpinBox->setLocale(l);
 }

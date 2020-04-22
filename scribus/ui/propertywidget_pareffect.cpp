@@ -12,6 +12,7 @@ for which a new license (GPL+exception) is in place.
 #include "appmodehelper.h"
 #include "appmodes.h"
 #include "iconmanager.h"
+#include "localemgr.h"
 #include "pageitem.h"
 #include "pageitem_table.h"
 #include "scribus.h"
@@ -19,10 +20,9 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "selection.h"
 #include "ui/sctreewidget.h"
-#include "units.h"
 #include "util.h"
 
-PropertyWidget_ParEffect::PropertyWidget_ParEffect(QWidget *parent) : QFrame(parent), m_enhanced(nullptr), m_item(nullptr), m_ScMW(nullptr)
+PropertyWidget_ParEffect::PropertyWidget_ParEffect(QWidget *parent) : QFrame(parent)
 {
 	setupUi(this);
 	setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -33,7 +33,7 @@ PropertyWidget_ParEffect::PropertyWidget_ParEffect(QWidget *parent) : QFrame(par
 	dropCapLines->setValue(2);
 
 	if (m_doc)
-		peCharStyleCombo->updateFormatList();
+		peCharStyleCombo->updateStyleList();
 	fillBulletStrEditCombo();
 	enableParEffect(false);
 	bulletCharTableButton->setIcon(IconManager::instance().loadIcon("22/insert-table.png"));
@@ -127,6 +127,12 @@ void PropertyWidget_ParEffect::unitChange()
 	peOffset->blockSignals(sigBlocked);
 }
 
+void PropertyWidget_ParEffect::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	peOffset->setLocale(l);
+}
+
 void PropertyWidget_ParEffect::fillNumerationsCombo()
 {
 	QStringList numNames;
@@ -148,13 +154,13 @@ void PropertyWidget_ParEffect::fillNumerationsCombo()
 
 void PropertyWidget_ParEffect::updateCharStyles()
 {
-	peCharStyleCombo->updateFormatList();
+	peCharStyleCombo->updateStyleList();
 }
 
 void PropertyWidget_ParEffect::showCharStyle(const QString& name)
 {
 	bool blocked = peCharStyleCombo->blockSignals(true);
-	peCharStyleCombo->setFormat(name);
+	peCharStyleCombo->setStyle(name);
 	peCharStyleCombo->blockSignals(blocked);
 }
 

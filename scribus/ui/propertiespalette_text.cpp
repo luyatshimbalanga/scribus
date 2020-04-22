@@ -20,6 +20,7 @@ for which a new license (GPL+exception) is in place.
 #include "commonstrings.h"
 #include "fontcombo.h"
 #include "iconmanager.h"
+#include "localemgr.h"
 #include "pageitem.h"
 #include "pageitem_table.h"
 #include "pageitem_textframe.h"
@@ -36,9 +37,10 @@ for which a new license (GPL+exception) is in place.
 #include "propertywidget_textcolor.h"
 #include "scfonts.h"
 #include "scraction.h"
+#include "scribusapp.h"
 #include "scribuscore.h"
 #include "selection.h"
-#include "spalette.h"
+#include "stylecombos.h"
 #include "styleselect.h"
 #include "tabmanager.h"
 #include "undomanager.h"
@@ -51,14 +53,6 @@ for which a new license (GPL+exception) is in place.
 
 PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(parent)
 {
-	m_ScMW=nullptr;
-	m_doc=nullptr;
-	m_item=nullptr;
-	m_haveDoc = false;
-	m_haveItem = false;
-	m_unitIndex = 0;
-	m_unitRatio = 1.0;
-
 	setupUi(this);
 
 	fontSize->setPrefix( "" );
@@ -122,7 +116,7 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	connect(fontfeaturesWidget, SIGNAL(needsRelayout()), this, SLOT(updateTreeLayout()));
 	connect(parEffectWidgets,   SIGNAL(needsRelayout()), this, SLOT(updateTreeLayout()));
 
-	m_haveItem = false;
+	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 	setEnabled(false);
 }
 
@@ -293,11 +287,11 @@ void PropertiesPalette_Text::handleUpdateRequest(int updateFlags)
 		updateColorList();*/
 	if (updateFlags & reqCharStylesUpdate)
 	{
-		charStyleCombo->updateFormatList();
+		charStyleCombo->updateStyleList();
 		parEffectWidgets->updateCharStyles();
 	}
 	if (updateFlags & reqParaStylesUpdate)
-		paraStyleCombo->updateFormatList();
+		paraStyleCombo->updateStyleList();
 	if (updateFlags & reqDefFontListUpdate)
 		fonts->rebuildList(nullptr);
 	if (updateFlags & reqDocFontListUpdate)
@@ -377,6 +371,18 @@ void PropertiesPalette_Text::unitChange()
 	parEffectWidgets->unitChange();
 
 	m_haveItem = tmp;
+}
+
+void PropertiesPalette_Text::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	fontSize->setLocale(l);
+	lineSpacing->setLocale(l);
+	advancedWidgets->localeChange();
+	colorWidgets->localeChange();
+	distanceWidgets->localeChange();
+	parEffectWidgets->localeChange();
+	pathTextWidgets->localeChange();
 }
 
 void PropertiesPalette_Text::handleLineSpacingMode(int id)
@@ -537,21 +543,21 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 
 void PropertiesPalette_Text::updateCharStyles()
 {
-	charStyleCombo->updateFormatList();
+	charStyleCombo->updateStyleList();
 	parEffectWidgets->updateCharStyles();
 }
 
 void PropertiesPalette_Text::updateParagraphStyles()
 {
-	paraStyleCombo->updateFormatList();
-	charStyleCombo->updateFormatList();
+	paraStyleCombo->updateStyleList();
+	charStyleCombo->updateStyleList();
 	parEffectWidgets->updateCharStyles();
 }
 
 void PropertiesPalette_Text::updateTextStyles()
 {
-	paraStyleCombo->updateFormatList();
-	charStyleCombo->updateFormatList();
+	paraStyleCombo->updateStyleList();
+	charStyleCombo->updateStyleList();
 }
 
 void PropertiesPalette_Text::updateTreeLayout()
@@ -586,7 +592,7 @@ void PropertiesPalette_Text::showCharStyle(const QString& name)
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	bool blocked = charStyleCombo->blockSignals(true);
-	charStyleCombo->setFormat(name);
+	charStyleCombo->setStyle(name);
 	charStyleCombo->blockSignals(blocked);
 }
 
@@ -595,7 +601,7 @@ void PropertiesPalette_Text::showParStyle(const QString& name)
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	bool blocked = paraStyleCombo->blockSignals(true);
-	paraStyleCombo->setFormat(name);
+	paraStyleCombo->setStyle(name);
 	paraStyleCombo->blockSignals(blocked);
 }
 

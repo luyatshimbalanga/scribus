@@ -14,13 +14,15 @@ for which a new license (GPL+exception) is in place.
 #endif
 #include <cmath>
 
+
 #include "appmodehelper.h"
 #include "appmodes.h"
 #include "autoform.h"
 #include "basepointwidget.h"
-#include "commonstrings.h"
 #include "colorlistbox.h"
-#include "sccolorengine.h"
+#include "commonstrings.h"
+#include "iconmanager.h"
+#include "localemgr.h"
 #include "pageitem.h"
 #include "pageitem_arc.h"
 #include "pageitem_group.h"
@@ -28,32 +30,23 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_spiral.h"
 #include "pageitem_textframe.h"
 #include "propertiespalette_utils.h"
-
-#include "scribuscore.h"
+#include "sccolorengine.h"
 #include "scraction.h"
 #include "scribusapp.h"
+#include "scribuscore.h"
 #include "scribusdoc.h"
 #include "scribusview.h"
 #include "selection.h"
 #include "tabmanager.h"
-#include "units.h"
 #include "undomanager.h"
+#include "units.h"
 #include "util.h"
-#include "iconmanager.h"
 #include "util_math.h"
 
 //using namespace std;
 
 PropertiesPalette_XYZ::PropertiesPalette_XYZ( QWidget* parent) : QWidget(parent)
 {
-	m_ScMW = nullptr;
-	m_doc = nullptr;
-	m_haveDoc  = false;
-	m_haveItem = false;
-	m_lineMode = false;
-	m_oldRotation = 0;
-	m_unitRatio = 1.0;
-
 	setupUi(this);
 	setSizePolicy( QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
 
@@ -74,7 +67,7 @@ PropertiesPalette_XYZ::PropertiesPalette_XYZ( QWidget* parent) : QWidget(parent)
 	keepFrameWHRatioButton->setMaximumSize( QSize( 15, 32767 ) );
 	keepFrameWHRatioButton->setChecked(false);
 
-	rotationSpin->setNewUnit(6);
+	rotationSpin->setNewUnit(SC_DEG);
 	rotationSpin->setWrapping( true );
 	installSniffer(rotationSpin);
 	rotationLabel->setBuddy(rotationSpin);
@@ -88,12 +81,11 @@ PropertiesPalette_XYZ::PropertiesPalette_XYZ( QWidget* parent) : QWidget(parent)
 	noPrint->setCheckable(true);
 	noResize->setCheckable(true);
 
-	m_lineMode = false;
-
 	iconSetChange();
 	languageChange();
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
+	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 
 	connect(xposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewX()));
 	connect(yposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewY()));
@@ -407,7 +399,7 @@ void PropertiesPalette_XYZ::handleSelectionChanged()
 	PageItem* currItem = currentItemFromSelection();
 	if (m_doc->m_Selection->count() > 1)
 	{
-		m_oldRotation = 0;
+		m_oldRotation = 0.0;
 		double gx, gy, gh, gw;
 		m_doc->m_Selection->getGroupRect(&gx, &gy, &gw, &gh);
 		int bp = basePointWidget->checkedId();
@@ -537,6 +529,16 @@ void PropertiesPalette_XYZ::unitChange()
 	widthSpin->setNewUnit( m_unitIndex );
 	heightSpin->setNewUnit( m_unitIndex );
 	m_haveItem = tmp;
+}
+
+void PropertiesPalette_XYZ::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	xposSpin->setLocale(l);
+	yposSpin->setLocale(l);
+	widthSpin->setLocale(l);
+	heightSpin->setLocale(l);
+	rotationSpin->setLocale(l);
 }
 
 void PropertiesPalette_XYZ::showXY(double x, double y)

@@ -65,7 +65,7 @@ Prefs_KeyboardShortcuts::Prefs_KeyboardShortcuts(QWidget* parent, ScribusDoc* do
 	keyTable->clear();
 	keyMap.clear();
 	keyCode = 0;
-	keyDisplay->setMinimumWidth(fontMetrics().width("CTRL+ALT+SHIFT+W"));
+	keyDisplay->setMinimumWidth(fontMetrics().horizontalAdvance("CTRL+ALT+SHIFT+W"));
 	keyDisplay->setText("");
 	selectedLVI = nullptr;
 
@@ -246,16 +246,15 @@ void Prefs_KeyboardShortcuts::resetKeySet()
 QStringList Prefs_KeyboardShortcuts::scanForSets()
 {
 	keySetList.clear();
-	QString location = ScPaths::instance().shareDir();
-	QString keySetLocation = QDir::toNativeSeparators(location+"keysets/");
-	QDir keySetsDir(keySetLocation, "*.xml", QDir::Name, QDir::Files | QDir::NoSymLinks);
+	QString location(ScPaths::instance().shareDir());
+	QDir keySetsDir(QDir::toNativeSeparators(location+"keysets/"), "*.xml", QDir::Name, QDir::Files | QDir::NoSymLinks);
 	if ((!keySetsDir.exists()) || (keySetsDir.count() <= 0))
 		return QStringList();
 
 	QStringList appNames;
 	for (uint fileCounter = 0; fileCounter < keySetsDir.count(); ++fileCounter)
 	{
-		QString filename = QDir::toNativeSeparators(location+"keysets/"+keySetsDir[fileCounter]);
+		QString filename(QDir::toNativeSeparators(location+"keysets/"+keySetsDir[fileCounter]));
 
 		QDomDocument doc( "keymapentries" );
 		QFile file( filename );

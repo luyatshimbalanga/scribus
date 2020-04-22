@@ -87,10 +87,7 @@ int ScribusCore::init(bool useGUI, const QList<QString>& filesToUse)
 	return 0;
 }
 
-const QString& ScribusCore::getGuiLanguage() const
-{
-	return ScQApp->currGUILanguage();
-}
+
 
 int ScribusCore::startGUI(bool showSplash, bool showFontInfo, bool showProfileInfo, const QString& newGuiLanguage)
 {
@@ -99,7 +96,6 @@ int ScribusCore::startGUI(bool showSplash, bool showFontInfo, bool showProfileIn
 	if (!scribus)
 		return(EXIT_FAILURE);
 	m_ScMWList.append(scribus);
-	m_currScMW=0;
 	int retVal=initScribusCore(showSplash, showFontInfo, showProfileInfo, newGuiLanguage);
 	if (retVal == EXIT_FAILURE)
 		return(EXIT_FAILURE);
@@ -175,6 +171,7 @@ int ScribusCore::initScribusCore(bool showSplash, bool showFontInfo, bool showPr
 	m_prefsManager.initDefaultActionKeys();
 	setSplashStatus( tr("Reading Preferences") );
 	m_prefsManager.ReadPrefs();
+	LocaleManager::instance().setUserPreferredLocale(m_prefsManager.appPrefs.uiPrefs.userPreferredLocale);
 	m_prefsManager.appPrefs.uiPrefs.showSplashOnStartup=showSplash;
 	if (!m_iconManager.setActiveFromPrefs(m_prefsManager.appPrefs.uiPrefs.iconSet))
 	{
@@ -201,6 +198,11 @@ int ScribusCore::initScribusCore(bool showSplash, bool showFontInfo, bool showPr
 	icm.setCompressionLevel(m_prefsManager.appPrefs.imageCachePrefs.compressionLevel);
 	icm.initialize();
 	return 0;
+}
+
+const QString &ScribusCore::getGuiLanguage() const
+{
+	return ScQApp->currGUILanguage();
 }
 
 void ScribusCore::initSplash(bool showSplash)
@@ -404,12 +406,12 @@ void ScribusCore::getCMSProfilesDir(const QString& pfad, bool showInfo, bool rec
 void ScribusCore::InitDefaultColorTransforms()
 {
 	QString defaultRGBString;
-	QString defaultRGBString1  = "sRGB display profile (ICC v2.2)";
-	QString defaultRGBString2  = "sRGB IEC61966-2.1";
-	QString defaultCMYKString1 = "ISO Coated v2 300% (basICColor)";
-	QString defaultCMYKString2 = "Fogra27L CMYK Coated Press";
+	QString defaultRGBString1("sRGB display profile (ICC v2.2)");
+	QString defaultRGBString2("sRGB IEC61966-2.1");
+	QString defaultCMYKString1("ISO Coated v2 300% (basICColor)");
+	QString defaultCMYKString2("Fogra27L CMYK Coated Press");
 
-	// Ouvre le profile RGB par d�fault
+	// Open the default RGB profile
 	if (InputProfiles.contains(defaultRGBString1))
 	{
 		defaultRGBProfile = defaultEngine.openProfileFromFile(InputProfiles[defaultRGBString1]);
@@ -426,7 +428,7 @@ void ScribusCore::InitDefaultColorTransforms()
 		defaultRGBString = defaultRGBString2;
 	}
 
-	// Ouvre le profile CMYK par d�faut
+	// Open the default CMYK profile
 	if (InputProfilesCMYK.contains(defaultCMYKString1))
 		defaultCMYKProfile = defaultEngine.openProfileFromFile(InputProfilesCMYK[defaultCMYKString1]);
 	else if (InputProfilesCMYK.contains(defaultCMYKString2))

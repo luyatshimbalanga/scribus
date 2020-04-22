@@ -37,13 +37,6 @@
 
 ResizeGesture::ResizeGesture (CanvasMode* parent) : CanvasGesture(parent)
 {
-	m_handle = Canvas::INSIDE;
-	m_rotation = 0.0;
-	m_origRatio = 1.0;
-	m_extraWidth = 0.0;
-	m_extraHeight = 0.0;
-	m_extraX = 0.0;
-	m_extraY = 0.0;
 	m_transaction = UndoTransaction();
 }
 
@@ -114,19 +107,18 @@ void ResizeGesture::clear()
 	}
 }
 
-void ResizeGesture::activate(bool flag)
+void ResizeGesture::activate(bool fromGesture)
 {
+	CanvasGesture::activate(fromGesture);
 }
 
 
-
-void ResizeGesture::deactivate(bool forgesture)
+void ResizeGesture::deactivate(bool forGesture)
 {
-	if (!forgesture)
+	if (!forGesture)
 		clear();
+	CanvasGesture::deactivate(forGesture);
 }
-
-
 
 void ResizeGesture::drawControls(QPainter* p) 
 {

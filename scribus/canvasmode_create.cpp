@@ -65,12 +65,6 @@ CreateMode::CreateMode(ScribusView* view) : CanvasMode(view)
 {
 	canvasPressCoord.setXY(-1.0, -1.0);
 	mouseGlobalCoord.setXY(-1.0, -1.0);
-	inItemCreation = false;
-	createObjectMode     = 0;
-	createObjectSubMode  = 0;
-	modifiers            = Qt::NoModifier;
-	m_MouseButtonPressed = false;
-	m_createTransaction  = nullptr;
 }
 
 
@@ -199,8 +193,10 @@ void CreateMode::leaveEvent(QEvent *e)
 
 void CreateMode::activate(bool fromGesture)
 {
-	PageItem* currItem;
 //	qDebug() << "CreateMode::activate" << fromGesture;
+	CanvasMode::activate(fromGesture);
+
+	PageItem* currItem;
 	if (!fromGesture || !GetItem(&currItem) || !m_createTransaction)
 	{
 		if (m_createTransaction)
@@ -228,6 +224,8 @@ void CreateMode::deactivate(bool forGesture)
 			m_createTransaction.reset();
 		}
 	}
+
+	CanvasMode::deactivate(forGesture);
 }
 
 void CreateMode::mouseDoubleClickEvent(QMouseEvent *m)

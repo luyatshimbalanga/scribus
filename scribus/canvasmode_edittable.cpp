@@ -41,11 +41,7 @@ for which a new license (GPL+exception) is in place.
 #endif
 
 CanvasMode_EditTable::CanvasMode_EditTable(ScribusView* view) : CanvasMode(view),
-	m_table(nullptr),
 	m_canvasUpdateTimer(new QTimer(view)),
-	m_longBlink(false),
-	m_cursorVisible(false),
-	m_lastCursorPos(-1),
 	m_selectRowCursor(IconManager::instance().loadCursor("select_row.png")),
 	m_selectColumnCursor(IconManager::instance().loadCursor("select_column.png")),
 	m_tableResizeGesture(new TableResize(this)),
@@ -67,6 +63,8 @@ CanvasMode_EditTable::~CanvasMode_EditTable()
 
 void CanvasMode_EditTable::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
+
 	PageItem *item = m_doc->m_Selection->itemAt(0);
 	Q_ASSERT(item && item->isTable());
 	m_table = item->asTable();
@@ -88,6 +86,7 @@ void CanvasMode_EditTable::deactivate(bool forGesture)
 		m_canvasUpdateTimer->stop();
 
 	m_view->m_ScMW->updateTableMenuActions();
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_EditTable::keyPressEvent(QKeyEvent* event)

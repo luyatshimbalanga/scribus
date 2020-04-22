@@ -108,7 +108,6 @@ public:
 	bool isModified() const;
 /** Setzt die Seitenattribute */
 	void setPage(double w, double h, double t, double l, double r, double b, double sp, double ab, bool atf, int fp);
-	void resetPage(int fp, MarginStruct* newMargins=nullptr);
 
 	/**
 	 * @brief Return the view associated with the document
@@ -136,8 +135,10 @@ public:
 	MarginStruct* scratch() { return &m_docPrefsData.displayPrefs.scratch; }
 	MarginStruct* bleeds() { return &m_docPrefsData.docSetupPrefs.bleeds; }
 	MarginStruct& bleedsVal() { return m_docPrefsData.docSetupPrefs.bleeds; }
+	void setBleeds(MarginStruct& newBleeds) { m_docPrefsData.docSetupPrefs.bleeds = newBleeds; }
 	MarginStruct* margins() { return &m_docPrefsData.docSetupPrefs.margins; }
 	MarginStruct& marginsVal() { return m_docPrefsData.docSetupPrefs.margins; }
+	void setMargins(MarginStruct& newMargins) { m_docPrefsData.docSetupPrefs.margins = newMargins; }
 	double pageGapHorizontal() const { return m_docPrefsData.displayPrefs.pageGapHorizontal; }
 	double pageGapVertical() const { return m_docPrefsData.displayPrefs.pageGapVertical; }
 	void setPageGapHorizontal(double h) { m_docPrefsData.displayPrefs.pageGapHorizontal=h; }
@@ -706,6 +707,10 @@ public:
 	* @brief Check pattern with specified name and return it if valid
 	*/
 	ScPattern* checkedPattern(const QString &name);
+	/*!
+	* @brief Get a unique pattern name
+	*/
+	QString getUniquePatternName(const QString& originalName) const;
 	/*!
 	* @brief Builds a QStringList of the patterns used within the document
 	*/

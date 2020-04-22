@@ -85,7 +85,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui/charselect.h"
 #include "ui/customfdialog.h"
 #include "ui/scmessagebox.h"
-#include "ui/spalette.h"
+#include "ui/stylecombos.h"
 #include "ui/stylemanager.h"
 #include "units.h"
 #include "util.h"
@@ -127,18 +127,17 @@ SideBar::SideBar(QWidget *pa) : QLabel(pa)
 	inRep = false;
 	pmen = new QMenu(this);
 	paraStyleAct = nullptr;
-	setMinimumWidth(fontMetrics().width( tr("No Style") )+30);
+	setMinimumWidth(fontMetrics().horizontalAdvance( tr("No Style") )+30);
 }
 
 void SideBar::setEditor(SEditor* editor)
 {
 	m_editor = editor;
-	if (editor)
-	{
-		QPalette pal;
-		pal.setColor(QPalette::Window, editor->palette().color(QPalette::Base));
-		setPalette(pal);
-	}
+	if (!editor)
+		return;
+	QPalette pal;
+	pal.setColor(QPalette::Window, editor->palette().color(QPalette::Base));
+	setPalette(pal);
 }
 
 void SideBar::mouseReleaseEvent(QMouseEvent *m)
@@ -160,7 +159,7 @@ void SideBar::mouseReleaseEvent(QMouseEvent *m)
 		if (len > 0)
 			styleName = m_editor->StyledText.paragraphStyle(pos).parent(); //FIXME ParaStyleComboBox and use localized style name
 	}
-	paraStyleCombo->setFormat(styleName);
+	paraStyleCombo->setStyle(styleName);
 	connect(paraStyleCombo, SIGNAL(newStyle(const QString&)), this, SLOT(setPStyle(const QString&)));
 	
 	paraStyleAct = new QWidgetAction(pmen);
@@ -1487,7 +1486,7 @@ void SToolBAlign::SetDirection(int s)
 void SToolBAlign::SetParaStyle(const QString& s)
 {
 	QSignalBlocker sigBlocker(paraStyleCombo);
-	paraStyleCombo->setFormat(s);
+	paraStyleCombo->setStyle(s);
 }
 
 /* Toolbar for Font related Settings */

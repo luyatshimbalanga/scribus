@@ -63,18 +63,9 @@
 
 CanvasMode_Edit::CanvasMode_Edit(ScribusView* view) : CanvasMode(view), m_ScMW(view->m_ScMW) 
 {
-	Mxp = Myp = -1;
-	Dxp = Dyp = -1;
-	SeRx = SeRy = -1;
-	oldCp = Cp = -1;
-	frameResizeHandle = -1;
-	m_blinker = new QTimer(view);	
+	m_blinker = new QTimer(view);
 	connect(m_blinker, SIGNAL(timeout()), this, SLOT(blinkTextCursor()));
 	connect(view->horizRuler, SIGNAL(MarkerMoved(double,double)), this, SLOT(rulerPreview(double,double)));
-	mRulerGuide = -1;
-	m_cursorVisible = false;
-	m_longCursorTime = false;
-	m_keyRepeat = false;
 }
 
 inline bool CanvasMode_Edit::GetItem(PageItem** pi)
@@ -269,6 +260,8 @@ void CanvasMode_Edit::leaveEvent(QEvent *e)
 
 void CanvasMode_Edit::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
+
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 	m_doc->DragP = false;
@@ -312,6 +305,7 @@ void CanvasMode_Edit::deactivate(bool forGesture)
 		mRulerGuide = -1;
 		m_blinker->stop();
 	}
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_Edit::mouseDoubleClickEvent(QMouseEvent *m)

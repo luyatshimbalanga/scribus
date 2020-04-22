@@ -64,7 +64,7 @@ PagePalette_Pages::PagePalette_Pages(QWidget* parent) : QWidget(parent)
 
 	pix = IconManager::instance().loadPixmap("32/page-simple.png");
 
-	Rebuild();
+	rebuild();
 	languageChange();
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
@@ -170,7 +170,7 @@ void PagePalette_Pages::enablePalette(const bool enabled)
 void PagePalette_Pages::handlePageLayout(int layout)
 {
 	pageLayout->selectFirstP(currView->m_doc->pageSets()[layout].FirstPage);
-	currView->m_doc->resetPage(layout);
+	currView->m_doc->setPagePositioning(layout);
 	currView->reformPages();
 	currView->DrawNew();
 	currView->GotoPage(currView->m_doc->currentPageNumber());
@@ -313,7 +313,7 @@ void PagePalette_Pages::rebuildPages()
 	connect(pageLayout, SIGNAL(selectedFirstPage(int)), this, SLOT(handleFirstPage(int)));
 }
 
-void PagePalette_Pages::Rebuild()
+void PagePalette_Pages::rebuild()
 {
 	rebuildMasters();
 	rebuildPages();
@@ -402,7 +402,7 @@ void PagePalette_Pages::iconSetChange()
 {
 	pix = IconManager::instance().loadPixmap("32/page-simple.png");
 	if (currView != nullptr)
-		Rebuild();
+		rebuild();
 }
 
 void PagePalette_Pages::languageChange()

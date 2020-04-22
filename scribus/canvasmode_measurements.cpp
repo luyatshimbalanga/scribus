@@ -33,9 +33,6 @@ MeasurementsMode::MeasurementsMode(ScribusView* view) : CanvasMode(view), m_star
 	m_palette->startup();
 	m_palette->hide();
 	connect( m_palette, SIGNAL(paletteShown(bool)), this, SLOT(setActive(bool)));
-	m_active = false;
-	m_startDoc = FPoint(0,0);
-	m_currentDoc = FPoint(0,0);
 }
 
 void MeasurementsMode::enterEvent(QEvent *)
@@ -54,14 +51,16 @@ void MeasurementsMode::setActive(bool active)
 }
 
 
-void MeasurementsMode::activate(bool)
+void MeasurementsMode::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
 	m_palette->show();
 }
 
-void MeasurementsMode::deactivate(bool)
+void MeasurementsMode::deactivate(bool forGesture)
 {
 	m_palette->hide();
+	CanvasMode::deactivate(forGesture);
 }
 
 void MeasurementsMode::drawControls(QPainter* p)

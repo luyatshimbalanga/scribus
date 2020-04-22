@@ -34,13 +34,11 @@ public:
 	explicit RowResize(CanvasMode* parent) : TableGesture(parent), m_row(0) {}
 	~RowResize() override = default;
 
-	void activate(bool fromGesture) override {};
-	void deactivate(bool forGesture) override {}
 	void keyPressEvent(QKeyEvent* event) override;
 	void keyReleaseEvent(QKeyEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
-	bool handleKeyEvents() override { return true; }
+	bool handleKeyEvents() const override { return true; }
 	void drawControls(QPainter* p) override;
 
 	/// Sets up this row resize gesture to resize @a row in @a table.

@@ -56,8 +56,7 @@
 
 CanvasMode_EditGradient::CanvasMode_EditGradient(ScribusView* view) : CanvasMode(view), m_ScMW(view->m_ScMW) 
 {
-	m_Mxp = m_Myp = -1;
-	m_gradientPoint = noPointDefined;
+
 }
 
 inline bool CanvasMode_EditGradient::GetItem(PageItem** pi)
@@ -245,6 +244,8 @@ void CanvasMode_EditGradient::leaveEvent(QEvent *e)
 void CanvasMode_EditGradient::activate(bool fromGesture)
 {
 //	qDebug() << "CanvasMode_EditGradient::activate" << fromGesture;
+	CanvasMode::activate(fromGesture);
+
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 	m_doc->DragP = false;
@@ -264,6 +265,7 @@ void CanvasMode_EditGradient::deactivate(bool forGesture)
 {
 //	qDebug() << "CanvasMode_EditGradient::deactivate" << forGesture;
 	m_view->setRedrawMarkerShown(false);
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_EditGradient::mouseDoubleClickEvent(QMouseEvent *m)

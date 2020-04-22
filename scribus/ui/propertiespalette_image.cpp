@@ -12,14 +12,17 @@ for which a new license (GPL+exception) is in place.
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
+#include <QLocale>
 #include <QSignalBlocker>
 
 #include "commonstrings.h"
+#include "localemgr.h"
 #include "pageitem.h"
 #include "propertiespalette_utils.h"
 #include "sccolorengine.h"
 #include "scribuscore.h"
 #include "scraction.h"
+#include "scribusapp.h"
 #include "scribusview.h"
 #include "selection.h"
 #include "units.h"
@@ -29,15 +32,6 @@ for which a new license (GPL+exception) is in place.
 
 PropertiesPalette_Image::PropertiesPalette_Image( QWidget* parent) : QWidget(parent)
 {
-	m_ScMW = nullptr;
-	m_doc  = nullptr;
-	m_haveDoc    = false;
-	m_haveItem   = false;
-	m_item       = nullptr;
-	m_unitRatio  = 1.0;
-	m_unitIndex  = 0;
-
-	m_userActionOn    = false;
 	userActionSniffer = new UserActionSniffer(this);
 	connect(userActionSniffer, SIGNAL(actionStart()), this, SLOT(spinboxStartUserAction()));
 	connect(userActionSniffer, SIGNAL(actionEnd()), this, SLOT(spinboxFinishUserAction()));
@@ -93,7 +87,7 @@ PropertiesPalette_Image::PropertiesPalette_Image( QWidget* parent) : QWidget(par
 
 	languageChange();
 
-	connect(imagePageNumber    , SIGNAL(valueChanged(double))   , this, SLOT(handleImagePageNumber()));
+	connect(imagePageNumber    , SIGNAL(valueChanged(double)), this, SLOT(handleImagePageNumber()));
 	connect(imageXScaleSpinBox , SIGNAL(valueChanged(double)), this, SLOT(handleXScale()));
 	connect(imageYScaleSpinBox , SIGNAL(valueChanged(double)), this, SLOT(handleYScale()));
 	connect(imageXOffsetSpinBox, SIGNAL(valueChanged(double)), this, SLOT(handleLocalXY()));
@@ -112,6 +106,8 @@ PropertiesPalette_Image::PropertiesPalette_Image( QWidget* parent) : QWidget(par
 	connect(renderIntent       , SIGNAL(activated(int))      , this, SLOT(handleIntent()));
 	connect(compressionMethod  , SIGNAL(activated(int))      , this, SLOT(handleCompressionMethod()));
 	connect(compressionQuality , SIGNAL(activated(int))      , this, SLOT(handleCompressionQuality()));
+	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
+
 }
 
 void PropertiesPalette_Image::updateSpinBoxConstants()
@@ -851,6 +847,19 @@ void PropertiesPalette_Image::unitChange()
 	imageYOffsetSpinBox->blockSignals(true);
 	imageYOffsetSpinBox->setNewUnit( m_unitIndex );
 	imageYOffsetSpinBox->blockSignals(false);
+}
+
+void PropertiesPalette_Image::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	imagePageNumber->setLocale(l);
+	imageXScaleSpinBox->setLocale(l);
+	imageYScaleSpinBox->setLocale(l);
+	imageXOffsetSpinBox->setLocale(l);
+	imageYOffsetSpinBox->setLocale(l);
+	imageRotation->setLocale(l);
+	imgDpiX->setLocale(l);
+	imgDpiY->setLocale(l);
 }
 
 bool PropertiesPalette_Image::userActionOn()

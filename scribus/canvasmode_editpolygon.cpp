@@ -63,9 +63,6 @@
 
 CanvasMode_EditPolygon::CanvasMode_EditPolygon(ScribusView* view) : CanvasMode(view), m_ScMW(view->m_ScMW) 
 {
-	m_Mxp = m_Myp = -1;
-	m_blockUpdateFromItem = 0;
-	m_polygonPoint = noPointDefined;
 }
 
 inline bool CanvasMode_EditPolygon::GetItem(PageItem** pi)
@@ -175,6 +172,8 @@ void CanvasMode_EditPolygon::updateFromItem()
 
 void CanvasMode_EditPolygon::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
+
 	m_polygonPoint = noPointDefined;
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
@@ -226,6 +225,8 @@ void CanvasMode_EditPolygon::deactivate(bool forGesture)
 	m_view->setRedrawMarkerShown(false);
 	m_polygonPoint = noPointDefined;
 	disconnect(m_doc, SIGNAL(docChanged()), this, SLOT(updateFromItem()));
+
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_EditPolygon::endEditing(bool active)

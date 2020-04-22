@@ -115,6 +115,7 @@ for which a new license (GPL+exception) is in place.
 #include "hyphenator.h"
 #include "iconmanager.h"
 #include "langmgr.h"
+#include "localemgr.h"
 #include "loadsaveplugin.h"
 #include "marks.h"
 #include "nfttemplate.h"
@@ -425,6 +426,7 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 		scrActions["SaveAsDocumentTemplate"]->setEnabled(false);
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
+	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 	connect(ScCore->fileWatcher, SIGNAL(fileDeleted(QString)), this, SLOT(removeRecentFromWatcher(QString)));
 	connect(ClipB, SIGNAL(dataChanged()), this, SLOT(ClipChange()));
 	setAcceptDrops(true);
@@ -1391,8 +1393,8 @@ void ScribusMainWindow::initStatusBar()
 	mainWindowXPosDataLabel->setFont(fo);
 	mainWindowYPosDataLabel = new QLabel( "", statusBar());
 	mainWindowYPosDataLabel->setFont(fo);
-	mainWindowXPosDataLabel->setMinimumWidth(mainWindowXPosDataLabel->fontMetrics().width("99999.999"));
-	mainWindowYPosDataLabel->setMinimumWidth(mainWindowYPosDataLabel->fontMetrics().width("99999.999"));
+	mainWindowXPosDataLabel->setMinimumWidth(mainWindowXPosDataLabel->fontMetrics().horizontalAdvance("99999.999"));
+	mainWindowYPosDataLabel->setMinimumWidth(mainWindowYPosDataLabel->fontMetrics().horizontalAdvance("99999.999"));
 	statusBarLanguageChange();
 
 	layerMenu->setObjectName("layerMenu");
@@ -2695,7 +2697,7 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 	scrActions["extrasGenerateTableOfContents"]->setEnabled(doc->hasTOCSetup());
 	scrActions["extrasUpdateDocument"]->setEnabled(true);
 	if (!doc->masterPageMode())
-		pagePalette->Rebuild();
+		pagePalette->rebuild();
 	outlinePalette->setDoc(doc);
 	if (outlinePalette->isVisible())
 	{
@@ -3506,7 +3508,7 @@ bool ScribusMainWindow::loadPage(const QString& fileName, int Nr, bool Mpa, cons
 		ret = true;
 	}
 	if (!Mpa)
-		pagePalette->Rebuild();
+		pagePalette->rebuild();
 	view->reformPages();
 	view->DrawNew();
 	return ret;
@@ -3930,7 +3932,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 	}
 
 	m_undoManager->switchStack(doc->documentFileName());
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 	qApp->restoreOverrideCursor();
 	doc->setModified(false);
 	foreach (NotesStyle* NS, doc->m_docNotesStylesList)
@@ -4389,7 +4391,7 @@ bool ScribusMainWindow::DoFileClose()
 	inlinePalette->unsetDoc();
 	symbolPalette->unsetDoc();
 	pagePalette->setView(nullptr);
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 	if (doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
 	bookmarkPalette->BView->clear();
@@ -5381,7 +5383,7 @@ void ScribusMainWindow::applyNewMaster(const QString& name)
 	Apply_MasterPage(name, doc->currentPage()->pageNr(), false);
 	view->reformPages();
 	view->DrawNew();
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 }
 
 void ScribusMainWindow::slotNewPageP(int wo, const QString& templ)
@@ -5573,8 +5575,8 @@ void ScribusMainWindow::duplicateToMasterPage()
 	if (!HaveDoc)
 		return;
 	view->deselectItems(true);
-	int pageLocationIndex=-1;
-	int pageLocationCount=0;
+	int pageLocationIndex = -1;
+	int pageLocationCount = 0;
 	if (doc->pagePositioning() != singlePage)
 	{
 		QStringList locationEntries;
@@ -5593,7 +5595,7 @@ void ScribusMainWindow::duplicateToMasterPage()
 	{
 		bool copyFromMaster=false;
 		QString masterPageName;
-		int pageLocation=0;
+		int pageLocation = 0;
 		copyDialog.values(masterPageName, copyFromMaster, pageLocation);
 		bool badMasterPageName = doc->MasterNames.contains(masterPageName);
 		badMasterPageName |= (masterPageName == CommonStrings::masterPageNormal);
@@ -5615,10 +5617,10 @@ void ScribusMainWindow::duplicateToMasterPage()
 			badMasterPageName |= (masterPageName == CommonStrings::trMasterPageNormalRight);
 			badMasterPageName |=  masterPageName.isEmpty();
 		}
-		int currentPageNumber=doc->currentPage()->pageNr();
-		bool ok=doc->copyPageToMasterPage(currentPageNumber, pageLocation, pageLocationCount, masterPageName, copyFromMaster);
+		int currentPageNumber = doc->currentPage()->pageNr();
+		bool ok = doc->copyPageToMasterPage(currentPageNumber, pageLocation, pageLocationCount, masterPageName, copyFromMaster);
 		Q_ASSERT(ok); //TODO get a return value in case the copy was not possible
-		pagePalette->Rebuild();
+		pagePalette->rebuild();
 	}
 }
 
@@ -6738,7 +6740,8 @@ void ScribusMainWindow::slotPrefsOrg()
 	if (oldPrefs.uiPrefs.language != newUILanguage || ScQApp->currGUILanguage() != newUILanguage)
 		ScQApp->changeGUILanguage(newUILanguage);
 	m_prefsManager.appPrefs.uiPrefs.language = ScQApp->currGUILanguage();
-
+	LocaleManager::instance().setUserPreferredLocale(m_prefsManager.appPrefs.uiPrefs.userPreferredLocale);
+	ScQApp->setLocale();
 	QString newUIStyle = m_prefsManager.guiStyle();
 	if (oldPrefs.uiPrefs.style != newUIStyle)
 	{
@@ -6831,6 +6834,7 @@ void ScribusMainWindow::slotPrefsOrg()
 	icm.setCompressionLevel(newPrefs.imageCachePrefs.compressionLevel);
 
 	m_prefsManager.SavePrefs();
+	m_mainWindowStatusLabel->setText( tr("Ready"));
 }
 
 void ScribusMainWindow::slotDocSetup()
@@ -7530,7 +7534,7 @@ void ScribusMainWindow::slotElemRead(const QString& xml, double x, double y, boo
 		view->requestMode(submodeEndNodeEdit);
 
 	ScriXmlDoc ss;
-	if (ss.readElem(xml, m_prefsManager.appPrefs.fontPrefs.AvailFonts, docc, x, y, art, loca, m_prefsManager.appPrefs.fontPrefs.GFontSub))
+	if (ss.readElem(xml, docc, x, y, art, loca))
 	{
 		vie->DrawNew();
 		if (doc == docc)
@@ -7652,7 +7656,7 @@ void ScribusMainWindow::editSymbolEnd()
 	doc->setCurrentPage(doc->DocPages.at(m_storedPageNum));
 	view->setContentsPos(static_cast<int>(m_storedViewXCoor * m_storedViewScale), static_cast<int>(m_storedViewYCoor * m_storedViewScale));
 	view->DrawNew();
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 	propertiesPalette->updateColorList();
 	contentPalette->updateColorList();
 	symbolPalette->editingFinished();
@@ -7713,7 +7717,7 @@ void ScribusMainWindow::editInlineEnd()
 	view->setContentsPos(static_cast<int>(m_storedViewXCoor * m_storedViewScale), static_cast<int>(m_storedViewYCoor * m_storedViewScale));
 	doc->invalidateAll();
 	view->DrawNew();
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 	propertiesPalette->unsetItem();
 	propertiesPalette->updateColorList();
 	contentPalette->unsetItem();
@@ -7851,7 +7855,7 @@ void ScribusMainWindow::ApplyMasterPage()
 
 	view->reformPages();
 	view->DrawNew();
-	pagePalette->Rebuild();
+	pagePalette->rebuild();
 	// #9476 : call setupPage with false arg to setup only guidePalette GUI
 	// Otherwise setupPage() will apply guides to current page, doesn't need that, 
 	// Apply_MasterPage() has already done it
@@ -8737,6 +8741,14 @@ void ScribusMainWindow::languageChange()
 	viewToolBar->languageChange();
 }
 
+void ScribusMainWindow::localeChange()
+{
+	const QLocale& l(LocaleManager::instance().userPreferredLocale());
+	zoomSpinBox->setLocale(l);
+	mainWindowXPosDataLabel->setText("         ");
+	mainWindowYPosDataLabel->setText("         ");
+}
+
 void ScribusMainWindow::statusBarLanguageChange()
 {
 	zoomSpinBox->setToolTip( tr("Current zoom level"));
@@ -9154,8 +9166,11 @@ void ScribusMainWindow::PutToPatterns()
 {
 	if (!HaveDoc)
 		return;
-	QString patternName = "Pattern_"+doc->m_Selection->itemAt(0)->itemName();
+
+	QString patternName("Pattern_" + doc->m_Selection->itemAt(0)->itemName());
 	patternName = patternName.trimmed().simplified().replace(" ", "_");
+	patternName = doc->getUniquePatternName(patternName);
+
 	bool savedAlignGrid = doc->SnapGrid;
 	bool savedAlignGuides = doc->SnapGuides;
 	bool savedAlignElement = doc->SnapElement;
@@ -9299,8 +9314,11 @@ void ScribusMainWindow::ConvertToSymbol()
 		return;
 	if (doc->m_Selection->isEmpty())
 		return;
-	QString patternName("Pattern_"+doc->m_Selection->itemAt(0)->itemName());
+
+	QString patternName("Pattern_" + doc->m_Selection->itemAt(0)->itemName());
 	patternName = patternName.trimmed().simplified().replace(" ", "_");
+	patternName = doc->getUniquePatternName(patternName);
+
 	Query dia(this, "tt", 1, tr("&Name:"), tr("New Entry"));
 	dia.setEditText(patternName, true);
 	patternsDependingOnThis.clear();

@@ -33,6 +33,7 @@ class SCRIBUS_API CanvasMode_NodeEdit : public CanvasMode
 {
 public:
 	explicit CanvasMode_NodeEdit (ScribusView* view);
+	~CanvasMode_NodeEdit() override = default;
 	
 	void activate(bool fromgesture) override;
 	void deactivate(bool forGesture) override;
@@ -48,17 +49,12 @@ public:
 	void keyPressEvent(QKeyEvent *e) override;
 	void keyReleaseEvent(QKeyEvent *e) override;
 
-	bool handleKeyEvents() override { return true; }
+	bool handleKeyEvents() const override { return true; }
 
-	
 	/**
 		Draws the controls for this mode
 	 */
 	void drawControls(QPainter* p) override;
-	
-	
-	~CanvasMode_NodeEdit() override = default;
-	
 	
 private:
 	inline bool GetItem(PageItem** pi); 
@@ -68,9 +64,15 @@ private:
 	
 	ScribusMainWindow* m_ScMW;
 	
-	RectSelect* m_rectangleSelect;
-	int m_Mxp, m_Myp, m_Dxp, m_Dyp, m_GxM, m_GyM;
-	bool m_MoveGX, m_MoveGY;
+	RectSelect* m_rectangleSelect {nullptr};
+	int m_Mxp {-1}; // last mouse position
+	int m_Myp {-1};
+	int m_Dxp {-1}; // last mouse press position for rectangle select
+	int m_Dyp {-1};
+	int m_GxM {-1}; // guide position
+	int m_GyM {-1};
+	bool m_MoveGX {false};
+	bool m_MoveGY {false};
 };
 
 

@@ -36,6 +36,7 @@ for which a new license (GPL+exception) is in place.
 #include <QPixmap>
 #include <QPointer>
 #include <QProgressBar>
+#include <QRegExp>
 #include <QtAlgorithms>
 #include <QTime>
 //#include <qtconcurrentmap.h>
@@ -2307,12 +2308,6 @@ void ScribusDoc::setPage(double w, double h, double t, double l, double r, doubl
 	m_automaticTextFrames = atf;
 }
 
-void ScribusDoc::resetPage(int fp, MarginStruct* newMargins)
-{
-	if (newMargins != nullptr)
-		m_docPrefsData.docSetupPrefs.margins = *newMargins;
-	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
-}
 
 
 bool ScribusDoc::AddFont(const QString& name, int fsize)
@@ -2807,7 +2802,7 @@ void ScribusDoc::copyLayer(int layerIDToCopy, int whereToInsert)
 	{
 		ScriXmlDoc ss;
 		QString dataS = ss.writeElem(this, &sourceSelection);
-		ss.readElemToLayer(dataS, m_appPrefsData.fontPrefs.AvailFonts, this, Pages->at(0)->xOffset(), Pages->at(0)->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub, whereToInsert);
+		ss.readElemToLayer(dataS, this, Pages->at(0)->xOffset(), Pages->at(0)->yOffset(), false, true, whereToInsert);
 	}
 	sourceSelection.clear();
 	changed();
@@ -3745,6 +3740,42 @@ void ScribusDoc::setPatterns(const QHash<QString, ScPattern> &patterns)
 {
 	docPatterns.clear();
 	docPatterns = patterns;
+}
+
+QString ScribusDoc::getUniquePatternName(const QString& originalName) const
+{
+	if (!docPatterns.contains(originalName))
+		return originalName;
+
+	QString newName(originalName);
+
+	// Search the string for (number) at the end and capture
+	// both the number and the text leading up to it sans brackets.
+	//     Copy of fred (5)
+	//     ^^^^^^^^^^^^  ^   (where ^ means captured)
+	QRegExp rx("^(.*)\\s+\\((\\d+)\\)$");
+	int numMatches = rx.lastIndexIn(originalName);
+	// Add a (number) suffix to the end of the name. We start at the
+	// old suffix's value if there was one, or at 2 if there was not.
+	int suffixNum = 1;
+	QString prefix(newName);
+	if (numMatches != -1)
+	{
+		// Already had a suffix; use the name w/o suffix for prefix and
+		// grab the old suffix value as a starting point.
+		QStringList matches = rx.capturedTexts();
+		prefix = matches[1];
+		suffixNum = matches[2].toInt();
+	}
+	// Keep on incrementing the suffix 'till we find a free name
+	do
+	{
+		suffixNum ++;
+		newName = prefix + " (" + QString::number(suffixNum) + ")";
+	}
+	while (docPatterns.contains(newName));
+
+	return newName;
 }
 
 QStringList ScribusDoc::getUsedPatterns() const
@@ -5101,7 +5132,7 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 	int GrMax = GroupCounter;
 	ScPage* sourcePage = Pages->at(pageNumber);
 	int nr = MasterPages.count();
-	ScPage* targetPage=addMasterPage(nr, masterPageName);
+	ScPage* targetPage = addMasterPage(nr, masterPageName);
 	assert(targetPage != nullptr);
 	//Backup currentpage, and don't use sourcepage here as we might convert a non current page
 	ScPage* oldCurrentPage = currentPage();
@@ -5121,8 +5152,8 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 		targetPage->LeftPg = lp;
 	}
 	sourcePage->guides.copy(&targetPage->guides);
-	int end = DocItems.count();
-	int end2 = MasterItems.count();
+	int docItemsOldCount = DocItems.count();
+	int masterItemsOldCount = MasterItems.count();
 	Selection tempSelection(this, false);
 	m_Selection->clear();
 	//Copy the items from our current document page's applied *master* page
@@ -5131,19 +5162,19 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 		if (!sourcePage->masterPageNameEmpty() && MasterNames.contains(sourcePage->masterPageName()))
 		{
 			ScPage* pageMaster = nullptr;
-			for (int i=0; i < MasterPages.count(); ++i )
+			for (int i = 0; i < MasterPages.count(); ++i )
 			{
-				pageMaster=MasterPages[i];
+				pageMaster = MasterPages[i];
 				if (pageMaster->pageName() == sourcePage->masterPageName())
 					break;
 			}
-			if (Layers.count()!= 0 && pageMaster != nullptr)
+			if (Layers.count() != 0 && pageMaster != nullptr)
 			{
 				int currActiveLayer = activeLayer();
 				for (ScLayers::iterator it = Layers.begin(); it != Layers.end(); ++it)
 				{
 					setActiveLayer(it->ID);
-					for (int ite = 0; ite < end2; ++ite)
+					for (int ite = 0; ite < masterItemsOldCount; ++ite)
 					{
 						PageItem *itemToCopy = MasterItems.at(ite);
 						if ((itemToCopy->OnMasterPage == pageMaster->pageName()) && (it->ID == itemToCopy->m_layerID))
@@ -5156,7 +5187,7 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 						setCurrentPage(pageMaster); // Needed for writeElem to write proper page relative coordinates
 						QString dataS = ss.writeElem(this, &tempSelection);
 						setCurrentPage(targetPage);
-						ss.readElemToLayer(dataS, m_appPrefsData.fontPrefs.AvailFonts, this, targetPage->xOffset(), targetPage->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub, it->ID);
+						ss.readElemToLayer(dataS, this, targetPage->xOffset(), targetPage->yOffset(), false, true, it->ID);
 						setMasterPageMode(false);
 						setCurrentPage(oldCurrentPage);
 					}
@@ -5167,13 +5198,13 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 		}
 	}
 	//Copy the items from our current *document* page
-	if (Layers.count()!= 0)
+	if (Layers.count() != 0)
 	{
 		int currActiveLayer = activeLayer();
 		for (ScLayers::iterator it = Layers.begin(); it != Layers.end(); ++it)
 		{
 			setActiveLayer(it->ID);
-			for (int ite = 0; ite < end; ++ite)
+			for (int ite = 0; ite < docItemsOldCount; ++ite)
 			{
 				PageItem *itemToCopy = DocItems.at(ite);
 				if ((itemToCopy->OwnPage == sourcePage->pageNr()) && (it->ID == itemToCopy->m_layerID))
@@ -5186,7 +5217,7 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 				QString dataS = ss.writeElem(this, &tempSelection);
 				setMasterPageMode(true);
 				setCurrentPage(targetPage);
-				ss.readElemToLayer(dataS, m_appPrefsData.fontPrefs.AvailFonts, this, targetPage->xOffset(), targetPage->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub, it->ID);
+				ss.readElemToLayer(dataS, this, targetPage->xOffset(), targetPage->yOffset(), false, true, it->ID);
 				setMasterPageMode(false);
 				setCurrentPage(oldCurrentPage);
 			}
@@ -5195,10 +5226,10 @@ bool ScribusDoc::copyPageToMasterPage(int pageNumber, int leftPage, int maxLeftP
 		setActiveLayer(currActiveLayer);
 	}
 	//Make sure our copied items have the master page name and own page set.
-	int end3 = MasterItems.count();
-	for (int a = end2; a < end3; ++a)
+	int masterItemsNewCount = MasterItems.count();
+	for (int i = masterItemsOldCount; i < masterItemsNewCount; ++i)
 	{
-		PageItem *newItem = MasterItems.at(a);
+		PageItem *newItem = MasterItems.at(i);
 		newItem->setMasterPage(MasterNames[masterPageName], masterPageName);
 	}
 	targetPage->clearMasterPageName();
@@ -5311,7 +5342,7 @@ int ScribusDoc::itemAdd(const PageItem::ItemType itemType, const PageItem::ItemF
 		newItem = createPageItem(itemType, frameType, x, y, b, h, w, fill, outline); 
 	
 	Q_CHECK_PTR(newItem);
-	if (newItem==nullptr)
+	if (newItem == nullptr)
 		return -1;
 
 	if (itemKind == PageItem::InlineItem || itemKind == PageItem::PatternItem)
@@ -7195,7 +7226,7 @@ void ScribusDoc::copyPage(int pageNumberToCopy, int existingPage, int whereToIns
 					{
 						ScriXmlDoc ss;
 						QString fragment = itemBuffer[lcount];
-						ss.readElemToLayer(fragment, m_appPrefsData.fontPrefs.AvailFonts, this, destination->xOffset(), destination->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub, it->ID);
+						ss.readElemToLayer(fragment, this, destination->xOffset(), destination->yOffset(), false, true, it->ID);
 					}
 					lcount++;
 				}
@@ -10748,7 +10779,7 @@ void ScribusDoc::itemSelection_Transform(int nrOfCopies, const QTransform& matri
 		for (int b = 0; b < nrOfCopies; b++)
 		{
 			uint ac = Items->count();
-			xmlDoc.readElem(copyBuffer, m_appPrefsData.fontPrefs.AvailFonts, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub);
+			xmlDoc.readElem(copyBuffer, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true);
 			for (int as = ac; as < Items->count(); ++as)
 			{
 				PageItem* bItem = Items->at(as);
@@ -13544,7 +13575,7 @@ void ScribusDoc::itemSelection_MultipleDuplicate(const ItemMultipleDuplicateData
 		for (int i=0; i<mdData.copyCount; ++i)
 		{
 			uint ac = Items->count();
-			ss.readElem(BufferS, m_appPrefsData.fontPrefs.AvailFonts, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub);
+			ss.readElem(BufferS, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true);
 			m_Selection->delaySignalsOn();
 			for (int as = ac; as < Items->count(); ++as)
 			{
@@ -13604,7 +13635,7 @@ void ScribusDoc::itemSelection_MultipleDuplicate(const ItemMultipleDuplicateData
 				if (i==0 && j==0)
 					continue;
 				uint ac = Items->count();
-				ss.readElem(BufferS, m_appPrefsData.fontPrefs.AvailFonts, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub);
+				ss.readElem(BufferS, this, m_currentPage->xOffset(), m_currentPage->yOffset(), false, true);
 				for (int as = ac; as < Items->count(); ++as)
 				{
 					PageItem* bItem = Items->at(as);
@@ -13718,7 +13749,7 @@ void ScribusDoc::multipleDuplicateByPage(const ItemMultipleDuplicateData& dialog
 		ScPage* targetPage = Pages->at(page - 1);
 		setCurrentPage(targetPage);
 		int countBeforeInsert = Items->count();
-		xmlStream.readElem(buffer, m_appPrefsData.fontPrefs.AvailFonts, this, currentPage()->xOffset(), currentPage()->yOffset(), false, true, m_appPrefsData.fontPrefs.GFontSub);
+		xmlStream.readElem(buffer, this, currentPage()->xOffset(), currentPage()->yOffset(), false, true);
 		if (!lastInChain)
 			continue;
 		for (int i = countBeforeInsert; i < Items->count(); ++i)

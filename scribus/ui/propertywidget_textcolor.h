@@ -27,8 +27,8 @@ public:
 	void setCurrentItem(PageItem *item);
 
 protected:
-	PageItem *         m_item;
-	ScribusMainWindow* m_ScMW;
+	PageItem *m_item {nullptr};
+	ScribusMainWindow* m_ScMW {nullptr};
 
 	void connectSignals();
 	void disconnectSignals();
@@ -47,6 +47,7 @@ public slots:
 	void iconSetChange();
 	void languageChange();
 	void unitChange() {};
+	void localeChange();
 
 	void showOutlineW(double x);
 	void showShadowOffset(double x, double y);

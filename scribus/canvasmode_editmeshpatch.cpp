@@ -64,13 +64,7 @@
 
 CanvasMode_EditMeshPatch::CanvasMode_EditMeshPatch(ScribusView* view) : CanvasMode(view), m_ScMW(view->m_ScMW)
 {
-	m_Mxp = m_Myp = -1;
-	m_patchPoint = noPointDefined;
-	m_gradientPoint = noControlPointDefined;
-	m_keyRepeat = false;
-	m_click_count = 0;
 	m_old_mesh = new MeshPoint();
-	m_currItem = nullptr;
 }
 
 CanvasMode_EditMeshPatch::~CanvasMode_EditMeshPatch()
@@ -292,6 +286,8 @@ void CanvasMode_EditMeshPatch::leaveEvent(QEvent *e)
 
 void CanvasMode_EditMeshPatch::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
+
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 	m_doc->DragP = false;
@@ -322,6 +318,8 @@ void CanvasMode_EditMeshPatch::deactivate(bool forGesture)
 	m_currItem->selectedMeshControlPoint = m_gradientPoint;
 	m_ScMW->propertiesPalette->updateColorSpecialGradient();
 	m_currItem->snapToPatchGrid = false;
+
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_EditMeshPatch::keyPressEvent(QKeyEvent *e)

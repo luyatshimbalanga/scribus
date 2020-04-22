@@ -51,7 +51,7 @@ public:
 	void keyReleaseEvent(QKeyEvent *e) override;
 	void keyPressEvent(QKeyEvent *e) override;
 
-	bool handleKeyEvents() override { return true; }
+	bool handleKeyEvents() const override { return true; }
 
 private:
 	inline bool GetItem(PageItem** pi);
@@ -61,17 +61,15 @@ private:
 	void   getNewItemPosition(PageItem* item, FPoint& pos, double& rotation);
 // 	void   setResizeCursor(int how);
 
-	bool   m_inItemRotation;
-
-	int    m_oldRotMode;
-	FPoint m_oldRotCenter;
-	FPoint m_canvasPressCoord;
 	FPoint m_canvasCurrCoord;
-	bool   m_angleConstrained;
-
-	int    m_rotMode;
+	FPoint m_canvasPressCoord;
+	FPoint m_oldRotCenter;
 	FPoint m_rotCenter;
-	double m_startAngle;
+	bool   m_angleConstrained {false};
+	bool   m_inItemRotation {false};
+	double m_startAngle {0.0};
+	int    m_oldRotMode {0};
+	int    m_rotMode {0};
 };
 
 #endif

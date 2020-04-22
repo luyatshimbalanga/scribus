@@ -30,15 +30,8 @@
 
 RulerGesture::RulerGesture(ScribusView *view, RulerGesture::Mode mode) :
 	CanvasGesture(view),
-	m_ScMW(m_view->m_ScMW),
 	m_mode(mode),
-	m_haveGuide(false),
-	m_page(0),
-	m_guide(0.0),
-	m_currentGuide(0.0),
-	m_haveCursor(false),
-	m_xy(0,0),
-	m_mousePoint(0,0)
+	m_ScMW(m_view->m_ScMW)
 {
 }
 
@@ -79,12 +72,10 @@ void RulerGesture::drawControls(QPainter* p)
 	p->restore();
 }
 
-
 void RulerGesture::clear()
 {
 	m_haveGuide = false;
 }
-
 
 void RulerGesture::prepare(Mode mode)
 {
@@ -92,9 +83,10 @@ void RulerGesture::prepare(Mode mode)
 	m_mode = mode;
 }
 
-
 void RulerGesture::activate(bool fromGesture)
 {
+	CanvasGesture::activate(fromGesture);
+
 	m_haveCursor = (qApp->overrideCursor() != nullptr);
 	if ( (!fromGesture) && qApp->overrideCursor())
 	{
@@ -120,11 +112,14 @@ void RulerGesture::activate(bool fromGesture)
 	emit guideInfo(m_mode, m_guide);
 }
 
-void RulerGesture::deactivate(bool)
+void RulerGesture::deactivate(bool fromGesture)
 {
 	if (m_haveCursor)
 		qApp->changeOverrideCursor(m_cursor);
 	m_haveGuide = false;
+	m_mousePoint = FPoint();
+
+	CanvasGesture::deactivate(fromGesture);
 }
 
 
@@ -336,6 +331,18 @@ void RulerGesture::movePoint(QMouseEvent* m, bool mouseRelease)
 	m_xy = newMousePoint;
 }
 
+
+void RulerGesture::keyPressEvent(QKeyEvent* e)
+{
+	e->accept();
+
+	if (e->key() == Qt::Key_Escape)
+	{
+		// Go back to normal mode.
+		m_view->stopGesture();
+		return;
+	}
+}
 
 void RulerGesture::mouseMoveEvent(QMouseEvent* m)
 {

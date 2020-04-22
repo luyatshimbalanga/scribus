@@ -38,15 +38,8 @@
 #include "undomanager.h"
 #include "util_math.h"
 
-CanvasMode_NodeEdit::CanvasMode_NodeEdit(ScribusView* view) : CanvasMode(view), m_rectangleSelect(nullptr)
+CanvasMode_NodeEdit::CanvasMode_NodeEdit(ScribusView* view) : CanvasMode(view)
 {
-	m_Mxp = -1;  // last mouse position
-	m_Myp = -1;
-	m_Dxp = -1;  // last mouse press position for rectangle select
-	m_Dyp = -1;
-	m_GxM = -1;  // guide position
-	m_GyM = -1;
-	m_MoveGX = m_MoveGY = false;
 	m_ScMW = m_view->m_ScMW;
 }
 
@@ -165,6 +158,7 @@ void CanvasMode_NodeEdit::drawControls(QPainter* p)
 
 void CanvasMode_NodeEdit::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
 	if (fromGesture && m_rectangleSelect)
 	{
 		m_canvas->m_viewMode.m_MouseButtonPressed = false;
@@ -227,7 +221,6 @@ void CanvasMode_NodeEdit::activate(bool fromGesture)
 	}
 }
 
-
 void CanvasMode_NodeEdit::deactivate(bool forGesture)
 {
 	if (!forGesture && m_rectangleSelect)
@@ -236,6 +229,7 @@ void CanvasMode_NodeEdit::deactivate(bool forGesture)
 		delete m_rectangleSelect;
 		m_rectangleSelect = nullptr;
 	}
+	CanvasMode::deactivate(forGesture);
 }
 
 

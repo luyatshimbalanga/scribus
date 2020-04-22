@@ -20,8 +20,11 @@ for which a new license (GPL+exception) is in place.
  ***************************************************************************/
 
 #include <cmath>
+#include <QLocale>
 #include <QString>
 #include <QObject>
+#include "localemgr.h"
+#include "scribuscore.h"
 #include "units.h"
 
 /*!
@@ -311,10 +314,10 @@ double pts2value(double unitValue, int unit)
 	double ret = 0.0;
 	switch (unit)
 	{
-		case 0:
-		case 3:
-		case 6:
-		case 7:
+		case SC_PT:
+		case SC_P:
+		case SC_DEG:
+		case SC_PCT:
 			ret = unitValue; //don't multiply by 1
 			break;
 		default:
@@ -332,10 +335,10 @@ double value2pts(double unitValue, int unit)
 	double ret = 0.0;
 	switch (unit)
 	{
-		case 0:
-		case 3:
-		case 6:
-		case 7:
+		case SC_PT:
+		case SC_P:
+		case SC_DEG:
+		case SC_PCT:
 			ret = unitValue; // don't divide by 1
 			break;
 		default:
@@ -352,11 +355,10 @@ double value2value(double unitValue, int primaryUnit, int secondaryUnit)
 {
 	if (primaryUnit==secondaryUnit)
 		return unitValue;
-		
-	double pts = 0.0, ret = 0.0;
+
 	//Can make this not convert to points at a later stage, for now, the function exists and works.
-	pts = primaryUnit == 0 ? unitValue : unitValue / unitGetRatioFromIndex(primaryUnit);
-	ret = secondaryUnit == 0 ? pts : pts * unitGetRatioFromIndex(secondaryUnit);
+	double pts = primaryUnit == 0 ? unitValue : unitValue / unitGetRatioFromIndex(primaryUnit);
+	double ret = secondaryUnit == 0 ? pts : pts * unitGetRatioFromIndex(secondaryUnit);
 	return ret;
 }
 
@@ -374,9 +376,9 @@ QString value2String(double unitValue, int unitIndex, bool round2Precision, bool
 	else
 	{
 		if (round2Precision)
-			s=QString::number(pts2value(unitValue, unitIndex), 'f', unitGetPrecisionFromIndex(unitIndex));
+			s=LocaleManager::instance().userPreferredLocale().toString(pts2value(unitValue, unitIndex), 'f', unitGetPrecisionFromIndex(unitIndex));
 		else
-			s=QString::number(pts2value(unitValue, unitIndex));
+			s=LocaleManager::instance().userPreferredLocale().toString(pts2value(unitValue, unitIndex));
 		if (appendSuffix)
 			s += " " + unitGetStrFromIndex(unitIndex);
 	}

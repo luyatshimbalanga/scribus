@@ -41,14 +41,6 @@
 CanvasMode_Rotate::CanvasMode_Rotate(ScribusView* view) : CanvasMode(view)
 {
 	m_canvasPressCoord.setXY(-1.0, -1.0);
-	m_oldRotMode   = 0;
-	m_oldRotCenter = FPoint(0.0, 0.0);
-	m_angleConstrained = false;
-	m_inItemRotation = false;
-
-	m_rotMode    = 0;
-	m_rotCenter  = FPoint(0.0, 0.0);
-	m_startAngle = 0.0;
 }
 
 inline bool CanvasMode_Rotate::GetItem(PageItem** pi)
@@ -165,6 +157,8 @@ void CanvasMode_Rotate::getNewItemPosition(PageItem* item, FPoint& pos, double& 
 
 void CanvasMode_Rotate::activate(bool fromGesture)
 {
+	CanvasMode::activate(fromGesture);
+
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 	m_doc->leaveDrag = false;
@@ -181,10 +175,11 @@ void CanvasMode_Rotate::activate(bool fromGesture)
 	}
 }
 
-void CanvasMode_Rotate::deactivate(bool)
+void CanvasMode_Rotate::deactivate(bool forGesture)
 {
 	m_view->setRedrawMarkerShown(false);
 	m_inItemRotation = false;
+	CanvasMode::deactivate(forGesture);
 }
 
 void CanvasMode_Rotate::enterEvent(QEvent *)

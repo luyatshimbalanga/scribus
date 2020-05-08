@@ -65,24 +65,7 @@ using namespace TableUtils;
 
 class PSPainter:public TextLayoutPainter
 {
-	ScribusDoc* m_Doc;
-	uint m_argh;
-	ScPage* m_page;
-	bool m_farb;
-	bool m_master;
-	PSLib* m_ps;
-
-	void applyTransform()
-	{
-		if (matrix() != QTransform())
-		{
-			m_ps->PutStream(m_ps->MatrixToStr(1.0, 0.0, 0.0, -1.0, x(), 0.0) + "\n");
-			m_ps->PutStream(m_ps->MatrixToStr(matrix().m11(), -matrix().m12(), matrix().m21(), -matrix().m22(), matrix().dx(), -matrix().dy()) + "\n");
-			m_ps->PutStream("[0.0 0.0 0.0 0.0 0.0 0.0] concatmatrix\nconcat\n");
-		}
-	}
-
-public:
+	public:
 	PSPainter(ScribusDoc* Doc, uint argh, ScPage* page, bool master, PSLib* ps):
 		m_Doc(Doc),
 		m_argh(argh),
@@ -96,6 +79,25 @@ public:
 	void drawLine(QPointF start, QPointF end) override;
 	void drawRect(QRectF rect) override;
 	void drawObject(PageItem* item) override;
+
+	private:
+		ScribusDoc* m_Doc;
+		uint m_argh;
+		ScPage* m_page;
+		bool m_farb;
+		bool m_master;
+		PSLib* m_ps;
+
+		void applyTransform()
+		{
+			if (matrix() != QTransform())
+			{
+				m_ps->PutStream(m_ps->MatrixToStr(1.0, 0.0, 0.0, -1.0, x(), 0.0) + "\n");
+				m_ps->PutStream(m_ps->MatrixToStr(matrix().m11(), -matrix().m12(), matrix().m21(), -matrix().m22(), matrix().dx(), -matrix().dy()) + "\n");
+				m_ps->PutStream("[0.0 0.0 0.0 0.0 0.0 0.0] concatmatrix\nconcat\n");
+			}
+		}
+
 };
 
 void PSPainter::drawGlyph(const GlyphCluster& gc)
@@ -189,7 +191,7 @@ void PSPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 
 void PSPainter::drawRect(QRectF rect)
 {
-	double h, s, v, k;
+	double h {0.0}, s {0.0}, v {0.0}, k {0.0};
 	m_ps->PS_save();
 	applyTransform();
 	m_ps->PS_moveto(x() + rect.x(), -y() - rect.y());
@@ -1903,7 +1905,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 			}
 			else
 			{
-				multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+				multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 				for (int it = ml.size() - 1; it > -1; it--)
 				{
 					if (ml[it].Color != CommonStrings::None) // && (ml[it].Width != 0))
@@ -2006,7 +2008,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 			}
 			else
 			{
-				multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+				multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 				for (int it = ml.size() - 1; it > -1; it--)
 				{
 					if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2059,7 +2061,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 		}
 		else
 		{
-			multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+			multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 			for (int it = ml.size() - 1; it > -1; it--)
 			{
 				if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2135,7 +2137,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 			}
 			else
 			{
-				multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+				multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 				for (int it = ml.size() - 1; it > -1; it--)
 				{
 					if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2191,7 +2193,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 			}
 			else
 			{
-				multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+				multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 				for (int it = ml.size() - 1; it > -1; it--)
 				{
 					if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2273,7 +2275,7 @@ bool PSLib::ProcessItem(ScPage* page, PageItem* item, uint PNr, bool master, boo
 				}
 				else
 				{
-					multiLine ml = m_Doc->MLineStyles[item->NamedLStyle];
+					multiLine ml = m_Doc->docLineStyles[item->NamedLStyle];
 					for (int it = ml.size() - 1; it > -1; it--)
 					{
 						if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2937,7 +2939,7 @@ bool PSLib::ProcessMasterPageLayer(ScPage* page, ScLayer& layer, uint PNr)
 					}
 					else
 					{
-						multiLine ml = m_Doc->MLineStyles[ite->NamedLStyle];
+						multiLine ml = m_Doc->docLineStyles[ite->NamedLStyle];
 						for (int it = ml.size() - 1; it > -1; it--)
 						{
 							if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -2986,7 +2988,7 @@ bool PSLib::ProcessMasterPageLayer(ScPage* page, ScLayer& layer, uint PNr)
 						}
 						else
 						{
-							multiLine ml = m_Doc->MLineStyles[ite->NamedLStyle];
+							multiLine ml = m_Doc->docLineStyles[ite->NamedLStyle];
 							for (int it = ml.size() - 1; it > -1; it--)
 							{
 								if (ml[it].Color != CommonStrings::None) //&& (ml[it].Width != 0))
@@ -4250,7 +4252,7 @@ void PSLib::drawArrow(PageItem *ite, QTransform &arrowTrans, int arrowIndex)
 	}
 	else
 	{
-		multiLine ml = m_Doc->MLineStyles[ite->NamedLStyle];
+		multiLine ml = m_Doc->docLineStyles[ite->NamedLStyle];
 		if (ml[ml.size() - 1].Width != 0.0)
 			arrowTrans.scale(ml[ml.size() - 1].Width, ml[ml.size() - 1].Width);
 	}
@@ -4304,7 +4306,7 @@ void PSLib::drawArrow(PageItem *ite, QTransform &arrowTrans, int arrowIndex)
 	}
 	else
 	{
-		multiLine ml = m_Doc->MLineStyles[ite->NamedLStyle];
+		multiLine ml = m_Doc->docLineStyles[ite->NamedLStyle];
 		if (ml[0].Color != CommonStrings::None)
 		{
 			SetColor(ml[0].Color, ml[0].Shade, &h, &s, &v, &k);

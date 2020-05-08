@@ -65,7 +65,7 @@ void Scribus13Format::languageChange()
 	fmt->filter = fmt->trName + " (*.sla *.SLA *.sla.gz *.SLA.GZ *.scd *.SCD *.scd.gz *.SCD.GZ)";
 }
 
-const QString Scribus13Format::fullTrName() const
+QString Scribus13Format::fullTrName() const
 {
 	return QObject::tr("Scribus 1.3.0->1.3.3.x Support");
 }
@@ -590,7 +590,7 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 					ml.push_back(sl);
 					MuLn = MuLn.nextSibling();
 				}
-				m_Doc->MLineStyles.insert(pg.attribute("Name"), ml);
+				m_Doc->docLineStyles.insert(pg.attribute("Name"), ml);
 			}
 			if (pg.tagName() == "Arrows")
 			{
@@ -2159,19 +2159,12 @@ bool Scribus13Format::loadPage(const QString & fileName, int pageNumber, bool Mp
 					ml.push_back(sl);
 					MuLn = MuLn.nextSibling();
 				}
-				QString Nam = pg.attribute("Name");
-				QString Nam2 = Nam;
-				int copyC = 1;
-				QHash<QString,multiLine>::ConstIterator mlit = m_Doc->MLineStyles.find(Nam2);
-				if (mlit != m_Doc->MLineStyles.end() && ml != mlit.value())
-				{
-					while (m_Doc->MLineStyles.contains(Nam2))
-					{
-						Nam2 = QObject::tr("Copy #%1 of ").arg(copyC)+Nam;
-						copyC++;
-					}
-				}
-				m_Doc->MLineStyles.insert(Nam2, ml);
+				QString mlName = pg.attribute("Name");
+				QString mlName2 = mlName;
+				QHash<QString,multiLine>::ConstIterator mlit = m_Doc->docLineStyles.find(mlName2);
+				if (mlit != m_Doc->docLineStyles.constEnd() && ml != mlit.value())
+					mlName2 = getUniqueName(mlName2, m_Doc->docLineStyles);
+				m_Doc->docLineStyles.insert(mlName2, ml);
 			}
 			if (pg.tagName() == "Arrows")
 			{
@@ -2676,7 +2669,7 @@ bool Scribus13Format::readLineStyles(const QString& fileName, QHash<QString,mult
 				QString Nam2 = Nam;
 				int copyC = 1;
 				QHash<QString,multiLine>::ConstIterator mlit = Sty->find(Nam2);
-				if (mlit != Sty->end() && ml != mlit.value())
+				if (mlit != Sty->constEnd() && ml != mlit.value())
 				{
 					while (Sty->contains(Nam2))
 					{

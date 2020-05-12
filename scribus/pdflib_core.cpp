@@ -1431,6 +1431,7 @@ PdfFont PDFLibCore::PDF_WriteType3Font(const QByteArray& name, ScFace& face, con
 {
 	PdfFont result;
 	result.name = Pdf::toName(name);
+	result.usage = Used_in_Content;
 	result.method = Use_Type3;
 	result.encoding = Encode_256;
 
@@ -1650,6 +1651,7 @@ PdfFont PDFLibCore::PDF_WriteGlyphsAsXForms(const QByteArray& fontName, ScFace& 
 {
 	PdfFont result;
 	result.name = Pdf::toName(fontName);
+	result.usage = Used_in_Content;
 	result.method = Use_XForm;
 	result.encoding = Encode_224;
 
@@ -1816,6 +1818,7 @@ PdfFont PDFLibCore::PDF_EncodeCidFont(const QByteArray& fontName, ScFace& face, 
 {
 	PdfFont result;
 	result.name = Pdf::toName(fontName);
+	result.usage = Used_in_Content;
 	result.method = glyphmap.isEmpty()? Use_Embedded : Use_Subset;
 	result.encoding = glyphmap.isEmpty()? Encode_IdentityH : Encode_Subset;
 	result.glyphmap = glyphmap;
@@ -1915,6 +1918,7 @@ PdfFont PDFLibCore::PDF_EncodeSimpleFont(const QByteArray& fontName, ScFace& fac
 {
 	PdfFont result;
 	result.name = Pdf::toName(fontName);
+	result.usage = Used_in_Content;
 	result.method = isEmbedded? Use_Embedded : Use_System;
 	result.encoding = Encode_224;
 	
@@ -9848,9 +9852,10 @@ bool PDFLibCore::PDF_EmbeddedPDF(PageItem* c, const QString& fn, double sx, doub
 	try
 	{
 		PoDoFo::PdfPage*   page      = doc->GetPage(qMin(qMax(1, c->pixm.imgInfo.actualPageNumber), c->pixm.imgInfo.numberOfPages) - 1);
-		PoDoFo::PdfObject* contents  = page? page->GetContents() : nullptr;
-		PoDoFo::PdfObject* resources = page? page->GetResources() : nullptr;
-		for (PoDoFo::PdfObject* par = page->GetObject(); par && !resources; par = par->GetIndirectKey("Parent"))
+		PoDoFo::PdfObject* pageObj   = page ? page->GetObject() : nullptr;
+		PoDoFo::PdfObject* contents  = page ? page->GetContents() : nullptr;
+		PoDoFo::PdfObject* resources = page ? page->GetResources() : nullptr;
+		for (PoDoFo::PdfObject* par = pageObj; par && !resources; par = par->GetIndirectKey("Parent"))
 		{
 			resources = par->GetIndirectKey("Resources");
 		}

@@ -218,77 +218,85 @@ bool XPSExPlug::doExport(const QString& fName)
 	ScZipHandler zip(true);
 	if (!zip.open(fName))
 		return false;
+
 	QTemporaryDir dir;
-	if (dir.isValid())
+	if (!dir.isValid())
 	{
-		imageCounter = 0;
-		fontCounter = 0;
-		xps_fontMap.clear();
-		baseDir = dir.path();
-		// Create directory tree
-		QDir outDir(baseDir);
-		outDir.mkdir("_rels");
-		outDir.mkdir("docProps");
-		outDir.mkdir("Documents");
-		outDir.cd("Documents");
-		outDir.mkdir("1");
-		outDir.cd("1");
-		outDir.mkdir("_rels");
-		outDir.mkdir("Pages");
-		outDir.cd("Pages");
-		outDir.mkdir("_rels");
-		outDir.cdUp();
-		outDir.mkdir("Structure");
-		outDir.cdUp();
-		outDir.cdUp();
-		outDir.mkdir("Resources");
-		outDir.cd("Resources");
-		outDir.mkdir("Images");
-		outDir.mkdir("Fonts");
-		outDir.cdUp();
-		writeBaseRel();
-		writeContentType();
-		writeCore();
-		writeDocRels();
-		// Write Thumbnail
-		QImage thumb = m_Doc->view()->PageToPixmap(0, 256, Pixmap_DrawBackground);
-		thumb.save(baseDir + "/docProps/thumbnail.jpeg", "JPG");
-		// Write required DocStructure.struct
-		QFile fts(baseDir + "/Documents/1/Structure/DocStructure.struct");
-		if (fts.open(QIODevice::WriteOnly))
-		{
-			fts.write(QByteArray("<DocumentStructure xmlns=\"http://schemas.microsoft.com/xps/2005/06/documentstructure\">\n</DocumentStructure>"));
-			fts.close();
-		}
-		// Write required FixedDocSeq.fdseq
-		QFile ft(baseDir + "/FixedDocSeq.fdseq");
-		if (ft.open(QIODevice::WriteOnly))
-		{
-			ft.write(QByteArray("<FixedDocumentSequence xmlns=\"http://schemas.microsoft.com/xps/2005/06\">\n\t<DocumentReference Source=\"/Documents/1/FixedDoc.fdoc\"/>\n</FixedDocumentSequence>"));
-			ft.close();
-		}
-		// Write required FixedDoc.fdoc
-		f_docu = QDomDocument("xpsdoc");
-		QString st = "<FixedDocument></FixedDocument>";
-		f_docu.setContent(st);
-		QDomElement root  = f_docu.documentElement();
-		root.setAttribute("xmlns", "http://schemas.microsoft.com/xps/2005/06");
-		f_docu.appendChild(root);
-		writePages(root);
-		QFile fdo(baseDir + "/Documents/1/FixedDoc.fdoc");
-		if (fdo.open(QIODevice::WriteOnly))
-		{
-			QString vo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
-			QDataStream s(&fdo);
-			vo += f_docu.toString();
-			QByteArray utf8wr = vo.toUtf8();
-			s.writeRawData(utf8wr.data(), utf8wr.length());
-			fdo.close();
-		}
-		zip.write(baseDir);
+		zip.close();
+		QFile::remove(fName);
+		return false;
 	}
+
+	imageCounter = 0;
+	fontCounter = 0;
+	xps_fontMap.clear();
+	baseDir = dir.path();
+	// Create directory tree
+	QDir outDir(baseDir);
+	outDir.mkdir("_rels");
+	outDir.mkdir("docProps");
+	outDir.mkdir("Documents");
+	outDir.cd("Documents");
+	outDir.mkdir("1");
+	outDir.cd("1");
+	outDir.mkdir("_rels");
+	outDir.mkdir("Pages");
+	outDir.cd("Pages");
+	outDir.mkdir("_rels");
+	outDir.cdUp();
+	outDir.mkdir("Structure");
+	outDir.cdUp();
+	outDir.cdUp();
+	outDir.mkdir("Resources");
+	outDir.cd("Resources");
+	outDir.mkdir("Images");
+	outDir.mkdir("Fonts");
+	outDir.cdUp();
+	writeBaseRel();
+	writeContentType();
+	writeCore();
+	writeDocRels();
+	// Write Thumbnail
+	QImage thumb = m_Doc->view()->PageToPixmap(0, 256, Pixmap_DrawBackground);
+	thumb.save(baseDir + "/docProps/thumbnail.jpeg", "JPG");
+	// Write required DocStructure.struct
+	QFile fts(baseDir + "/Documents/1/Structure/DocStructure.struct");
+	if (fts.open(QIODevice::WriteOnly))
+	{
+		fts.write(QByteArray("<DocumentStructure xmlns=\"http://schemas.microsoft.com/xps/2005/06/documentstructure\">\n</DocumentStructure>"));
+		fts.close();
+	}
+	// Write required FixedDocSeq.fdseq
+	QFile ft(baseDir + "/FixedDocSeq.fdseq");
+	if (ft.open(QIODevice::WriteOnly))
+	{
+		ft.write(QByteArray("<FixedDocumentSequence xmlns=\"http://schemas.microsoft.com/xps/2005/06\">\n\t<DocumentReference Source=\"/Documents/1/FixedDoc.fdoc\"/>\n</FixedDocumentSequence>"));
+		ft.close();
+	}
+	// Write required FixedDoc.fdoc
+	f_docu = QDomDocument("xpsdoc");
+	QString st = "<FixedDocument></FixedDocument>";
+	f_docu.setContent(st);
+	QDomElement root  = f_docu.documentElement();
+	root.setAttribute("xmlns", "http://schemas.microsoft.com/xps/2005/06");
+	f_docu.appendChild(root);
+	writePages(root);
+	QFile fdo(baseDir + "/Documents/1/FixedDoc.fdoc");
+	if (fdo.open(QIODevice::WriteOnly))
+	{
+		QString vo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
+		QDataStream s(&fdo);
+		vo += f_docu.toString();
+		QByteArray utf8wr = vo.toUtf8();
+		s.writeRawData(utf8wr.data(), utf8wr.length());
+		fdo.close();
+	}
+	
+	bool written = zip.write(baseDir);
 	zip.close();
-	return true;
+	if (!written)
+		QFile::remove(fName);
+	return written;
 }
 
 void XPSExPlug::writePages(QDomElement &root)
@@ -556,70 +564,70 @@ void XPSExPlug::handleImageFallBack(PageItem *Item, QDomElement &parentElem, QDo
 
 void XPSExPlug::processPolyItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
-	if (((Item->GrType != 0) || (Item->fillColor() != CommonStrings::None)) || ((Item->GrTypeStroke != 0) || (Item->lineColor() != CommonStrings::None) || !Item->NamedLStyle.isEmpty()))
-	{
-		if (Item->GrType == 14)
-			processHatchFill(xOffset, yOffset, Item, parentElem, rel_root);
-		bool closedPath;
-		closedPath = ((Item->itemType() == PageItem::Polygon) || (Item->itemType() == PageItem::RegularPolygon) || (Item->itemType() == PageItem::Arc));
+	if (((Item->GrType == 0) && (Item->fillColor() == CommonStrings::None)) && ((Item->GrTypeStroke == 0) && (Item->lineColor() == CommonStrings::None) && Item->NamedLStyle.isEmpty()))
+		return;
 
-		QDomElement ob = p_docu.createElement("Path");
-		FPointArray path = Item->PoLine.copy();
-		QTransform mpx;
-		if (Item->rotation() != 0.0)
+	if (Item->GrType == 14)
+		processHatchFill(xOffset, yOffset, Item, parentElem, rel_root);
+	bool closedPath;
+	closedPath = ((Item->itemType() == PageItem::Polygon) || (Item->itemType() == PageItem::RegularPolygon) || (Item->itemType() == PageItem::Arc));
+
+	QDomElement ob = p_docu.createElement("Path");
+	FPointArray path = Item->PoLine.copy();
+	QTransform mpx;
+	if (Item->rotation() != 0.0)
+	{
+		mpx.translate(xOffset * conversionFactor, yOffset * conversionFactor);
+		mpx.rotate(Item->rotation());
+		mpx.translate(-xOffset * conversionFactor, -yOffset * conversionFactor);
+	}
+	path.translate(xOffset, yOffset);
+	path.scale(conversionFactor, conversionFactor);
+	QString pa = SetClipPath(&path, closedPath);
+	if (Item->fillRule)
+		pa.prepend("F 0 ");
+	else
+		pa.prepend("F 1 ");
+	ob.setAttribute("Data", pa);
+	if (Item->GrType != 14)
+	{
+		if (Item->GrMask > 0)
+			handleMask(3, Item, ob, rel_root, xOffset, yOffset);
+		getFillStyle(Item, ob, rel_root, xOffset, yOffset);
+	}
+	if (Item->NamedLStyle.isEmpty())
+	{
+		if ((!Item->strokePattern().isEmpty()) && (Item->patternStrokePath))
 		{
-			mpx.translate(xOffset * conversionFactor, yOffset * conversionFactor);
-			mpx.rotate(Item->rotation());
-			mpx.translate(-xOffset * conversionFactor, -yOffset * conversionFactor);
-		}
-		path.translate(xOffset, yOffset);
-		path.scale(conversionFactor, conversionFactor);
-		QString pa = SetClipPath(&path, closedPath);
-		if (Item->fillRule)
-			pa.prepend("F 0 ");
-		else
-			pa.prepend("F 1 ");
-		ob.setAttribute("Data", pa);
-		if (Item->GrType != 14)
-		{
-			if (Item->GrMask > 0)
-				handleMask(3, Item, ob, rel_root, xOffset, yOffset);
-			getFillStyle(Item, ob, rel_root, xOffset, yOffset);
-		}
-		if (Item->NamedLStyle.isEmpty())
-		{
-			if ((!Item->strokePattern().isEmpty()) && (Item->patternStrokePath))
-			{
-				processSymbolStroke(xOffset, yOffset, Item, parentElem, rel_root);
-			}
-			else
-			{
-				getStrokeStyle(Item, ob, rel_root, xOffset, yOffset);
-				if (Item->rotation() != 0.0)
-					ob.setAttribute("RenderTransform", MatrixToStr(mpx));
-				parentElem.appendChild(ob);
-			}
+			processSymbolStroke(xOffset, yOffset, Item, parentElem, rel_root);
 		}
 		else
 		{
-			QDomElement grp2 = p_docu.createElement("Canvas");
-			multiLine ml = m_Doc->docLineStyles[Item->NamedLStyle];
-			for (int it = ml.size()-1; it > -1; it--)
-			{
-				if ((ml[it].Color != CommonStrings::None) && (ml[it].Width != 0))
-				{
-					QDomElement ob3 = p_docu.createElement("Path");
-					ob3.setAttribute("Data", pa);
-					GetMultiStroke(&ml[it], ob3);
-					grp2.appendChild(ob3);
-				}
-			}
-			if (Item->lineTransparency() != 0)
-				grp2.setAttribute("Opacity", FToStr(1.0 - Item->lineTransparency()));
+			getStrokeStyle(Item, ob, rel_root, xOffset, yOffset);
 			if (Item->rotation() != 0.0)
-				grp2.setAttribute("RenderTransform", MatrixToStr(mpx));
-			parentElem.appendChild(grp2);
+				ob.setAttribute("RenderTransform", MatrixToStr(mpx));
+			parentElem.appendChild(ob);
 		}
+	}
+	else
+	{
+		QDomElement grp2 = p_docu.createElement("Canvas");
+		multiLine ml = m_Doc->docLineStyles[Item->NamedLStyle];
+		for (int it = ml.size()-1; it > -1; it--)
+		{
+			if ((ml[it].Color != CommonStrings::None) && (ml[it].Width != 0))
+			{
+				QDomElement ob3 = p_docu.createElement("Path");
+				ob3.setAttribute("Data", pa);
+				GetMultiStroke(&ml[it], ob3);
+				grp2.appendChild(ob3);
+			}
+		}
+		if (Item->lineTransparency() != 0)
+			grp2.setAttribute("Opacity", FToStr(1.0 - Item->lineTransparency()));
+		if (Item->rotation() != 0.0)
+			grp2.setAttribute("RenderTransform", MatrixToStr(mpx));
+		parentElem.appendChild(grp2);
 	}
 }
 
@@ -1102,7 +1110,9 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 		}
 	}
 
-//	parentElem.appendChild(grp);
+	if (grp.hasChildNodes())
+		parentElem.appendChild(grp);
+
 	if (Item->itemText.length() != 0)
 	{
 		QDomElement grp2 = p_docu.createElement("Canvas");

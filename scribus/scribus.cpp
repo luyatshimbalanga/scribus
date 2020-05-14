@@ -2555,7 +2555,7 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 			for (int ii = 0; ii < allItems.count(); ii++)
 			{
 				PageItem* item = allItems.at(ii);
-				if ((item->itemType() == PageItem::ImageFrame) && (!item->asLatexFrame()) && (!item->asOSGFrame()))
+				if ((item->itemType() == PageItem::ImageFrame) && (!item->isLatexFrame()) && (!item->isOSGFrame()))
 				{
 					enablePicManager = true;
 					break;
@@ -2862,7 +2862,7 @@ void ScribusMainWindow::HaveNewSel()
 		{
 			setTBvals(currItem);
 			charPalette->setEnabled(true, currItem);
-			if (currItem->asTextFrame())
+			if (currItem->isTextFrame())
 			{
 				appModeHelper->enableTextActions(true, currItem->currentStyle().charStyle().font().scName());
 				currItem->asTextFrame()->toggleEditModeActions();
@@ -3485,7 +3485,7 @@ bool ScribusMainWindow::loadPage(const QString& fileName, int Nr, bool Mpa, cons
 	for (int i = oldItemsCount; i < docItemsCount; ++i)
 	{
 		PageItem *ite = doc->Items->at(i);
-		if ((ite->asTextFrame()) && (ite->isBookmark))
+		if ((ite->isTextFrame()) && (ite->isBookmark))
 			AddBookMark(ite);
 	}
 	propertiesPalette->updateColorList();
@@ -3982,7 +3982,7 @@ void ScribusMainWindow::slotGetContent()
 				cii->setImageList(fileNames);
 		}
 	}
-	else if (currItem->asTextFrame())
+	else if (currItem->isTextFrame())
 	{
 		gtGetText* gt = new gtGetText(doc);
 		ImportSetup impsetup=gt->run();
@@ -4050,7 +4050,7 @@ void ScribusMainWindow::slotGetContent2() // kk2006
 
 	PageItem *currItem = doc->m_Selection->itemAt(0);
 
-	if (!currItem->asTextFrame())
+	if (!currItem->isTextFrame())
 		return; // not a text frame
 
 	ScGTPluginManager::instance()->run();
@@ -4632,7 +4632,7 @@ void ScribusMainWindow::slotEditCut()
 	for (int i = 0; i < docSelectionCount; ++i)
 	{
 		currItem = doc->m_Selection->itemAt(i);
-		if ((currItem->asTextFrame() || currItem->asPathText()) && currItem==storyEditor->currentItem() && doc==storyEditor->currentDocument())
+		if ((currItem->isTextFrame() || currItem->isPathText()) && currItem==storyEditor->currentItem() && doc==storyEditor->currentDocument())
 		{
 				ScMessageBox::critical(this, tr("Cannot Cut In-Use Item"), tr("The item %1 is currently being edited by Story Editor. The cut operation will be cancelled").arg(currItem->itemName()));
 				return;
@@ -5221,7 +5221,7 @@ void ScribusMainWindow::deselectAll()
 		PageItem *currItem = doc->m_Selection->itemAt(0);
 		if (doc->appMode == modeEditTable)
 			currItem = currItem->asTable()->activeCell().textFrame();
-		if (currItem->asTextFrame())
+		if (currItem->isTextFrame())
 		{
 			currItem->itemText.deselectAll();
 			doc->regionsChanged()->update(currItem->getBoundingRect());
@@ -5246,8 +5246,8 @@ void ScribusMainWindow::ClipChange()
 	{
 		PageItem *currItem = nullptr;
 		currItem = doc->m_Selection->itemAt(0);
-		textFrameEditMode  = ((doc->appMode == modeEdit) && (currItem->asTextFrame()));
-		tableEditMode = ((doc->appMode == modeEditTable) && (currItem->asTable()));
+		textFrameEditMode  = ((doc->appMode == modeEdit) && (currItem->isTextFrame()));
+		tableEditMode = ((doc->appMode == modeEditTable) && (currItem->isTable()));
 	}
 	scrActions["editPaste"]->setEnabled(HaveDoc && (hasScribusData || textFrameEditMode || tableEditMode || hasExternalData));
 }
@@ -5744,7 +5744,7 @@ void ScribusMainWindow::toggleImageVisibility()
 		for (int j = 0; j < allItems.count(); j++)
 		{
 			PageItem* item = allItems.at(j);
-			if (item->asImageFrame())
+			if (item->isImageFrame())
 				item->setImageVisible(doc->guidesPrefs().showPic);
 		}
 	}
@@ -5758,7 +5758,7 @@ void ScribusMainWindow::toggleImageVisibility()
 		for (int j = 0; j < allItems.count(); j++)
 		{
 			PageItem* item = allItems.at(j);
-			if (item->asImageFrame())
+			if (item->isImageFrame())
 				item->setImageVisible(doc->guidesPrefs().showPic);
 		}
 	}
@@ -6053,7 +6053,7 @@ void ScribusMainWindow::ToggleFrameEdit()
 		nodePalette->ResetContClip->setEnabled(false);
 		nodePalette->PolyStatus(currItem->itemType(), currItem->PoLine.size());
 		nodePalette->setDefaults(currItem);
-		if ((currItem->asImageFrame()) && (!currItem->imageClip.empty()))
+		if ((currItem->isImageFrame()) && (!currItem->imageClip.empty()))
 		{
 			nodePalette->ResetContClip->setSizePolicy(QSizePolicy(static_cast<QSizePolicy::Policy>(3), static_cast<QSizePolicy::Policy>(3)));
 			nodePalette->ResetContClip->show();
@@ -6580,12 +6580,12 @@ void ScribusMainWindow::editItemsFromOutlines(PageItem *ite)
 		if (doc->m_Selection->itemAt(0) != ite)
 			selectItemsFromOutlines(ite, ite->isGroup());
 	}
-	if (ite->asLatexFrame())
+	if (ite->isLatexFrame())
 	{
 		if (ite->imageVisible())
 			view->requestMode(modeEdit);
 	}
-	else if (ite->asOSGFrame())
+	else if (ite->isOSGFrame())
 		view->requestMode(submodeEditExternal);
 	else if ((ite->itemType() == PageItem::Polygon) || (ite->itemType() == PageItem::PolyLine) || (ite->itemType() == PageItem::Group) || (ite->itemType() == PageItem::ImageFrame) || (ite->itemType() == PageItem::PathText))
 	{
@@ -6618,18 +6618,18 @@ void ScribusMainWindow::editItemsFromOutlines(PageItem *ite)
 			view->requestMode(modeEdit);
 		}
 	}
-	else if (ite->asSymbolFrame())
+	else if (ite->isSymbol())
 	{
 		if (!doc->symbolEditMode())
 			view->requestMode(submodeEditSymbol);
 	}
-	else if (ite->asArc())
+	else if (ite->isArc())
 		view->requestMode(modeEditArc);
-	else if (ite->asRegularPolygon())
+	else if (ite->isRegularPolygon())
 		view->requestMode(modeEditPolygon);
-	else if (ite->asSpiral())
+	else if (ite->isSpiral())
 		view->requestMode(modeEditSpiral);
-	else if (ite->asTable())
+	else if (ite->isTable())
 		view->requestMode(modeEditTable);
 }
 
@@ -6849,7 +6849,7 @@ void ScribusMainWindow::slotDocSetup()
 		mainWindowProgressBar->reset();
 		qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 		qApp->processEvents();
-		doc->recalcPicturesRes(true);
+		doc->recalcPicturesRes(ScribusDoc::RecalcPicRes_ApplyNewRes);
 		qApp->restoreOverrideCursor();
 		setStatusBarInfoText("");
 		mainWindowProgressBar->reset();
@@ -8555,13 +8555,13 @@ void ScribusMainWindow::callImageEditor()
 	// - IMHO ScribusMainWindow has way to many slots already
 	// - my code here is short and without sideeffects
 	PageItem *currItem = doc->m_Selection->itemAt(0);
-	if (currItem->asLatexFrame())
+	if (currItem->isLatexFrame())
 	{
 		currItem->asLatexFrame()->runEditor();
 		return; //Don't process the functions for imageframes!
 	}
 #ifdef HAVE_OSG
-	if (currItem->asOSGFrame())
+	if (currItem->isOSGFrame())
 	{
 		OSGEditorDialog *dia = new OSGEditorDialog(this, currItem->asOSGFrame(), m_osgFilterString);
 		dia->exec();
@@ -8937,7 +8937,7 @@ void ScribusMainWindow::slotEditPasteContents(int absolute)
 	if (contentsBuffer.sourceType != PageItem::ImageFrame || currItem->itemType() != PageItem::ImageFrame)
 		return;
 
-	PageItem_ImageFrame* imageItem=currItem->asImageFrame();
+	PageItem_ImageFrame* imageItem = currItem->asImageFrame();
 	int i=QMessageBox::Yes;
 	if (imageItem->imageIsAvailable)
 		i = ScMessageBox::warning(this, CommonStrings::trWarning,
@@ -9366,7 +9366,8 @@ void ScribusMainWindow::manageColorsAndFills()
 				doc->replaceLineStyleColors(dia->replaceColorMap);
 			}
 			doc->recalculateColors();
-			doc->recalcPicturesRes();
+			if (doc->useImageColorEffects())
+				doc->recalcPicturesRes(ScribusDoc::RecalcPicRes_ImageWithColorEffectsOnly);
 			doc->setGradients(dia->dialogGradients);
 			if (!dia->replaceMap.isEmpty())
 			{
@@ -9438,7 +9439,8 @@ void ScribusMainWindow::slotReplaceColors()
 	doc->replaceNamedResources(colorrsc);
 	doc->replaceLineStyleColors(dia2->replaceMap);
 	doc->recalculateColors();
-	doc->recalcPicturesRes();
+	if (doc->useImageColorEffects())
+		doc->recalcPicturesRes(ScribusDoc::RecalcPicRes_ImageWithColorEffectsOnly);
 	requestUpdate(reqColorsUpdate | reqLineStylesUpdate);
 	m_styleManager->updateColorList();
 	if (!doc->m_Selection->isEmpty())

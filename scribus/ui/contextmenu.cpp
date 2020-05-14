@@ -103,11 +103,11 @@ void ContextMenu::createMenuItems_Selection()
 
 	//<-- Add Info
 	//Test new method with image frames first
-	if (selectedItemCount==1 && currItem->asImageFrame())
+	if (selectedItemCount==1 && currItem->isImageFrame())
 	{
 		QAction *act = addMenu(menuInfo);
 		act->setText( tr("In&fo"));
-		if (currItem->asImageFrame())
+		if (currItem->isImageFrame())
 		{
 			QLabel* menuLabel = new QLabel("<html>" + currItem->infoDescription() + "</html>", this);
 			menuLabel->setFrameShape(QFrame::NoFrame);
@@ -174,7 +174,7 @@ void ContextMenu::createMenuItems_Selection()
 		}
 	if (m_actionList.contains("fileImportImage"))
 		menuEditContent->addAction(m_ScMW->scrActions["fileImportImage"]);
-	if (selectedItemCount==1 && currItem->asImageFrame())
+	if (selectedItemCount==1 && currItem->isImageFrame())
 	{
 		if (QApplication::clipboard()->mimeData()->hasImage())
 			menuEditContent->addAction(m_ScMW->scrActions["editPasteImageFromClipboard"]);
@@ -185,7 +185,7 @@ void ContextMenu::createMenuItems_Selection()
 			menuEditContent->addAction(m_ScMW->scrActions["editCopyContents"]);
 		if (m_actionList.contains("editPasteContents"))
 			menuEditContent->addAction(m_ScMW->scrActions["editPasteContents"]);
-		if (currItem->asImageFrame() && m_actionList.contains("editPasteContentsAbs"))
+		if (currItem->isImageFrame() && m_actionList.contains("editPasteContentsAbs"))
 			menuEditContent->addAction(m_ScMW->scrActions["editPasteContentsAbs"]);
 	}
 	if (m_actionList.contains("editClearContents"))
@@ -305,7 +305,7 @@ void ContextMenu::createMenuItems_Selection()
 			menuImage->addAction(m_ScMW->scrActions["styleImageEffects"]);
 		if (m_actionList.contains("editEditWithImageEditor"))
 			menuImage->addAction(m_ScMW->scrActions["editEditWithImageEditor"]);
-		if (selectedItemCount==1 && currItem->asImageFrame())
+		if (selectedItemCount==1 && currItem->isImageFrame())
 		{
 			if (currItem->imageIsAvailable)
 			{
@@ -346,7 +346,7 @@ void ContextMenu::createMenuItems_Selection()
 			}
 		}
 		
-		if ((selectedItemCount==1) && currItem->asTextFrame())
+		if ((selectedItemCount==1) && currItem->isTextFrame())
 		{
 			if (currItem->itemText.length() > 0)
 				m_ScMW->scrActions["itemAdjustFrameHeightToText"]->setEnabled(true);

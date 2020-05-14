@@ -3010,7 +3010,7 @@ void StoryEditor::updateTextFrame()
 		return;
 	PageItem *nextItem = m_item;
 //#if 0
-	if (m_item->asTextFrame())
+	if (m_item->isTextFrame())
 	{
 		while (nextItem != nullptr)
 		{
@@ -3025,7 +3025,7 @@ void StoryEditor::updateTextFrame()
 	PageItem* nb2 = nextItem;
 	nb2->itemText.clear();
 #if 0
-	if (m_item->asTextFrame())
+	if (m_item->isTextFrame())
 	{
 		while (nb2 != 0)
 		{
@@ -3068,7 +3068,7 @@ void StoryEditor::updateTextFrame()
 	Editor->saveItemText(nextItem);
 	// #9180 : force relayout here, it appears that relayout is sometime disabled
 	// to speed up selection, but re layout() cannot be avoided here
-	if (nextItem->asTextFrame())
+	if (nextItem->isTextFrame())
 		nextItem->asTextFrame()->invalidateLayout(true);
 	nextItem->layout();
 #if 0
@@ -3086,7 +3086,7 @@ void StoryEditor::updateTextFrame()
 	FrameItemsDel.clear();
 #endif
 #if 0
-	if (currItem->asTextFrame())
+	if (currItem->isTextFrame())
 	{
 		nextItem->layout();
 		nb2 = nextItem;

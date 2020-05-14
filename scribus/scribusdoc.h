@@ -733,6 +733,16 @@ public:
 	*/
 	bool useAnnotations() const;
 
+	/*!
+	* @brief Check if document use effects on images
+	*/
+	bool useImageEffects() const;
+
+	/*!
+	* @brief Check if document use effects on images
+	*/
+	bool useImageColorEffects() const;
+
 	/**
 	 * @brief Set and get the document's unit index
 	 */
@@ -1149,7 +1159,7 @@ public:
 					bool fvo = item->imageFlippedV();
 					if (m_applyNewRes)
 						item->pixm.imgInfo.lowResType = m_lowResType;
-					if (item->asLatexFrame())
+					if (item->isLatexFrame())
 						item->asLatexFrame()->rerunApplication(false);
 					else
 						item->loadImage(item->Pfile, true, -1, false);
@@ -1164,7 +1174,15 @@ public:
 		bool m_applyNewRes;
 		int m_lowResType;
 	};
-	void recalcPicturesRes(bool applyNewRes = false);
+
+	enum RecalcPictureResFlags
+	{
+		RecalcPicRes_ApplyNewRes = 1,
+		RecalcPicRes_ImageWithEffectsOnly = 2,
+		RecalcPicRes_ImageWithColorEffectsOnly = 4,
+	};
+	void recalcPicturesRes(int recalcFlags = 0);
+
 	int previewQuality();
 	void connectDocSignals();
 	void disconnectDocSignals();

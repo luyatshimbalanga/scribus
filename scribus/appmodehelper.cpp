@@ -141,7 +141,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				if (currItem != nullptr)
 				{
 					currItem->update();
-					if (currItem->asTextFrame())
+					if (currItem->isTextFrame())
 						enableTextActions(false);
 					//		scrMenuMgr->setMenuEnabled("Item", true);
 					setTextEditMode(false);
@@ -281,7 +281,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					scmw->setTBvals(currItem);
 				}
 				(*a_scrActions)["editPaste"]->setEnabled(false);
-				if (currItem != nullptr && currItem->asTextFrame())
+				if (currItem != nullptr && currItem->isTextFrame())
 				{
 					scmw->charPalette->setEnabled(true, currItem);
 					enableTextActions(true, currItem->currentCharStyle().font().scName());
@@ -289,7 +289,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				}
 				if (ScMimeData::clipboardHasScribusData())
 				{
-					bool textFrameEditMode = ((currItem != nullptr) && (currItem->asTextFrame()));
+					bool textFrameEditMode = ((currItem != nullptr) && (currItem->isTextFrame()));
 					(*a_scrActions)["editPaste"]->setEnabled( textFrameEditMode || (currItem == nullptr) );
 				}
 				setTextEditMode(true);
@@ -350,7 +350,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					a_actMgr->saveActionShortcutsPreEditMode();
 					// #11938: Paste is not correctly enabled in modeEditTable
 					if (ScMimeData::clipboardHasScribusData())
-						(*a_scrActions)["editPaste"]->setEnabled(currItem->asTable());
+						(*a_scrActions)["editPaste"]->setEnabled(currItem->isTable());
 				}
 			}
 			break;
@@ -445,7 +445,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 	}
 	(*a_scrActions)["itemDetachTextFromPath"]->setEnabled(false);
 	bool isImageFrame = SelectedType==PageItem::ImageFrame;
-	(*a_scrActions)["itemUpdateImage"]->setEnabled(isImageFrame && (currItem->imageIsAvailable || currItem->asLatexFrame()));
+	(*a_scrActions)["itemUpdateImage"]->setEnabled(isImageFrame && (currItem->imageIsAvailable || currItem->isLatexFrame()));
 	(*a_scrActions)["itemAdjustFrameToImage"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
 	(*a_scrActions)["itemAdjustImageToFrame"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
 	(*a_scrActions)["itemExtendedImageProperties"]->setEnabled(isImageFrame && currItem->imageIsAvailable && currItem->pixm.imgInfo.valid);
@@ -459,7 +459,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 	(*a_scrActions)["editPasteContents"]->setEnabled(isImageFrame);
 	(*a_scrActions)["editPasteContentsAbs"]->setEnabled(isImageFrame);
 	(*a_scrActions)["editEditWithImageEditor"]->setEnabled(isImageFrame && currItem->imageIsAvailable && currItem->isRaster);
-	(*a_scrActions)["editEditRenderSource"]->setEnabled(isImageFrame && currItem && (currItem->asLatexFrame() || currItem->asOSGFrame()));
+	(*a_scrActions)["editEditRenderSource"]->setEnabled(isImageFrame && currItem && (currItem->isLatexFrame() || currItem->isOSGFrame()));
 	(*a_scrActions)["itemAdjustFrameHeightToText"]->setEnabled(SelectedType==PageItem::TextFrame && currItem->itemText.length() >0);
 	if (!isImageFrame)
 	{
@@ -469,7 +469,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		(*a_scrActions)["itemPreviewLow"]->setChecked(false);
 	}
 
-	if ((SelectedType==-1) || (SelectedType!=-1 && !currItem->asTextFrame()))
+	if ((SelectedType==-1) || (SelectedType!=-1 && !currItem->isTextFrame()))
 		enableTextActions(false);
 	(*a_scrActions)["insertSampleText"]->setEnabled(false);
 
@@ -650,7 +650,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			{
 				(*a_scrActions)["editSelectAll"]->setEnabled(true);
 				(*a_scrActions)["editSelectAllOnLayer"]->setEnabled(false);
-				if (currItem->asTextFrame())
+				if (currItem->isTextFrame())
 				{
 					enableTextActions(true, currItem->currentStyle().charStyle().font().scName());
 				}
@@ -833,7 +833,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		for (int i = 0; i < docSelectionCount; ++i)
 		{
 			PageItem* it = doc->m_Selection->itemAt(i);
-			if ((!it->asPolygon()) && (!it->asPolyLine()))
+			if ((!it->isPolygon()) && (!it->isPolyLine()))
 				hPoly = false;
 		}
 		(*a_scrActions)["itemCombinePolygons"]->setEnabled(hPoly);
@@ -851,9 +851,9 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			bool canAttachTextToPath = false;
 			PageItem* item1 = doc->m_Selection->itemAt(0);
 			PageItem* item2 = doc->m_Selection->itemAt(1);
-			if (!item1->asTextFrame() || !(item2->asPolygon() || item2->asPolyLine() || item2->asSpiral() || item2->asArc() || item2->asRegularPolygon()))
+			if (!item1->isTextFrame() || !(item2->isPolygon() || item2->isPolyLine() || item2->isSpiral() || item2->isArc() || item2->isRegularPolygon()))
 				std::swap(item1, item2);
-			if (item1->asTextFrame() && (item2->asPolygon() || item2->asPolyLine() || item2->asSpiral() || item2->asArc() || item2->asRegularPolygon()))
+			if (item1->isTextFrame() && (item2->isPolygon() || item2->isPolyLine() || item2->isSpiral() || item2->isArc() || item2->isRegularPolygon()))
 			{
 				canAttachTextToPath  = true;
 				canAttachTextToPath &= (item1->nextInChain() == nullptr);
@@ -890,7 +890,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		{
 			(*a_scrActions)["itemUngroup"]->setEnabled(false);
 			(*a_scrActions)["itemGroupAdjust"]->setEnabled(false);
-			(*a_scrActions)["itemSplitPolygons"]->setEnabled( (currItem->asPolygon()) && (currItem->Segments.count() != 0) );
+			(*a_scrActions)["itemSplitPolygons"]->setEnabled( (currItem->isPolygon()) && (currItem->Segments.count() != 0) );
 		}
 		bool levelEnabled = true;
 		if (currItem->locked())

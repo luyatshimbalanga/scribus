@@ -369,12 +369,12 @@ void PropertiesPalette_XYZ::setCurrentItem(PageItem *item)
 		doUnGroup->setEnabled(m_item->isGroup());
 	if ((m_doc->appMode == modeEditClip) && (m_item->isGroup()))
 		doUnGroup->setEnabled(false);
-	if (m_item->asOSGFrame())
+	if (m_item->isOSGFrame())
 	{
 		setEnabled(true);
 		rotationSpin->setEnabled(false);
 	}
-	if (m_item->asSymbolFrame())
+	if (m_item->asSymbol())
 	{
 		setEnabled(true);
 	}
@@ -497,7 +497,7 @@ void PropertiesPalette_XYZ::handleSelectionChanged()
 		case PageItem::ImageFrame:
 		case PageItem::LatexFrame:
 		case PageItem::OSGFrame:
-			if (currItem->asOSGFrame())
+			if (currItem->isOSGFrame())
 			{
 				setEnabled(true);
 				rotationSpin->setEnabled(false);

@@ -1167,8 +1167,13 @@ void AppModeHelper::setSymbolEditMode(bool b, ScribusDoc* doc)
 	(*a_scrActions)["fileSaveAs"]->setEnabled(b2);
 	(*a_scrActions)["fileExportAsEPS"]->setEnabled(b2);
 	(*a_scrActions)["fileExportAsPDF"]->setEnabled(b2);
-	if ( ScCore->haveGS() || ScCore->isWinGUI() )
+	if (ScCore->haveGS() || ScCore->isWinGUI())
 		(*a_scrActions)["PrintPreview"]->setEnabled(b2);
+	if (ScCore->haveGS())
+	{
+		(*a_scrActions)["OutputPreviewPDF"]->setEnabled(b2);
+		(*a_scrActions)["OutputPreviewPS"]->setEnabled(b2);
+	}
 	(*a_scrActions)["toolsPDFPushButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFRadioButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFTextField"]->setEnabled(b2);
@@ -1183,7 +1188,7 @@ void AppModeHelper::setSymbolEditMode(bool b, ScribusDoc* doc)
 
 void AppModeHelper::setInlineEditMode(bool b, ScribusDoc *doc)
 {
-	bool b2=!b;
+	bool b2 = !b;
 	(*a_scrActions)["pageInsert"]->setEnabled(b2);
 	(*a_scrActions)["pageImport"]->setEnabled(b2);
 	(*a_scrActions)["pageDelete"]->setEnabled(b2);
@@ -1199,8 +1204,13 @@ void AppModeHelper::setInlineEditMode(bool b, ScribusDoc *doc)
 	if (b2)
 	{
 		(*a_scrActions)["fileSave"]->setEnabled(!doc->isConverted);
-		if ( ScCore->haveGS() || ScCore->isWinGUI() )
+		if (ScCore->haveGS() || ScCore->isWinGUI())
 			(*a_scrActions)["PrintPreview"]->setEnabled(true);
+		if (ScCore->haveGS())
+		{
+			(*a_scrActions)["OutputPreviewPDF"]->setEnabled(true);
+			(*a_scrActions)["OutputPreviewPS"]->setEnabled(true);
+		}
 		bool setter = doc->DocPages.count() > 1;
 		(*a_scrActions)["pageDelete"]->setEnabled(setter);
 		(*a_scrActions)["pageMove"]->setEnabled(setter);
@@ -1212,8 +1222,13 @@ void AppModeHelper::setInlineEditMode(bool b, ScribusDoc *doc)
 	(*a_scrActions)["fileSaveAs"]->setEnabled(b2);
 	(*a_scrActions)["fileExportAsEPS"]->setEnabled(b2);
 	(*a_scrActions)["fileExportAsPDF"]->setEnabled(b2);
-	if ( ScCore->haveGS() || ScCore->isWinGUI() )
+	if (ScCore->haveGS() || ScCore->isWinGUI())
 		(*a_scrActions)["PrintPreview"]->setEnabled(b2);
+	if (ScCore->haveGS())
+	{
+		(*a_scrActions)["OutputPreviewPDF"]->setEnabled(b2);
+		(*a_scrActions)["OutputPreviewPS"]->setEnabled(b2);
+	}
 	(*a_scrActions)["toolsPDFPushButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFRadioButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFTextField"]->setEnabled(b2);
@@ -1247,8 +1262,13 @@ void AppModeHelper::setMasterPageEditMode(bool b, ScribusDoc* doc)
 	if (b2)
 	{
 		(*a_scrActions)["fileSave"]->setEnabled(!doc->isConverted);
-		if ( ScCore->haveGS() || ScCore->isWinGUI() )
+		if (ScCore->haveGS() || ScCore->isWinGUI())
 			(*a_scrActions)["PrintPreview"]->setEnabled(true);
+		if (ScCore->haveGS())
+		{
+			(*a_scrActions)["OutputPreviewPDF"]->setEnabled(true);
+			(*a_scrActions)["OutputPreviewPS"]->setEnabled(true);
+		}
 		bool setter = doc->DocPages.count() > 1;
 		(*a_scrActions)["pageDelete"]->setEnabled(setter);
 		(*a_scrActions)["pageMove"]->setEnabled(setter);
@@ -1257,8 +1277,13 @@ void AppModeHelper::setMasterPageEditMode(bool b, ScribusDoc* doc)
 	(*a_scrActions)["fileRevert"]->setEnabled(b2);
 	(*a_scrActions)["fileDocSetup150"]->setEnabled(b2);
 	(*a_scrActions)["filePrint"]->setEnabled(b2);
-	if ( ScCore->haveGS() || ScCore->isWinGUI() )
+	if (ScCore->haveGS() || ScCore->isWinGUI())
 		(*a_scrActions)["PrintPreview"]->setEnabled(b2);
+	if (ScCore->haveGS())
+	{
+		(*a_scrActions)["OutputPreviewPDF"]->setEnabled(b2);
+		(*a_scrActions)["OutputPreviewPS"]->setEnabled(b2);
+	}
 	(*a_scrActions)["toolsPDFPushButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFRadioButton"]->setEnabled(b2);
 	(*a_scrActions)["toolsPDFTextField"]->setEnabled(b2);
@@ -1378,8 +1403,13 @@ void AppModeHelper::mainWindowHasNewDoc(ScribusDoc *doc, bool clipScrapHaveData)
 	(*a_scrActions)["fileImportVector"]->setEnabled(true);
 	(*a_scrActions)["pageImport"]->setEnabled(true);
 
-	if ( ScCore->haveGS() || ScCore->isWinGUI() )
+	if (ScCore->haveGS() || ScCore->isWinGUI())
 		(*a_scrActions)["PrintPreview"]->setEnabled(true);
+	if (ScCore->haveGS())
+	{
+		(*a_scrActions)["OutputPreviewPDF"]->setEnabled(true);
+		(*a_scrActions)["OutputPreviewPS"]->setEnabled(true);
+	}
 
 	if ((*a_scrActions)["SaveAsDocumentTemplate"])
 		(*a_scrActions)["SaveAsDocumentTemplate"]->setEnabled(true);
@@ -1539,6 +1569,11 @@ void AppModeHelper::mainWindowCloseLastDoc()
 {
 	if ( ScCore->haveGS() || ScCore->isWinGUI() )
 		(*a_scrActions)["PrintPreview"]->setEnabled(false);
+	if (ScCore->haveGS())
+	{
+		(*a_scrActions)["OutputPreviewPDF"]->setEnabled(false);
+		(*a_scrActions)["OutputPreviewPS"]->setEnabled(false);
+	}
 	if ((*a_scrActions)["SaveAsDocumentTemplate"])
 		(*a_scrActions)["SaveAsDocumentTemplate"]->setEnabled(false);
 	(*a_scrActions)["editClearContents"]->setEnabled(false);
@@ -1721,6 +1756,8 @@ void AppModeHelper::setStartupActionsEnabled(bool enabled)
 	(*a_scrActions)["fileCollect"]->setEnabled(false);
 	(*a_scrActions)["fileClose"]->setEnabled(false);
 	(*a_scrActions)["PrintPreview"]->setEnabled(false);
+	(*a_scrActions)["OutputPreviewPDF"]->setEnabled(false);
+	(*a_scrActions)["OutputPreviewPS"]->setEnabled(false);
 	if ((*a_scrActions)["SaveAsDocumentTemplate"])
 		(*a_scrActions)["SaveAsDocumentTemplate"]->setEnabled(false);
 	(*a_scrActions)["fileExportAsPDF"]->setEnabled(false);

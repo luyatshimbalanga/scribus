@@ -2,7 +2,7 @@ language: cpp
 
 os: linux
       
-dist: focal
+dist: bionic
       
 compiler: 
   - clang
@@ -12,11 +12,14 @@ env:
   - NPROC=2
 
 before_install:
-  - sudo apt-add-repository ppa:beineri/opt-qt-5.14.2-focal -y
+  - sudo apt-get install -y apt-transport-https ca-certificates gnupg software-properties-common wget
+  - wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+  - sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' -y
+  - sudo apt-add-repository ppa:beineri/opt-qt-5.14.2-bionic -y
   - sudo apt-get update -qq
       
 install:
-  - sudo apt-get install --force-yes cmake libboost-python-dev libcairo2-dev libcups2-dev libharfbuzz-dev libharfbuzz-icu0 libhunspell-dev libhyphen-dev liblcms2-dev libpng-dev libpodofo-dev libpoppler-dev libpoppler-cpp-dev libtiff-dev libxml2-dev qt514base qt514declarative qt514tools python3-all-dev python3-tk zlib1g-dev libgraphicsmagick++1-dev libopenscenegraph-dev libcdr-dev libmspub-dev libwpg-dev libvisio-dev coreutils binutils poppler-data libpoppler-private-dev libfreehand-dev libpagemaker-dev libqxp-dev libzmf-dev
+  - sudo apt-get install --force-yes cmake libboost-python-dev libcairo2-dev libcdr-dev libcups2-dev libfreehand-dev libharfbuzz-dev libharfbuzz-icu0 libgraphicsmagick++1-dev libhunspell-dev libhyphen-dev liblcms2-dev libmspub-dev libopenscenegraph-dev libpagemaker-dev libpng-dev libpodofo-dev libpoppler-dev libpoppler-cpp-dev libpoppler-private-dev libqxp-dev libtiff-dev libvisio-dev libwpg-dev libxml2-dev libzmf-dev python3-all-dev python3-tk qt514base qt514declarative qt514imageformats qt514tools zlib1g-dev coreutils binutils poppler-data
       
 script:
   - source /opt/qt514/bin/qt514-env.sh

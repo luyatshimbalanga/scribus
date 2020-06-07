@@ -1113,6 +1113,7 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->createMenu("InsertSpace", tr("S&paces && Breaks"), "Insert");
 	scrMenuMgr->addMenuItemString("InsertSpace", "Insert");
 	scrMenuMgr->addMenuItemString("unicodeNonBreakingSpace", "InsertSpace");
+	scrMenuMgr->addMenuItemString("unicodeNarrowNoBreakSpace", "InsertSpace");
 	scrMenuMgr->addMenuItemString("unicodeSpaceEN", "InsertSpace");
 	scrMenuMgr->addMenuItemString("unicodeSpaceEM", "InsertSpace");
 	scrMenuMgr->addMenuItemString("unicodeSpaceThin", "InsertSpace");
@@ -2168,7 +2169,7 @@ QStringList ScribusMainWindow::findRecoverableFile()
 	for (int i = 0; i < hList2.count(); i++)
 		foundFiles.insert(hList2[i].absoluteFilePath());
 
-	return foundFiles.toList();
+	return foundFiles.values();
 }
 
 bool ScribusMainWindow::recoverFile(const QStringList& foundFiles)
@@ -3970,25 +3971,21 @@ void ScribusMainWindow::slotGetContent()
 	{
 		QString formatD(FormatsManager::instance()->fileDialogFormatList(FormatsManager::IMAGESIMGFRAME));
 
-		QString docDir = ".";
-		QString prefsDocDir=m_prefsManager.documentDir();
-		if (!prefsDocDir.isEmpty())
-			docDir = m_prefsManager.prefsFile->getContext("dirs")->get("images", prefsDocDir);
-		else
-			docDir = m_prefsManager.prefsFile->getContext("dirs")->get("images", ".");
+		QString prefsDocDir = m_prefsManager.documentDir();
+		PrefsContext *dirsContext = m_prefsManager.prefsFile->getContext("dirs");
+		QString docDir = dirsContext->get("images", prefsDocDir.isEmpty() ? "." : prefsDocDir);
 
 		QStringList fileNames;
-		fileNames.clear();
 		CustomFDialog *dia = new CustomFDialog(qApp->activeWindow(), docDir, tr("Open"), formatD, fdShowPreview | fdExistingFilesI | fdDisableOk);
 		if (dia->exec() == QDialog::Accepted)
-			fileNames = dia->fileDialog->selectedFiles();
+			fileNames = dia->selectedFiles();
 		delete dia;
 		//QStringList fileNames = CFileDialog( docDir, tr("Open"), formatD, "", fdShowPreview | fdExistingFiles);
 		if (!fileNames.isEmpty())
 		{
-			m_prefsManager.prefsFile->getContext("dirs")->set("images", fileNames[0].left(fileNames[0].lastIndexOf("/")));
+			dirsContext->set("images", fileNames[0].left(fileNames[0].lastIndexOf("/")));
 			view->requestMode(modeImportImage);
-			CanvasMode_ImageImport* cii=dynamic_cast<CanvasMode_ImageImport*>(view->canvasMode());
+			CanvasMode_ImageImport* cii = dynamic_cast<CanvasMode_ImageImport*>(view->canvasMode());
 			if (cii)
 				cii->setImageList(fileNames);
 		}
@@ -4595,22 +4592,16 @@ bool ScribusMainWindow::doPrint(PrintOptions &options, QString& error)
 	ScCore->fileWatcher->stop();
 	ScPrintEngine* prnEngine = nullptr;
 #if defined(_WIN32)
-	SHORT shiftState = GetKeyState( VK_SHIFT );
-	bool  forceGDI = ( shiftState & 0x8000 ) ? true : false;
 	if (doc->Print_Options.toFile)
-		prnEngine = dynamic_cast<ScPrintEngine*>(new ScPrintEngine_PS());
+		prnEngine = dynamic_cast<ScPrintEngine*>(new ScPrintEngine_PS(*doc));
 	else
-	{
-		ScPrintEngine_GDI* gdiEngine = new ScPrintEngine_GDI();
-		gdiEngine->setForceGDI( forceGDI );
-		prnEngine = dynamic_cast<ScPrintEngine*>(gdiEngine);
-	}
+		prnEngine = dynamic_cast<ScPrintEngine*>(new ScPrintEngine_GDI(*doc));
 #else
-	prnEngine = dynamic_cast<ScPrintEngine*>(new ScPrintEngine_PS());
+	prnEngine = dynamic_cast<ScPrintEngine*>(new ScPrintEngine_PS(*doc));
 #endif
 	if (prnEngine)
 	{
-		printDone = prnEngine->print(*doc, options);
+		printDone = prnEngine->print(options);
 		if (!printDone)
 			error = prnEngine->errorMessage();
 		delete prnEngine;
@@ -5360,20 +5351,26 @@ void ScribusMainWindow::ToggleMouseTips()
 
 void ScribusMainWindow::SaveText()
 {
-	LoadEnc = "";
-	QString wdir = ".";
-	QString prefsDocDir=m_prefsManager.documentDir();
-	if (!prefsDocDir.isEmpty())
-		wdir = m_prefsManager.prefsFile->getContext("dirs")->get("save_text", prefsDocDir);
-	else
-		wdir = m_prefsManager.prefsFile->getContext("dirs")->get("save_text", ".");
-	QString fn = CFileDialog( wdir, tr("Save As"), tr("Text Files (*.txt);;All Files (*)"), "", fdShowCodecs|fdHidePreviewCheckBox);
-	if (!fn.isEmpty())
-	{
-		m_prefsManager.prefsFile->getContext("dirs")->set("save_text", fn.left(fn.lastIndexOf("/")));
-		const StoryText& story (doc->m_Selection->itemAt(0)->itemText);
-		Serializer::writeWithEncoding(fn, LoadEnc, story.text(0, story.length()));
-	}
+	PrefsContext* dirsContext = m_prefsManager.prefsFile->getContext("dirs");
+	PrefsContext* textContext = m_prefsManager.prefsFile->getContext("textsave_dialog");
+	QString prefsDocDir = m_prefsManager.documentDir();
+	QString workingDir = dirsContext->get("save_text", prefsDocDir.isEmpty() ? "." : prefsDocDir);
+	QString textEncoding = textContext->get("encoding");
+
+	CustomFDialog dia(this, workingDir, tr("Save as"), tr("Text Files (*.txt);;All Files (*)"), fdShowCodecs|fdHidePreviewCheckBox);
+	dia.setTextCodec(textEncoding);
+	if (dia.exec() != QDialog::Accepted)
+		return;
+
+	QString fileName = dia.selectedFile();
+	if (fileName.isEmpty())
+		return;
+	textEncoding = dia.textCodec();
+
+	dirsContext->set("save_text", fileName.left(fileName.lastIndexOf("/")));
+	textContext->set("encoding", dia.textCodec());
+	const StoryText& story (doc->m_Selection->itemAt(0)->itemText);
+	Serializer::writeWithEncoding(fileName, textEncoding, story.plainText());
 }
 
 void ScribusMainWindow::applyNewMaster(const QString& name)
@@ -7287,27 +7284,25 @@ void ScribusMainWindow::reallySaveAsEps()
 			filename = di.currentPath() + "/" + getFileNameByPage(doc, doc->currentPage()->pageNr(), "eps");
 	}
 	filename = QDir::toNativeSeparators(filename);
-	QString wdir = ".";
-	QString prefsDocDir=m_prefsManager.documentDir();
-	if (!prefsDocDir.isEmpty())
-		wdir = m_prefsManager.prefsFile->getContext("dirs")->get("eps", prefsDocDir);
-	else
-		wdir = m_prefsManager.prefsFile->getContext("dirs")->get("eps", ".");
-	QString fn = CFileDialog( wdir, tr("Save As"), tr("%1;;All Files (*)").arg(m_formatsManager->extensionsForFormat(FormatsManager::EPS)), filename, fdHidePreviewCheckBox | fdNone);
-	if (!fn.isEmpty())
+
+	PrefsContext* dirsContext = m_prefsManager.prefsFile->getContext("dirs");
+	QString prefsDocDir = m_prefsManager.documentDir();
+	QString workingDir = dirsContext->get("eps", prefsDocDir.isEmpty() ? "." : prefsDocDir);
+	QString fn = CFileDialog(workingDir, tr("Save As"), tr("%1;;All Files (*)").arg(m_formatsManager->extensionsForFormat(FormatsManager::EPS)), filename, fdHidePreviewCheckBox | fdNone);
+	if (fn.isEmpty())
+		return;
+
+	m_prefsManager.prefsFile->getContext("dirs")->set("eps", fn.left(fn.lastIndexOf("/")));
+	if (!overwrite(this, fn))
+		return;
+
+	QString epsError;
+	if (!DoSaveAsEps(fn, epsError))
 	{
-		m_prefsManager.prefsFile->getContext("dirs")->set("eps", fn.left(fn.lastIndexOf("/")));
-		if (overwrite(this, fn))
-		{
-			QString epsError;
-			if (!DoSaveAsEps(fn, epsError))
-			{
-				QString message = tr("Cannot write the file: \n%1").arg(fn);
-				if (!epsError.isEmpty())
-					message += QString("\n%1").arg(epsError);
-				ScMessageBox::warning(this, CommonStrings::trWarning, message);
-			}
-		}
+		QString message = tr("Cannot write the file: \n%1").arg(fn);
+		if (!epsError.isEmpty())
+			message += QString("\n%1").arg(epsError);
+		ScMessageBox::warning(this, CommonStrings::trWarning, message);
 	}
 }
 
@@ -8269,46 +8264,46 @@ QString ScribusMainWindow::CFileDialog(const QString& workingDirectory, const QS
 		dia->setExtension(f.suffix());
 		dia->setZipExtension(f.suffix() + ".gz");
 		dia->setSelection(defaultFilename);
-		if (useCompression != nullptr && dia->saveZip != nullptr)
-			dia->saveZip->setChecked(*useCompression);
+		if (useCompression != nullptr)
+			dia->setSaveZipFile(*useCompression);
 	}
 	if (optionFlags & fdDirectoriesOnly)
 	{
-		if (useCompression != nullptr && dia->saveZip != nullptr)
-			dia->saveZip->setChecked(*useCompression);
+		if (useCompression != nullptr)
+			dia->setSaveZipFile(*useCompression);
 		if (useFonts != nullptr)
-			dia->withFonts->setChecked(*useFonts);
+			dia->setIncludeFonts(*useFonts);
 		if (useProfiles != nullptr)
-			dia->withProfiles->setChecked(*useProfiles);
+			dia->setIncludeProfiles(*useProfiles);
 	}
-	QString retval("");
+	QString retVal;
 	if (dia->exec() == QDialog::Accepted)
 	{
-		LoadEnc = "";
+		LoadEnc.clear();
 		if (!(optionFlags & fdDirectoriesOnly))
 		{
-			LoadEnc = (optionFlags & fdShowCodecs) ? dia->optionCombo->currentText() : QString("");
+			LoadEnc = (optionFlags & fdShowCodecs) ? dia->textCodec() : QString();
 			if (optionFlags & fdCompressFile)
 			{
-				if (dia->saveZip->isChecked())
+				if (dia->saveZipFile())
 					dia->handleCompress();
 			}
 		}
 		else
 		{
-			if (useCompression != nullptr && dia->saveZip != nullptr)
-				*useCompression = dia->saveZip->isChecked();
+			if (useCompression != nullptr && dia->isSaveZipFileShown())
+				*useCompression = dia->saveZipFile();
 			if (useFonts != nullptr)
-				*useFonts = dia->withFonts->isChecked();
+				*useFonts = dia->includeFonts();
 			if (useProfiles != nullptr)
-				*useProfiles = dia->withProfiles->isChecked();
+				*useProfiles = dia->includeProfiles();
 		}
 		this->repaint();
-		retval = dia->selectedFile();
+		retVal = dia->selectedFile();
 		qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 	}
 	delete dia;
-	return retval;
+	return retVal;
 }
 
 
@@ -8848,6 +8843,7 @@ void ScribusMainWindow::iconSetChange()
 	IconManager& iconManager = IconManager::instance();
 
 	setWindowIcon(iconManager.loadIcon("AppIcon.png"));
+	setStyleSheet();
 
 	zoomDefaultToolbarButton->setIcon(iconManager.loadIcon("16/zoom-original.png"));
 	zoomOutToolbarButton->setIcon(iconManager.loadIcon("16/zoom-out.png"));

@@ -231,9 +231,6 @@ PageItem::PageItem(const PageItem & other)
 	oldLocalX(other.oldLocalX),
 	oldLocalY(other.oldLocalY),
 	m_Doc(other.m_Doc),
-	m_isAnnotation(other.m_isAnnotation),
-	m_annotation(other.m_annotation),
-	m_imageVisible(other.m_imageVisible),
 	m_lineWidth(other.m_lineWidth),
 	m_oldLineWidth(other.m_oldLineWidth),
 	patternStrokeVal(other.patternStrokeVal),
@@ -298,6 +295,8 @@ PageItem::PageItem(const PageItem & other)
 	verticalAlign(other.verticalAlign),
 	m_itemType(other.m_itemType),
 	m_itemName(other.m_itemName),
+	m_isAnnotation(other.m_isAnnotation),
+	m_annotation(other.m_annotation),
 	m_gradientName(other.m_gradientName),
 	m_patternName(other.m_patternName),
 	patternScaleX(other.patternScaleX),
@@ -338,6 +337,7 @@ PageItem::PageItem(const PageItem & other)
 	m_height(other.m_height),
 	m_rotation(other.m_rotation),
 	m_isSelected(other.m_isSelected),
+	m_imageVisible(other.m_imageVisible),
 	m_imageXScale(other.m_imageXScale),
 	m_imageYScale(other.m_imageYScale),
 	m_imageXOffset(other.m_imageXOffset),
@@ -1324,9 +1324,7 @@ bool PageItem::canBeLinkedTo(const PageItem* nxt) const
 	}
 	// If object is placed on a master page, it can be linked only to objects placed on same master page
 	// Same for objects placed on standard pages : they can only be linked to objects placed on standard pages
-	if (OnMasterPage != nxt->OnMasterPage)
-		return false;
-	return true;
+	return OnMasterPage == nxt->OnMasterPage;
 }
 
 void PageItem::link(PageItem* nxt, bool addPARSEP)

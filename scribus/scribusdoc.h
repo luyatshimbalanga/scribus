@@ -1307,8 +1307,6 @@ public: // Public attributes
 	/** \brief Minimum and Maximum Points of Document */
 	FPoint minCanvasCoordinate;
 	FPoint maxCanvasCoordinate;
-	FPoint stored_minCanvasCoordinate;
-	FPoint stored_maxCanvasCoordinate;
 	double rulerXoffset {0.0};
 	double rulerYoffset {0.0};
 	/** \brief List of Pages */
@@ -1415,7 +1413,6 @@ public:
 		bool operator<(const BookMa& other) const { return ItemNr < other.ItemNr; }
 	};
 	QList<BookMa> BookMarks;
-	bool OldBM {false};
 	bool hasName {false};
 	bool isConverted {false};
 	QTimer * const autoSaveTimer;

@@ -324,7 +324,7 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	previewDinUse = false;
 	printDinUse = false;
 	internalCopy = false;
-	internalCopyBuffer = "";
+	internalCopyBuffer.clear();
 	m_doc = new ScribusDoc();
 	m_doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 	m_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
@@ -618,9 +618,9 @@ void ScribusMainWindow::initDefaultValues()
 	doc = nullptr;
 	m_DocNr = 1;
 	m_PrinterUsed = false;
-	PDef.Pname = "";
-	PDef.Dname = "";
-	PDef.Command = "";
+	PDef.Pname.clear();
+	PDef.Dname.clear();
+	PDef.Command.clear();
 	m_keyrep = false;
 	m__arrowKeyDown = false;
 	ClipB = QApplication::clipboard();
@@ -980,11 +980,11 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->addMenuItemString("itemLower", "ItemLevel");
 	scrMenuMgr->addMenuItemString("itemRaiseToTop", "ItemLevel");
 	scrMenuMgr->addMenuItemString("itemLowerToBottom", "ItemLevel");
-	scrMenuMgr->createMenu("ItemLayer", tr("Send to La&yer"), "",false, true);
+	scrMenuMgr->createMenu("ItemLayer", tr("Send to La&yer"), QString(), false, true);
 	scrMenuMgr->addMenuItemString("ItemLayer", "Item");
 	scrMenuMgr->createMenu("SendTo", tr("Send to"), "Item");
 	scrMenuMgr->addMenuItemString("SendTo", "Item");
-	scrMenuMgr->createMenu("ItemSendToScrapbook", tr("Scrapbook"),"",false,true);
+	scrMenuMgr->createMenu("ItemSendToScrapbook", tr("Scrapbook"), QString(), false, true);
 	scrMenuMgr->addMenuItemString("ItemSendToScrapbook", "SendTo");
 	scrMenuMgr->addMenuItemString("itemSendToPattern", "SendTo");
 	scrMenuMgr->addMenuItemString("itemSendToInline", "SendTo");
@@ -1392,9 +1392,9 @@ void ScribusMainWindow::initStatusBar()
 	mainWindowXPosLabel->setFont(fo);
 	mainWindowYPosLabel = new QLabel( tr("Y:"), statusBar());
 	mainWindowYPosLabel->setFont(fo);
-	mainWindowXPosDataLabel = new QLabel( "", statusBar());
+	mainWindowXPosDataLabel = new QLabel(QString(), statusBar());
 	mainWindowXPosDataLabel->setFont(fo);
-	mainWindowYPosDataLabel = new QLabel( "", statusBar());
+	mainWindowYPosDataLabel = new QLabel(QString(), statusBar());
 	mainWindowYPosDataLabel->setFont(fo);
 	mainWindowXPosDataLabel->setMinimumWidth(mainWindowXPosDataLabel->fontMetrics().horizontalAdvance("99999.999"));
 	mainWindowYPosDataLabel->setMinimumWidth(mainWindowYPosDataLabel->fontMetrics().horizontalAdvance("99999.999"));
@@ -1409,9 +1409,9 @@ void ScribusMainWindow::initStatusBar()
 
 	statusBar()->setFont(fo);
 	statusBar()->addPermanentWidget(m_mainWindowStatusLabel, 5);
-	QLabel *s=new QLabel("");
-	QLabel *s2=new QLabel("");
-	QLabel *s3=new QLabel("");
+	QLabel *s = new QLabel(QString());
+	QLabel *s2 = new QLabel(QString());
+	QLabel *s3 = new QLabel(QString());
 	statusBar()->addPermanentWidget(s,1);
 	statusBar()->addPermanentWidget(s2,1);
 	statusBar()->addPermanentWidget(zoomWidget,0);
@@ -1623,7 +1623,7 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 		if (currItem->HasSel)
 		{
 			if (UndoManager::undoEnabled())
-				activeTransaction = m_undoManager->beginTransaction(Um::Selection, Um::IGroup, Um::ReplaceText, "", Um::IDelete);
+				activeTransaction = m_undoManager->beginTransaction(Um::Selection, Um::IGroup, Um::ReplaceText, QString(), Um::IDelete);
 			currItem->deleteSelectedTextFromFrame();
 		}
 		if (UndoManager::undoEnabled())
@@ -1634,7 +1634,7 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 				ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(QChar(unicodevalue)));
 			else
 			{
-				ss = new SimpleState(Um::InsertText,"",Um::ICreate);
+				ss = new SimpleState(Um::InsertText, QString(), Um::ICreate);
 				ss->set("INSERT_FRAMETEXT");
 				ss->set("ETEA", QString("insert_frametext"));
 				ss->set("TEXT_STR", QString(QChar(unicodevalue)));
@@ -1670,7 +1670,7 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 				ss->set("TEXT_STR", ss->get("TEXT_STR") + QString(SpecialChars::SHYPHEN));
 			else
 			{
-				ss = new SimpleState(Um::InsertText,"", Um::ICreate);
+				ss = new SimpleState(Um::InsertText, QString(), Um::ICreate);
 				ss->set("INSERT_FRAMETEXT");
 				ss->set("ETEA", QString("insert_frametext"));
 				ss->set("TEXT_STR", QString(SpecialChars::SHYPHEN));
@@ -2787,6 +2787,12 @@ void ScribusMainWindow::SwitchWin()
 		pagePalette->enablePalette(true);
 		setPreviewToolbar();
 	}
+
+	bool setter = !doc->layerLocked( doc->activeLayer() );
+	scrMenuMgr->setMenuEnabled("EditPasteRecent", ((scrapbookPalette->tempBView->objectMap.count() > 0) && (setter)));
+	scrMenuMgr->setMenuEnabled("Insert", setter);
+	scrMenuMgr->setMenuEnabled("ItemLayer", doc->layerCount() > 1);
+	appModeHelper->changeLayer(doc, (ScMimeData::clipboardHasScribusData() || (scrapbookPalette->tempHasContents())));
 }
 
 void ScribusMainWindow::HaveNewDoc()
@@ -2843,13 +2849,13 @@ void ScribusMainWindow::HaveNewSel()
 {
 	if (doc == nullptr)
 		return;
-	int SelectedType = -1;
+	int selectedType = -1;
 	PageItem *currItem = nullptr;
 	const int docSelectionCount = doc->m_Selection->count();
 	if (docSelectionCount > 0)
 	{
 		currItem = doc->m_Selection->itemAt(0);
-		SelectedType = currItem->itemType();
+		selectedType = currItem->itemType();
 	}
 	assert (docSelectionCount == 0 || currItem != nullptr); // help coverity analysis
 
@@ -2863,7 +2869,7 @@ void ScribusMainWindow::HaveNewSel()
 	if (!doc->inAnEditMode())
 		appModeHelper->enableActionsForSelection(this, doc);
 
-	switch (SelectedType)
+	switch (selectedType)
 	{
 	case -1: // None
 		outlinePalette->slotShowSelect(doc->currentPageNumber(), nullptr);
@@ -2927,33 +2933,13 @@ void ScribusMainWindow::HaveNewSel()
 		propertiesPalette->setTextFlowMode(currItem->textFlowMode());
 	}
 
-	if (SelectedType != -1)
+	if (selectedType != -1)
 	{
 		outlinePalette->slotShowSelect(currItem->OwnPage, currItem);
 		actionManager->connectNewSelectionActions(view, doc);
 	}
 
-	PluginManager& pluginManager(PluginManager::instance());
-	QStringList pluginNames(pluginManager.pluginNames(false));
-	ScPlugin* plugin;
-	ScActionPlugin* ixplug;
-	ScrAction* pluginAction = nullptr;
-	QString pName;
-	for (int i = 0; i < pluginNames.count(); ++i)
-	{
-		pName = pluginNames.at(i);
-		plugin = pluginManager.getPlugin(pName, true);
-		Q_ASSERT(plugin); // all the returned names should represent loaded plugins
-		if (plugin->inherits("ScActionPlugin"))
-		{
-			ixplug = dynamic_cast<ScActionPlugin*>(plugin);
-			Q_ASSERT(ixplug);
-			ScActionPlugin::ActionInfo ai(ixplug->actionInfo());
-			pluginAction = ScCore->primaryMainWindow()->scrActions[ai.name];
-			if (pluginAction != nullptr)
-				pluginAction->setEnabled(ixplug->handleSelection(doc, SelectedType));
-		}
-	}
+	appModeHelper->updateActionPluginsActions(doc);
 }
 
 void ScribusMainWindow::slotDocCh(bool /*reb*/)
@@ -3171,7 +3157,7 @@ void ScribusMainWindow::doPasteRecent(const QString& data)
 	{
 		UndoTransaction pasteAction;
 		if (UndoManager::undoEnabled())
-			pasteAction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::Create,"",Um::ICreate);
+			pasteAction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::Create, QString(), Um::ICreate);
 		view->deselectItems(true);
 		int docItemCount = doc->Items->count();
 		bool savedAlignGrid = doc->SnapGrid;
@@ -3234,17 +3220,15 @@ void ScribusMainWindow::importVectorFile()
 	formats.append("Scribus Objects (*.sce *.SCE)");
 	formats.sort(Qt::CaseInsensitive);
 	allFormats += formats.join(";;");
+
 	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString wdir = dirs->get("pastefile", ".");
 	CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdExistingFiles | fdDisableOk);
-	QString fileName("");
-	if (dia.exec() == QDialog::Accepted)
-	{
-		fileName = dia.selectedFile();
-		if (fileName.isEmpty())
-			return;
-	}
-	else
+	if (dia.exec() != QDialog::Accepted)
+		return;
+
+	QString fileName = dia.selectedFile();
+	if (fileName.isEmpty())
 		return;
 
 	PrefsManager::instance().prefsFile->getContext("dirs")->set("pastefile", fileName.left(fileName.lastIndexOf("/")));
@@ -3643,11 +3627,11 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 			view->close();
 			delete fileLoader;
 			delete doc;
-			doc=nullptr;
+			doc = nullptr;
 			mdiArea->removeSubWindow(w->getSubWin());
 			delete w;
-			view=nullptr;
-			doc=nullptr;
+			view = nullptr;
+			doc = nullptr;
 			setScriptRunning(false);
 			qApp->restoreOverrideCursor();
 			m_mainWindowStatusLabel->setText("");
@@ -4329,7 +4313,7 @@ bool ScribusMainWindow::slotFileSaveAs()
 			else if (!ret)
 				ScMessageBox::warning(this, CommonStrings::trWarning, tr("Cannot write the file: \n%1").arg( QDir::toNativeSeparators(fn) ));
 			else
-				doc->pdfOptions().fileName = ""; // #1482 reset the pdf file name
+				doc->pdfOptions().fileName.clear(); // #1482 reset the pdf file name
 		}
 	}
 	m_mainWindowStatusLabel->setText( tr("Ready"));
@@ -4634,18 +4618,18 @@ void ScribusMainWindow::slotEditCut()
 		currItem = doc->m_Selection->itemAt(i);
 		if ((currItem->isTextFrame() || currItem->isPathText()) && currItem==storyEditor->currentItem() && doc==storyEditor->currentDocument())
 		{
-				ScMessageBox::critical(this, tr("Cannot Cut In-Use Item"), tr("The item %1 is currently being edited by Story Editor. The cut operation will be cancelled").arg(currItem->itemName()));
-				return;
+			ScMessageBox::critical(this, tr("Cannot Cut In-Use Item"), tr("The item %1 is currently being edited by Story Editor. The cut operation will be cancelled").arg(currItem->itemName()));
+			return;
 		}
 	}
 	if (UndoManager::undoEnabled())
 	{
 		if (docSelectionCount > 1)
-			activeTransaction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::Cut,"",Um::ICut);
+			activeTransaction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::Cut, QString(), Um::ICut);
 		else
 		{
 			PageItem* item = doc->m_Selection->itemAt(0);
-			activeTransaction = m_undoManager->beginTransaction(item->getUName(), item->getUPixmap(), Um::Cut, "", Um::ICut);
+			activeTransaction = m_undoManager->beginTransaction(item->getUName(), item->getUPixmap(), Um::Cut, QString(), Um::ICut);
 		}
 	}
 	currItem = doc->m_Selection->itemAt(0);
@@ -4658,7 +4642,7 @@ void ScribusMainWindow::slotEditCut()
 			cItem = currItem->asTextFrame();
 		if (cItem->HasSel)
 		{
-			if ((cItem->itemText.length() == 0) || (!cItem->HasSel))
+			if (cItem->itemText.length() == 0)
 				return;
 			StoryText itemText(doc);
 			itemText.setDefaultStyle(cItem->itemText.defaultStyle());
@@ -4799,7 +4783,7 @@ void ScribusMainWindow::slotEditPaste()
 	if (!ScMimeData::clipboardHasScribusData() && (!internalCopy))
 		return;
 	if (UndoManager::undoEnabled())
-		activeTransaction = m_undoManager->beginTransaction(doc->currentPage()->getUName(), nullptr, Um::Paste, "", Um::IPaste);
+		activeTransaction = m_undoManager->beginTransaction(doc->currentPage()->getUName(), nullptr, Um::Paste, QString(), Um::IPaste);
 	PageItem* selItem = doc->m_Selection->itemAt(0);
 	if (((doc->appMode == modeEdit) || (doc->appMode == modeEditTable)) && selItem && (selItem->isTextFrame() || selItem->isTable()))
 	{
@@ -4917,7 +4901,7 @@ void ScribusMainWindow::slotEditPaste()
 			m_undoManager->setUndoEnabled(true);
 			if (UndoManager::undoEnabled())
 			{
-				SimpleState *is = new SimpleState(Um::Paste,"",Um::IPaste);
+				SimpleState *is = new SimpleState(Um::Paste, QString(), Um::IPaste);
 				is->set("PASTE_INLINE");
 				is->set("START", currItem->itemText.cursorPosition());
 				is->set("INDEX", fIndex);
@@ -4985,7 +4969,7 @@ void ScribusMainWindow::slotEditPaste()
 				m_undoManager->setUndoEnabled(true);
 				if (UndoManager::undoEnabled())
 				{
-					SimpleState *is = new SimpleState(Um::Paste, "", Um::IPaste);
+					SimpleState *is = new SimpleState(Um::Paste, QString(), Um::IPaste);
 					is->set("PASTE_INLINE");
 					is->set("START", currItem->itemText.cursorPosition());
 					is->set("INDEX", fIndex);
@@ -5005,7 +4989,7 @@ void ScribusMainWindow::slotEditPaste()
 			text = text.replace('\n', SpecialChars::PARSEP);
 			if (UndoManager::undoEnabled())
 			{
-				SimpleState *is = new SimpleState(Um::Paste, "", Um::IPaste);
+				SimpleState *is = new SimpleState(Um::Paste, QString(), Um::IPaste);
 				is->set("PASTE_PLAINTEXT");
 				is->set("START", currItem->itemText.cursorPosition());
 				is->set("TEXT", text);
@@ -5437,8 +5421,8 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 	UndoTransaction activeTransaction;
 	if (UndoManager::undoEnabled())
 	{
-		activeTransaction = m_undoManager->beginTransaction(doc->getUName(), Um::IDocument, (numPages == 1) ? Um::AddPage : Um::AddPages, "", Um::ICreate);
-		SimpleState *ss = new SimpleState(Um::AddPage, "", Um::ICreate);
+		activeTransaction = m_undoManager->beginTransaction(doc->getUName(), Um::IDocument, (numPages == 1) ? Um::AddPage : Um::AddPages, QString(), Um::ICreate);
+		SimpleState *ss = new SimpleState(Um::AddPage, QString(), Um::ICreate);
 		ss->set("ADD_PAGE");
 		ss->set("PAGE", wo);
 		ss->set("WHERE", where);
@@ -6251,7 +6235,7 @@ void ScribusMainWindow::deletePage(int from, int to)
 	guidePalette->setDoc(nullptr);
 	if (UndoManager::undoEnabled())
 		activeTransaction = m_undoManager->beginTransaction(doc->documentFileName(), Um::IDocument,
-														  (from - to == 0) ? Um::DeletePage : Um::DeletePages, "",
+														  (from - to == 0) ? Um::DeletePage : Um::DeletePages, QString(),
 														  Um::IDelete);
 	PageItem* ite;
 	doc->m_Selection->clear();
@@ -6288,7 +6272,7 @@ void ScribusMainWindow::deletePage(int from, int to)
 	{
 		if (UndoManager::undoEnabled())
 		{
-			SimpleState *ss = new SimpleState(Um::DeletePage, "", Um::ICreate);
+			SimpleState *ss = new SimpleState(Um::DeletePage, QString(), Um::ICreate);
 			ss->set("DELETE_PAGE");
 			ss->set("PAGENR", a + 1);
 			ss->set("PAGENAME",   doc->Pages->at(a)->pageName());
@@ -6529,7 +6513,7 @@ void ScribusMainWindow::duplicateItem()
 
 	UndoTransaction trans;
 	if (UndoManager::undoEnabled())
-		trans = m_undoManager->beginTransaction(Um::Selection, Um::IPolygon, Um::Duplicate, "", Um::IMultipleDuplicate);
+		trans = m_undoManager->beginTransaction(Um::Selection, Um::IPolygon, Um::Duplicate, QString(), Um::IMultipleDuplicate);
 
 	ItemMultipleDuplicateData mdData;
 	mdData.type = 0;
@@ -6555,7 +6539,7 @@ void ScribusMainWindow::duplicateItem()
 	doc->SnapGuides = savedAlignGuides;
 	doc->SnapElement = savedAlignElement;
 	internalCopy = false;
-	internalCopyBuffer = "";
+	internalCopyBuffer.clear();
 	view->DrawNew();
 }
 
@@ -7487,8 +7471,8 @@ void ScribusMainWindow::doSaveAsPDF()
 		{
 			pdfViewer = QFileDialog::getOpenFileName(this, tr("Locate your PDF viewer"), QString(), QString());
 			if (!QFileInfo::exists(pdfViewer))
-				pdfViewer="";
-			PrefsManager::instance().appPrefs.extToolPrefs.pdfViewerExecutable=pdfViewer;
+				pdfViewer.clear();
+			PrefsManager::instance().appPrefs.extToolPrefs.pdfViewerExecutable = pdfViewer;
 		}
 		if (!pdfViewer.isEmpty())
 		{
@@ -9025,7 +9009,7 @@ void ScribusMainWindow::slotEditCopyContents()
 	PageItem_ImageFrame* imageItem = currItem->asImageFrame();
 	if (!imageItem->imageIsAvailable)
 		return;
-	contentsBuffer.contentsFileName = "";
+	contentsBuffer.contentsFileName.clear();
 	contentsBuffer.sourceType = PageItem::ImageFrame;
 	contentsBuffer.contentsFileName = imageItem->Pfile;
 	contentsBuffer.LocalScX = imageItem->imageXScale();
@@ -9119,7 +9103,7 @@ void ScribusMainWindow::slotItemTransform()
 		return;
 	UndoTransaction trans;
 	if (UndoManager::undoEnabled())
-		trans = m_undoManager->beginTransaction(Um::Selection,Um::IPolygon,Um::Transform,"",Um::IMove);
+		trans = m_undoManager->beginTransaction(Um::Selection, Um::IPolygon, Um::Transform, QString(), Um::IMove);
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	int count=td.getCount();
 	QTransform matrix(td.getTransformMatrix());
@@ -9148,7 +9132,6 @@ void ScribusMainWindow::PutToInline(const QString& buffer)
 	doc->SnapGrid  = false;
 	doc->SnapGuides = false;
 	doc->SnapElement = false;
-	bool wasUndo = m_undoManager->undoEnabled();
 	m_undoManager->setUndoEnabled(false);
 	slotElemRead(buffer, 0, 0, false, true, doc, view);
 	doc->SnapGrid  = savedAlignGrid;
@@ -9184,7 +9167,7 @@ void ScribusMainWindow::PutToInline(const QString& buffer)
 	*doc->m_Selection=tempSelection;
 	doc->minCanvasCoordinate = minSize;
 	doc->maxCanvasCoordinate = maxSize;
-	m_undoManager->setUndoEnabled(wasUndo);
+	m_undoManager->setUndoEnabled(true);
 	inlinePalette->unsetDoc();
 	inlinePalette->setDoc(doc);
 	if (outlinePalette->isVisible())
@@ -9208,7 +9191,6 @@ void ScribusMainWindow::PutToInline()
 	doc->SnapGrid  = false;
 	doc->SnapGuides = false;
 	doc->SnapElement = false;
-	bool wasUndo = m_undoManager->undoEnabled();
 	m_undoManager->setUndoEnabled(false);
 	internalCopy = true;
 	slotEditCopy();
@@ -9247,7 +9229,7 @@ void ScribusMainWindow::PutToInline()
 	*doc->m_Selection=tempSelection;
 	doc->minCanvasCoordinate = minSize;
 	doc->maxCanvasCoordinate = maxSize;
-	m_undoManager->setUndoEnabled(wasUndo);
+	m_undoManager->setUndoEnabled(true);
 	inlinePalette->unsetDoc();
 	inlinePalette->setDoc(doc);
 	if (outlinePalette->isVisible())
@@ -9584,17 +9566,14 @@ void ScribusMainWindow::insertMark(MarkType mType)
 	if  (doc->appMode != modeEdit)
 		return;
 
-	UndoTransaction trans;
 	PageItem* currItem = doc->m_Selection->itemAt(0);
 	if (!currItem->isTextFrame())
 		return;
-	if (currItem->HasSel)
-	{
-		if (UndoManager::instance()->undoEnabled())
-			trans = m_undoManager->beginTransaction(Um::Selection,Um::IDelete,Um::Delete,"",Um::IDelete);
-		//inserting mark replace some selected text
-		currItem->asTextFrame()->deleteSelectedTextFromFrame();
-	}
+
+	UndoTransaction trans;
+	if (UndoManager::undoEnabled())
+		trans = m_undoManager->beginTransaction();
+
 	ScItemsState* is = nullptr;
 	if (insertMarkDialog(currItem->asTextFrame(), mType, is))
 	{
@@ -9675,8 +9654,8 @@ void ScribusMainWindow::slotInsertMarkNote()
 		UndoTransaction trans;
 		if (currItem->HasSel)
 		{
-			if (UndoManager::instance()->undoEnabled())
-				trans = m_undoManager->beginTransaction(Um::Selection,Um::IDelete,Um::Delete,"",Um::IDelete);
+			if (UndoManager::undoEnabled())
+				trans = m_undoManager->beginTransaction(Um::Selection, Um::IDelete, Um::Delete, QString(), Um::IDelete);
 			//inserting mark replace some selected text
 			currItem->asTextFrame()->deleteSelectedTextFromFrame();
 		}
@@ -9710,7 +9689,7 @@ void ScribusMainWindow::slotInsertMarkNote()
 			is->set("MARK", QString("new"));
 			is->set("label", mrk->label);
 			is->set("type", (int) MARKNoteMasterType);
-			is->set("strtxt", QString(""));
+			is->set("strtxt", QString());
 			is->set("nStyle", nStyle->name());
 			is->set("at", currItem->itemText.cursorPosition() -1);
 			is->insertItem("inItem", currItem);
@@ -9729,30 +9708,30 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 		//avoid inserting in master pages other marks than Variable Text
 		return false;
 	
-	MarkInsert* insertMDialog = nullptr;
+	QScopedPointer<MarkInsert> insertMDialog;
 	switch (mrkType)
 	{
 	case MARKAnchorType:
-		insertMDialog = (MarkInsert*) new MarkAnchor(this);
+		insertMDialog.reset((MarkInsert*) new MarkAnchor(this));
 		break;
 	case MARKVariableTextType:
-		insertMDialog = (MarkInsert*) new MarkVariableText(doc->marksList(), this);
+		insertMDialog.reset((MarkInsert*) new MarkVariableText(doc->marksList(), this));
 		break;
 	case MARK2ItemType:
-		insertMDialog = (MarkInsert*) new Mark2Item(this);
+		insertMDialog.reset((MarkInsert*) new Mark2Item(this));
 		break;
 	case MARK2MarkType:
-		insertMDialog = (MarkInsert*) new Mark2Mark(doc->marksList(), nullptr, this);
+		insertMDialog.reset((MarkInsert*) new Mark2Mark(doc->marksList(), nullptr, this));
 		break;
 	case MARKNoteMasterType:
-		insertMDialog = (MarkInsert*) new MarkNote(doc->m_docNotesStylesList, this);
+		insertMDialog.reset((MarkInsert*) new MarkNote(doc->m_docNotesStylesList, this));
 		break;
 	case MARKIndexType:
 		break;
 	default:
 		break;
 	}
-	if (insertMDialog == nullptr)
+	if (insertMDialog.isNull())
 	{
 		qDebug() << "Dialog not implemented for such marks type " << mrkType;
 		return false;
@@ -9760,158 +9739,169 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 	bool docWasChanged = false;
 	
 	insertMDialog->setWindowTitle(tr("Insert new ") + insertMDialog->windowTitle());
-	if (insertMDialog->exec())
+	if (insertMDialog->exec() != QDialog::Accepted)
+		return false;
+
+	UndoTransaction trans;
+	if (currItem->HasSel)
 	{
-		Mark* mrk = nullptr;
-		Mark oldMark;
-		MarkData markdata;
-		if (currItem != nullptr)
-			markdata.itemName = currItem->itemName();
-		QString label = "", text = "";
-		NotesStyle* NStyle = nullptr;
-		bool insertExistedMark = false;
-		switch (mrkType)
-		{
-		case MARKAnchorType:
-			//only gets label for new mark
-			insertMDialog->values(label);
-			if (label.isEmpty())
-				label = tr("Anchor mark");
-			markdata.itemPtr = currItem;
-			break;
-		case MARKVariableTextType:
-			mrk = insertMDialog->values(label, text);
-			if ((mrk == nullptr) && (text.isEmpty()))
-				return false; //FIX ME here user should be warned that inserting of mark fails and why
-			if (label.isEmpty())
-				label = tr("Mark with <%1> variable text").arg(text);
-			markdata.strtxt = text;
-			break;
-		case MARK2ItemType:
-			insertMDialog->values(label, markdata.itemPtr);
-			if (markdata.itemPtr == nullptr)
-				return false; //FIX ME here user should be warned that inserting of mark fails and why
-			if (label.isEmpty())
-				label = tr("Mark to %1 item").arg(markdata.itemPtr->itemName());
-			markdata.strtxt = QString::number(markdata.itemPtr->OwnPage +1);
-			break;
-		case MARK2MarkType:
-			//gets pointer to referenced mark
-			Mark* mrkPtr;
-			insertMDialog->values(label, mrkPtr);
-			if (mrkPtr == nullptr)
-				return false; //FIX ME here user should be warned that inserting of mark fails and why
-			if (label.isEmpty())
-				label = tr("Mark to %1 mark").arg(mrkPtr->label);
-			markdata.strtxt = QString::number(mrkPtr->OwnPage +1);
-			markdata.destmarkName = mrkPtr->label;
-			markdata.destmarkType = mrkPtr->getType();
-			break;
-		case MARKNoteMasterType:
-			//gets pointer to chosen notes style
-			NStyle = insertMDialog->values();
-			if (NStyle == nullptr)
-				return false;
+		if (UndoManager::undoEnabled())
+			trans = m_undoManager->beginTransaction(Um::Selection, Um::IDelete, Um::Delete, QString(), Um::IDelete);
+		//inserting mark replace some selected text
+		currItem->asTextFrame()->deleteSelectedTextFromFrame();
+	}
 
-			markdata.notePtr = doc->newNote(NStyle);
-			label = "NoteMark_" + NStyle->name();
-			if (NStyle->range() == NSRstory)
-				label += " in " + currItem->firstInChain()->itemName();
-			break;
-		case MARKIndexType:
+	Mark* mrk = nullptr;
+	Mark oldMark;
+	MarkData markdata;
+	if (currItem != nullptr)
+		markdata.itemName = currItem->itemName();
+	QString label, text;
+	NotesStyle* NStyle = nullptr;
+	bool insertExistedMark = false;
+	switch (mrkType)
+	{
+	case MARKAnchorType:
+		//only gets label for new mark
+		insertMDialog->values(label);
+		if (label.isEmpty())
+			label = tr("Anchor mark");
+		markdata.itemPtr = currItem;
+		break;
+	case MARKVariableTextType:
+		mrk = insertMDialog->values(label, text);
+		if ((mrk == nullptr) && (text.isEmpty()))
+			return false; //FIX ME here user should be warned that inserting of mark fails and why
+		if (label.isEmpty())
+			label = tr("Mark with <%1> variable text").arg(text);
+		markdata.strtxt = text;
+		break;
+	case MARK2ItemType:
+		insertMDialog->values(label, markdata.itemPtr);
+		if (markdata.itemPtr == nullptr)
+			return false; //FIX ME here user should be warned that inserting of mark fails and why
+		if (label.isEmpty())
+			label = tr("Mark to %1 item").arg(markdata.itemPtr->itemName());
+		markdata.strtxt = QString::number(markdata.itemPtr->OwnPage +1);
+		break;
+	case MARK2MarkType:
+		//gets pointer to referenced mark
+		Mark* mrkPtr;
+		insertMDialog->values(label, mrkPtr);
+		if (mrkPtr == nullptr)
+			return false; //FIX ME here user should be warned that inserting of mark fails and why
+		if (label.isEmpty())
+			label = tr("Mark to %1 mark").arg(mrkPtr->label);
+		markdata.strtxt = QString::number(mrkPtr->OwnPage + 1);
+		markdata.destmarkName = mrkPtr->label;
+		markdata.destmarkType = mrkPtr->getType();
+		break;
+	case MARKNoteMasterType:
+		//gets pointer to chosen notes style
+		NStyle = insertMDialog->values();
+		if (NStyle == nullptr)
 			return false;
-			break;
-		default:
-			return false;
-			break;
-		}
-		if (mrk == nullptr)
-		{
-			//check if label for new mark can be used as is
-			if (mrkType == MARKNoteMasterType)
-			{
-				if (doc->getMark(label + "_1", mrkType) != nullptr)
-					getUniqueName(label,doc->marksLabelsList(mrkType), "_"); //FIX ME here user should be warned that inserted mark`s label was changed
-				else
-					label = label + "_1";
-			}
-			else
-				getUniqueName(label,doc->marksLabelsList(mrkType), "_");
-			mrk = doc->newMark();
-			mrk->setValues(label, currItem->OwnPage, mrkType, markdata);
-		}
-		else
-		{ // that must be variable text mark
-			oldMark = *mrk;
-			mrk->setString(markdata.strtxt);
-			mrk->label = label;
-			insertExistedMark = true;
-			doc->flag_updateMarksLabels = true;
-		}
 
-		currItem->itemText.insertMark(mrk);
-		mrk->OwnPage = currItem->OwnPage;
+		markdata.notePtr = doc->newNote(NStyle);
+		label = "NoteMark_" + NStyle->name();
+		if (NStyle->range() == NSRstory)
+			label += " in " + currItem->firstInChain()->itemName();
+		break;
+	case MARKIndexType:
+		return false;
+		break;
+	default:
+		return false;
+		break;
+	}
 
-
+	if (mrk == nullptr)
+	{
+		//check if label for new mark can be used as is
 		if (mrkType == MARKNoteMasterType)
 		{
-			mrk->getNotePtr()->setMasterMark(mrk);
-			mrk->clearString();
+			if (doc->getMark(label + "_1", mrkType) != nullptr)
+				getUniqueName(label, doc->marksLabelsList(mrkType), "_"); //FIX ME here user should be warned that inserted mark`s label was changed
+			else
+				label = label + "_1";
 		}
-
-		if (UndoManager::undoEnabled())
-		{
-			if (mrk->isType(MARKNoteMasterType))
-				is = new ScItemsState(UndoManager::InsertNote);
-			else if (insertExistedMark && ((oldMark.label != mrk->label) || (oldMark.getString() != mrk->getString())))
-				is = new ScItemsState(UndoManager::EditMark);
-			else
-				is = new ScItemsState(UndoManager::InsertMark);
-			is->set("ETEA", mrk->label);
-			is->set("label", mrk->label);
-			is->set("type", (int) mrk->getType());
-			if (insertExistedMark)
-			{
-				is->set("MARK", QString("insert_existing"));
-				if (mrk->label != oldMark.label)
-				{
-					is->set("labelOLD", oldMark.label);
-					is->set("labelNEW", mrk->label);
-					doc->flag_updateMarksLabels = true;
-				}
-				if (oldMark.getString() != mrk->getString())
-				{
-					is->set("strOLD", oldMark.getString());
-					is->set("strNEW", mrk->getString());
-				}
-			}
-			else
-			{
-				is->set("MARK", QString("new"));
-				is->set("strtxt", mrk->getString());
-				if (mrk->isType(MARK2MarkType))
-				{
-					QString dName;
-					MarkType dType;
-					mrk->getMark(dName, dType);
-					is->set("dName", dName);
-					is->set("dType", (int) dType);
-				}
-				if (mrk->isType(MARK2ItemType))
-					is->insertItem("itemPtr", mrk->getItemPtr());
-				if (mrk->isType(MARKNoteMasterType))
-					is->set("nStyle", mrk->getNotePtr()->notesStyle()->name());
-			}
-			is->set("at", currItem->itemText.cursorPosition() -1);
-			if (currItem->isNoteFrame())
-				is->set("noteframeName", currItem->getUName());
-			else
-				is->insertItem("inItem", currItem);
-			m_undoManager->action(doc, is);
-			docWasChanged = true;
-		}
+		else
+			getUniqueName(label, doc->marksLabelsList(mrkType), "_");
+		mrk = doc->newMark();
+		mrk->setValues(label, currItem->OwnPage, mrkType, markdata);
 	}
-	delete insertMDialog;
+	else
+	{ // that must be variable text mark
+		oldMark = *mrk;
+		mrk->setString(markdata.strtxt);
+		mrk->label = label;
+		insertExistedMark = true;
+		doc->flag_updateMarksLabels = true;
+	}
+
+	currItem->itemText.insertMark(mrk);
+	mrk->OwnPage = currItem->OwnPage;
+
+	if (mrkType == MARKNoteMasterType)
+	{
+		mrk->getNotePtr()->setMasterMark(mrk);
+		mrk->clearString();
+	}
+
+	if (UndoManager::undoEnabled())
+	{
+		if (mrk->isType(MARKNoteMasterType))
+			is = new ScItemsState(UndoManager::InsertNote);
+		else if (insertExistedMark && ((oldMark.label != mrk->label) || (oldMark.getString() != mrk->getString())))
+			is = new ScItemsState(UndoManager::EditMark);
+		else
+			is = new ScItemsState(UndoManager::InsertMark);
+		is->set("ETEA", mrk->label);
+		is->set("label", mrk->label);
+		is->set("type", (int) mrk->getType());
+		if (insertExistedMark)
+		{
+			is->set("MARK", QString("insert_existing"));
+			if (mrk->label != oldMark.label)
+			{
+				is->set("labelOLD", oldMark.label);
+				is->set("labelNEW", mrk->label);
+				doc->flag_updateMarksLabels = true;
+			}
+			if (oldMark.getString() != mrk->getString())
+			{
+				is->set("strOLD", oldMark.getString());
+				is->set("strNEW", mrk->getString());
+			}
+		}
+		else
+		{
+			is->set("MARK", QString("new"));
+			is->set("strtxt", mrk->getString());
+			if (mrk->isType(MARK2MarkType))
+			{
+				QString dName;
+				MarkType dType;
+				mrk->getMark(dName, dType);
+				is->set("dName", dName);
+				is->set("dType", (int) dType);
+			}
+			if (mrk->isType(MARK2ItemType))
+				is->insertItem("itemPtr", mrk->getItemPtr());
+			if (mrk->isType(MARKNoteMasterType))
+				is->set("nStyle", mrk->getNotePtr()->notesStyle()->name());
+		}
+		is->set("at", currItem->itemText.cursorPosition() -1);
+		if (currItem->isNoteFrame())
+			is->set("noteframeName", currItem->getUName());
+		else
+			is->insertItem("inItem", currItem);
+		m_undoManager->action(doc, is);
+		docWasChanged = true;
+	}
+
+	if (trans)
+		trans.commit();
 	return docWasChanged;
 }
 

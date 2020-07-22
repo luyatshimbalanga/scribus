@@ -9203,7 +9203,7 @@ void ScribusDoc::itemSelection_ApplyCharStyle(const CharStyle & newStyle, Select
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.isSelected())
+				if (currItem->itemText.hasSelection())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -9334,7 +9334,7 @@ void ScribusDoc::itemSelection_SetCharStyle(const CharStyle & newStyle, Selectio
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.isSelected())
+				if (currItem->itemText.hasSelection())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -9414,7 +9414,7 @@ void ScribusDoc::itemSelection_EraseCharStyle(Selection* customSelection)
 			int length = currItem->lastInFrame() - start + 1;
 			if ((appMode == modeEdit) || (appMode == modeEditTable))
 			{
-				if (currItem->itemText.isSelected())
+				if (currItem->itemText.hasSelection())
 				{
 					start = currItem->itemText.startOfSelection();
 					length = currItem->itemText.endOfSelection() - start;
@@ -10917,10 +10917,10 @@ void ScribusDoc::item_setFrameShape(PageItem* item, int frameType, int count, do
 	if ((item->itemType() == PageItem::PolyLine) || (item->itemType() == PageItem::PathText))
 			return;
 	UndoTransaction activeTransaction;
-	if (m_undoManager->undoEnabled())
-		activeTransaction = m_undoManager->beginTransaction(Um::Selection,Um::IImageFrame,Um::ChangeShapeType,"",Um::IBorder);
+	if (UndoManager::undoEnabled())
+		activeTransaction = m_undoManager->beginTransaction(Um::Selection, Um::IImageFrame, Um::ChangeShapeType, QString(), Um::IBorder);
 
-	if (frameType!=0)
+	if (frameType != 0)
 		item->setCornerRadius(0);
 	if (UndoManager::undoEnabled())
 	{
@@ -17127,7 +17127,7 @@ void ScribusDoc::deleteNotesStyle(const QString& nsName)
 	if (noteStyle == m_docNotesStylesList.at(0))
 		return;
 	UndoTransaction activeTransaction;
-	if (UndoManager::instance()->undoEnabled())
+	if (UndoManager::undoEnabled())
 		activeTransaction = m_undoManager->beginTransaction(Um::DeleteNotesStyle, Um::IDelete, Um::Delete, "", Um::IDelete);
 	QList<TextNote*> toDel;
 	//search for notes to deleting

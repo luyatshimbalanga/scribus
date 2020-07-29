@@ -313,7 +313,7 @@ public slots:
 	void changeLayer(int);
 	void setLayerMenuText(const QString &);
 	void showLayer();
-	void slotSetCurrentPage(int Seite);
+	void slotSetCurrentPage(int pageIndex);
 	void setCurrentPage(int p);
 	void ManageJava();
 	void editSelectedSymbolStart();
@@ -328,7 +328,7 @@ public slots:
 	void newFileFromTemplate();
 	bool slotPageImport();
 	bool loadPage(const QString& fileName, int Nr, bool Mpa, const QString& renamedPageName=QString());
-	void GotoLa(int l);
+	void gotoLayer(int l);
 	void slotGetContent();
 	void slotGetContent2(); // kk2006
 	void slotGetClipboardImage();

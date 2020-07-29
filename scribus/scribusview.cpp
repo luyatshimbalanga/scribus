@@ -1503,38 +1503,38 @@ void ScribusView::TransformPoly(int mode, int rot, double scaling)
 				ma.shear(0, 0.017455);
 				break;
 			case 8:
-				ma.scale(1.0 - (scaling / tpS.x()),1.0 - (scaling / tpS.y()));
+				ma.scale(1.0 - (scaling / tpS.x()), 1.0 - (scaling / tpS.y()));
 				break;
 			case 9:
-				ma.scale(1.0 + (scaling / tpS.x()),1.0 + (scaling / tpS.y()));
+				ma.scale(1.0 + (scaling / tpS.x()), 1.0 + (scaling / tpS.y()));
 				break;
 				//10-13 are for scaling the contour line in shape edit mode
 			case 10:
 				{
-					double s=1.0 - (scaling/(tp2.x() - tp.x()));
+					double s = 1.0 - (scaling / (tp2.x() - tp.x()));
 					ma.scale(s, 1);
-					ma.translate(-scaling/s/2,0);
+					ma.translate(-scaling / s / 2, 0);
 				}
 				break;
 			case 11:
 				{
-					double s=1.0 - (scaling/(tp2.x() - tp.x()));
+					double s = 1.0 - (scaling / (tp2.x() - tp.x()));
 					ma.scale(s, 1);
-					ma.translate(scaling/s/2,0);
+					ma.translate(scaling / s / 2, 0);
 				}
 				break;
 			case 12:
 				{
-					double s=1.0 - (scaling/(tp2.y() - tp.y()));
+					double s = 1.0 - (scaling / (tp2.y() - tp.y()));
 					ma.scale(1, s);
-					ma.translate(0,-scaling/s/2);
+					ma.translate(0, -scaling / s / 2);
 				}
 				break;
 			case 13:
 				{
-					double s=1.0 - (scaling/(tp2.y() - tp.y()));
+					double s = 1.0 - (scaling/(tp2.y() - tp.y()));
 					ma.scale(1, s);
-					ma.translate(0,scaling/s/2);
+					ma.translate(0, scaling / s / 2);
 				}
 				break;
 		}
@@ -1592,10 +1592,10 @@ void ScribusView::TransformPoly(int mode, int rot, double scaling)
 			ma.shear(0, 0.017455);
 			break;
 		case 8:
-			ma.scale(1.0 - (scaling / oldWidth),1.0 - (scaling / oldHeight));
+			ma.scale(1.0 - (scaling / oldWidth), 1.0 - (scaling / oldHeight));
 			break;
 		case 9:
-			ma.scale(1.0 + (scaling / oldWidth),1.0 + (scaling / oldHeight));
+			ma.scale(1.0 + (scaling / oldWidth), 1.0 + (scaling / oldHeight));
 			break;
 	}
 	currItem->PoLine.map(ma);
@@ -1633,10 +1633,10 @@ void ScribusView::TransformPoly(int mode, int rot, double scaling)
 			ma2.shear(0, 0.017455);
 			break;
 		case 8:
-			ma2.scale(1.0 - (scaling / oldWidth),1.0 - (scaling / oldHeight));
+			ma2.scale(1.0 - (scaling / oldWidth), 1.0 - (scaling / oldHeight));
 			break;
 		case 9:
-			ma2.scale(1.0 + (scaling / oldWidth),1.0 + (scaling / oldHeight));
+			ma2.scale(1.0 + (scaling / oldWidth), 1.0 + (scaling / oldHeight));
 			break;
 	}
 	double x = ma2.m11() * n.x() + ma2.m21() * n.y() + ma2.dx();
@@ -2411,41 +2411,47 @@ void ScribusView::setCanvasPos(double x, double y)
 	setContentsPos(nx.x(), nx.y());
 }
 
-void ScribusView::GotoLa(int l)
+void ScribusView::GotoLayer(int l)
 {
 	int level = m_doc->layerCount()-l-1;
-	int layerID=m_doc->layerIDFromLevel(level);
-	if (layerID==-1)
+	int layerID = m_doc->layerIDFromLevel(level);
+	if (layerID == -1)
 		return;
 	m_doc->setActiveLayer(layerID);
 	//CB TODO fix this to use view calls after 1.3.2 release
 	m_ScMW->changeLayer(m_doc->activeLayer());
-	emit changeLA(layerID);
+	emit layerChanged(layerID);
 }
 
-void ScribusView::ChgUnit(int art)
+void ScribusView::ChgUnit(int unitIndex)
 {
-	emit changeUN(art);
+	emit unitChanged(unitIndex);
 	unitChange();
 	vertRuler->update();
 	horizRuler->update();
 }
 
 
-void ScribusView::GotoPa(int Seite)
+void ScribusView::GotoPa(int pageNumber)
 {
 	deselectItems();
-	GotoPage(Seite-1);
+	GotoPage(pageNumber - 1);
 	setFocus();
 }
 
-void ScribusView::GotoPage(int Seite)
+void ScribusView::GotoPage(int pageIndex)
 {
-	m_doc->setCurrentPage(m_doc->Pages->at(Seite));
+	QRectF newTrimRect = m_doc->Pages->at(pageIndex)->trimRect();
+	QRectF oldTrimRect = m_doc->currentPage() ? m_doc->currentPage()->trimRect() : newTrimRect;
+	m_doc->setCurrentPage(m_doc->Pages->at(pageIndex));
 	if (m_ScMW->scriptIsRunning())
 		return;
-	m_ScMW->slotSetCurrentPage(Seite);
+	QRect updateRect = m_canvas->canvasToLocal(oldTrimRect.united(newTrimRect));
+	m_ScMW->slotSetCurrentPage(pageIndex);
+	m_canvas->setForcedRedraw(true);
+	m_canvas->resetRenderMode();
 	setCanvasPos(m_doc->currentPage()->xOffset() - 10, m_doc->currentPage()->yOffset() - 10);
+	updateContents(updateRect.adjusted(-5, -5, 10, 10));
 	m_ScMW->HaveNewSel();
 }
 
@@ -3538,7 +3544,7 @@ void ScribusView::updateContents(QRect box)
 
 void ScribusView::updateContents(int x, int y, int w, int h)
 {
-	updateContents(QRect(x,y,w,h));
+	updateContents(QRect(x, y, w, h));
 }
 
 void ScribusView::repaintContents(QRect box)

@@ -2642,7 +2642,7 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 		connect(zoomDefaultToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoom100()));
 		connect(zoomOutToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomOut()));
 		connect(zoomInToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomIn()));
-		connect(layerMenu, SIGNAL(activated(int)), doc->view(), SLOT(GotoLa(int)));
+		connect(layerMenu, SIGNAL(activated(int)), doc->view(), SLOT(GotoLayer(int)));
 		scrActions["viewPreviewMode"]->blockSignals(true);
 		scrActions["viewPreviewMode"]->setChecked(doc->drawAsPreview);
 		scrActions["viewPreviewMode"]->blockSignals(false);
@@ -2823,8 +2823,8 @@ void ScribusMainWindow::HaveNewDoc()
 	// #9275 : scripter must call HaveNewDoc() in case new doc has been created in a script
 	// We may consequently have to call HaveNewDoc several times for the same doc.
 	// Use Qt::UniqueConnection here to avoid multiple identical signal connections
-	connect(view, SIGNAL(changeUN(int)), this, SLOT(slotChangeUnit(int)), Qt::UniqueConnection);
-	connect(view, SIGNAL(changeLA(int)), layerPalette, SLOT(markActiveLayer(int)), Qt::UniqueConnection);
+	connect(view, SIGNAL(unitChanged(int)), this, SLOT(slotChangeUnit(int)), Qt::UniqueConnection);
+	connect(view, SIGNAL(layerChanged(int)), layerPalette, SLOT(markActiveLayer(int)), Qt::UniqueConnection);
 	connect(this, SIGNAL(changeLayers(int)), layerPalette, SLOT(markActiveLayer(int)), Qt::UniqueConnection);
 	connect(view->horizRuler, SIGNAL(MarkerMoved(double,double)), this, SLOT(setStatusBarTextPosition(double,double)), Qt::UniqueConnection);
 	connect(view->horizRuler, SIGNAL(DocChanged(bool)), this, SLOT(slotDocCh(bool)), Qt::UniqueConnection);
@@ -2838,8 +2838,6 @@ void ScribusMainWindow::HaveNewDoc()
 	connect(view, SIGNAL(ItemCharStyle(const CharStyle&)), contentPalette, SLOT(update(const CharStyle&)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemTextEffects(int)), this, SLOT(setStyleEffects(int)), Qt::UniqueConnection);
 	connect(view, SIGNAL(ItemTextAlign(int)), this, SLOT(setAlignmentValue(int)), Qt::UniqueConnection);
-	connect(view, SIGNAL(LoadPic()), this, SLOT(slotGetContent()), Qt::UniqueConnection);
-	connect(view, SIGNAL(StatusPic()), this, SLOT(StatusPic()), Qt::UniqueConnection);
 	connect(view, SIGNAL(LoadElem(QString,double,double,bool,bool,ScribusDoc*,ScribusView*)), this, SLOT(slotElemRead(QString,double,double,bool,bool,ScribusDoc*,ScribusView*)), Qt::UniqueConnection);
 	connect(view, SIGNAL(AddBM(PageItem*)), this, SLOT(AddBookMark(PageItem*)), Qt::UniqueConnection);
 	connect(view, SIGNAL(DelBM(PageItem*)), this, SLOT(DelBookMark(PageItem*)), Qt::UniqueConnection);
@@ -7598,7 +7596,7 @@ void ScribusMainWindow::updateLayerMenu()
 }
 
 
-void ScribusMainWindow::GotoLa(int l)
+void ScribusMainWindow::gotoLayer(int l)
 {
 	if (!HaveDoc)
 		return;
@@ -8366,15 +8364,15 @@ void ScribusMainWindow::showLayer()
 }
 
 //TODO: use this only from this class, or just from doc->setcurrentpage
-void ScribusMainWindow::slotSetCurrentPage(int Seite)
+void ScribusMainWindow::slotSetCurrentPage(int pageIndex)
 {
 	if (scriptIsRunning())
 		return;
-	pageSelector->blockSignals(true);
+	bool blocked = pageSelector->blockSignals(true);
 	pageSelector->setMaximum(doc->masterPageMode() ? 1 : doc->Pages->count());
 	if ((!doc->isLoading()) && (!doc->masterPageMode()))
-		pageSelector->setGUIForPage(Seite);
-	pageSelector->blockSignals(false);
+		pageSelector->setGUIForPage(pageIndex);
+	pageSelector->blockSignals(blocked);
 }
 
 void ScribusMainWindow::setCurrentPage(int p)

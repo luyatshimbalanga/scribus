@@ -260,9 +260,9 @@ public slots: // Public slots
 	void slotZoomOut(int mx = 0, int my = 0, bool preservePoint = false);
   /** Redraws everything */
 	void DrawNew();
-	void GotoPa(int Seite);
-	void GotoLa(int l);
-	void GotoPage(int Seite);
+	void GotoPa(int pageNumber);
+	void GotoLayer(int l);
+	void GotoPage(int pageIndex);
 	void ChgUnit(int art);
 
 	void editExtendedImageProperties();
@@ -354,8 +354,8 @@ protected: // Protected methods
 	int m_vhRulerHW;
 
 signals:
-	void changeUN(int);
-	void changeLA(int);
+	void unitChanged(int);
+	void layerChanged(int);
 	void HaveSel();
 	void DocChanged();
 	void ItemGeom();
@@ -363,8 +363,6 @@ signals:
 	void ItemCharStyle(const CharStyle&);
 	void ItemTextAlign(int);
 	void ItemTextEffects(int);
-	void LoadPic();
-	void StatusPic();
 	void AddBM(PageItem *);
 	void DelBM(PageItem *);
 	void ChBMText(PageItem *);

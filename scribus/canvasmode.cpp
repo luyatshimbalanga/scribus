@@ -869,6 +869,16 @@ void CanvasMode::commonDrawTextCursor(QPainter* p, PageItem_TextFrame* textframe
 
 	p->save();
 	p->setTransform(textframe->getTransform(), true);
+	if (textframe->imageFlippedH())
+	{
+		p->translate(textframe->width(), 0);
+		p->scale(-1, 1);
+	}
+	if (textframe->imageFlippedV())
+	{
+		p->translate(0, textframe->height());
+		p->scale(1, -1);
+	}
 	p->setPen(cPen);
 	p->setRenderHint(QPainter::Antialiasing, true);
 	p->drawLine(cursor.translated(offset));
@@ -879,7 +889,6 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 {
 	int kk = e->key();
 	Qt::KeyboardModifiers buttonModifiers = e->modifiers();
-//	QString uc = e->text();
 	ScribusMainWindow* mainWindow = m_view->m_ScMW;
 	QList<QMdiSubWindow *> windows;
 	
@@ -893,13 +902,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 	if (m_keyRepeat)
 		return;
 	m_keyRepeat = true;
-//	int keyMod=0;
-//	if (e->modifiers() & Qt::ShiftModifier)
-//		keyMod |= Qt::SHIFT;
-//	if (e->modifiers() & Qt::ControlModifier)
-//		keyMod |= Qt::CTRL;
-//	if (e->modifiers() & Qt::AltModifier)
-//		keyMod |= Qt::ALT;
+
 	//User presses escape and we have a doc open, and we have an item selected
 	if (kk == Qt::Key_Escape)
 	{
@@ -1002,33 +1005,6 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 				m_view->scrollBy(0, wheelVal);
 				m_keyRepeat = false;
 				return;
-				break;
-			case Qt::Key_Tab:
-				if (buttonModifiers == Qt::ControlModifier)
-				{
-					m_keyRepeat = false;
-					windows = mdiArea->subWindowList();
-					if (windows.count() > 1)
-					{
-						for (int i = 0; i < static_cast<int>(windows.count()); ++i)
-						{
-							if (mdiArea->activeSubWindow() == windows.at(i))
-							{
-								if (i == static_cast<int>(windows.count()-1))
-									w = windows.at(0);
-								else
-									w = windows.at(i+1);
-								break;
-							}
-						}
-						outlinePalette->buildReopenVals();
-						docCheckerPalette->clearErrorList();
-						if (w)
-							w->showNormal();
-						mainWindow->newActWin(w);
-					}
-					return;
-				}
 				break;
 			}
 		}
@@ -1554,7 +1530,7 @@ void CanvasMode::commonkeyReleaseEvent(QKeyEvent *e)
 	//Exit out of panning mode if Control is release while the right mouse button is pressed
 	if ((m_doc->appMode == modePanning) && (e->key() == Qt::Key_Control) && (QApplication::mouseButtons() & Qt::RightButton))
 		m_view->requestMode(modeNormal);
-	if (m_doc->appMode == modeMagnifier)
+	if ((m_doc->appMode == modeMagnifier) && (e->key() == Qt::Key_Shift))
 		m_view->setCursor(IconManager::instance().loadCursor("lupez.png"));
 	if (e->isAutoRepeat() || !m_arrowKeyDown)
 		return;

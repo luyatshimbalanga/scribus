@@ -622,7 +622,7 @@ void ScribusMainWindow::initDefaultValues()
 	PDef.Dname.clear();
 	PDef.Command.clear();
 	m_keyrep = false;
-	m__arrowKeyDown = false;
+	m_arrowKeyDown = false;
 	ClipB = QApplication::clipboard();
 	for (int i=0; i<PAL_MAX ; ++i)
 		m_palettesStatus[i] = false;
@@ -1694,11 +1694,11 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 
 bool ScribusMainWindow::eventFilter( QObject* /*o*/, QEvent *e )
 {
-	bool retVal;
 	if (e->type() == QEvent::ToolTip)
 		return (!m_prefsManager.appPrefs.displayPrefs.showToolTips);
 
-	if ( e->type() == QEvent::KeyPress )
+	bool retVal = false;
+	if (e->type() == QEvent::KeyPress)
 	{
 		QKeyEvent *k = dynamic_cast<QKeyEvent *>(e);
 		if (!k)
@@ -1714,18 +1714,31 @@ bool ScribusMainWindow::eventFilter( QObject* /*o*/, QEvent *e )
 		QKeySequence currKeySeq = QKeySequence(k->key() | keyMod);
 		if (QString(currKeySeq.toString()).isNull())
 			return false;
-		retVal=true;
+		retVal = true;
 		//Palette actions
 		if (actionManager->compareKeySeqToShortcut(currKeySeq, "specialToggleAllPalettes"))
 			scrActions["specialToggleAllPalettes"]->activate(QAction::Trigger);
-		else
-		if (actionManager->compareKeySeqToShortcut(currKeySeq, "specialToggleAllGuides"))
+		else if (actionManager->compareKeySeqToShortcut(currKeySeq, "specialToggleAllGuides"))
 			scrActions["specialToggleAllGuides"]->activate(QAction::Trigger);
 		else
-			retVal=false;
+			retVal = false;
 	}
-	else
-		retVal=false;
+	else if (e->type() == QEvent::KeyRelease)
+	{
+		QKeyEvent *k = dynamic_cast<QKeyEvent *>(e);
+		if (!k)
+			return false;
+#if defined(Q_OS_MAC)
+		if ((k->key() == Qt::Key_QuoteLeft) && (k->modifiers() & Qt::ControlModifier))
+		{
+			if (k->modifiers() & Qt::ShiftModifier)
+				mdiArea->activatePreviousSubWindow();
+			else
+				mdiArea->activateNextSubWindow();
+			retVal = true;
+		}
+#endif
+	}
 	//Return false to pass event to object
 	return retVal;
 }
@@ -1745,8 +1758,6 @@ QVariant ScribusMainWindow::inputMethodQuery ( Qt::InputMethodQuery query ) cons
 //AV -> CanvasMode
 void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 {
-	QList<QMdiSubWindow *> windows;
-	QMdiSubWindow* w = nullptr;
 	int kk = k->key();
 	if (HaveDoc)
 	{
@@ -1759,13 +1770,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 	if (m_keyrep)
 		return;
 	m_keyrep = true;
-	int keyMod=0;
-	if (k->modifiers() & Qt::ShiftModifier)
-		keyMod |= Qt::SHIFT;
-	if (k->modifiers() & Qt::ControlModifier)
-		keyMod |= Qt::CTRL;
-	if (k->modifiers() & Qt::AltModifier)
-		keyMod |= Qt::ALT;
+
 	//User presses escape and we have a doc open, and we have an item selected
 	if ((kk == Qt::Key_Escape) && (HaveDoc))
 	{
@@ -1933,33 +1938,6 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 				m_keyrep = false;
 				return;
 				break;
-			case Qt::Key_Tab:
-				if (buttonModifiers == Qt::ControlModifier)
-				{
-					m_keyrep = false;
-					windows = mdiArea->subWindowList();
-					if (windows.count() > 1)
-					{
-						for (int i = 0; i < static_cast<int>(windows.count()); ++i)
-						{
-							if (mdiArea->activeSubWindow() == windows.at(i))
-							{
-								if (i == static_cast<int>(windows.count()-1))
-									w = windows.at(0);
-								else
-									w = windows.at(i+1);
-								break;
-							}
-						}
-						outlinePalette->buildReopenVals();
-						docCheckerPalette->clearErrorList();
-						if ( w )
-							w->showNormal();
-						newActWin(w);
-					}
-					return;
-				}
-				break;
 			}
 		}
 	}
@@ -1969,7 +1947,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 		case Qt::Key_Right:
 		case Qt::Key_Up:
 		case Qt::Key_Down:
-			m__arrowKeyDown = true;
+			m_arrowKeyDown = true;
 	}
 	m_keyrep = false;
 }
@@ -1982,10 +1960,10 @@ void ScribusMainWindow::keyReleaseEvent(QKeyEvent *k)
 		if ((doc->appMode == modePanning) && (k->key() == Qt::Key_Control) && (QApplication::mouseButtons() & Qt::RightButton))
 			view->requestMode(modeNormal);
 
-		if (doc->appMode == modeMagnifier)
+		if ((doc->appMode == modeMagnifier) && (k->key() == Qt::Key_Shift))
 			view->setCursor(IconManager::instance().loadCursor("lupez.png"));
 	}
-	if (k->isAutoRepeat() || !m__arrowKeyDown)
+	if (k->isAutoRepeat() || !m_arrowKeyDown)
 		return;
 	switch (k->key())
 	{
@@ -1993,7 +1971,7 @@ void ScribusMainWindow::keyReleaseEvent(QKeyEvent *k)
 		case Qt::Key_Right:
 		case Qt::Key_Up:
 		case Qt::Key_Down:
-			m__arrowKeyDown = false;
+			m_arrowKeyDown = false;
 			if ((HaveDoc) && (!zoomSpinBox->hasFocus()) && (!pageSelector->hasFocus()))
 			{
 				int docSelectionCount = doc->m_Selection->count();
@@ -2124,7 +2102,7 @@ void ScribusMainWindow::requestUpdate(int val)
 
 bool ScribusMainWindow::arrowKeyDown()
 {
-	return m__arrowKeyDown;
+	return m_arrowKeyDown;
 }
 
 QStringList ScribusMainWindow::findRecoverableFile()
@@ -2618,11 +2596,17 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 		disconnect(doc, SIGNAL(addBookmark(PageItem *)), this, SLOT(AddBookMark(PageItem *)));
 		disconnect(doc, SIGNAL(deleteBookmark(PageItem *)), this, SLOT(DelBookMark(PageItem *)));
 		unitSwitcher->disconnect();
+		unitSwitcher->setEnabled(false);
 		zoomSpinBox->disconnect();
+		zoomSpinBox->setEnabled(false);
 		zoomDefaultToolbarButton->disconnect();
+		zoomDefaultToolbarButton->setEnabled(false);
 		zoomOutToolbarButton->disconnect();
+		zoomDefaultToolbarButton->setEnabled(false);
 		zoomInToolbarButton->disconnect();
+		zoomInToolbarButton->setEnabled(false);
 		layerMenu->disconnect();
+		layerMenu->setEnabled(false);
 		disconnect(viewToolBar->previewQualitySwitcher, SIGNAL(activated(int)), this, SLOT(changePreviewQuality(int)));
 		disconnect(viewToolBar->visualMenu, SIGNAL(activated(int)), doc->view(), SLOT(switchPreviewVisual(int)));
 		pageSelector->disconnect();
@@ -2638,11 +2622,17 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 		connect(doc, SIGNAL(addBookmark(PageItem*)), this, SLOT(AddBookMark(PageItem*)));
 		connect(doc, SIGNAL(deleteBookmark(PageItem*)), this, SLOT(DelBookMark(PageItem*)));
 		connect(unitSwitcher, SIGNAL(activated(int)), doc->view(), SLOT(ChgUnit(int)));
+		unitSwitcher->setEnabled(true);
 		connect(zoomSpinBox, SIGNAL(valueChanged(double)), doc->view(), SLOT(setZoom()));
+		zoomSpinBox->setEnabled(true);
 		connect(zoomDefaultToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoom100()));
+		zoomDefaultToolbarButton->setEnabled(true);
 		connect(zoomOutToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomOut()));
+		zoomOutToolbarButton->setEnabled(true);
 		connect(zoomInToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomIn()));
+		zoomInToolbarButton->setEnabled(true);
 		connect(layerMenu, SIGNAL(activated(int)), doc->view(), SLOT(GotoLayer(int)));
+		layerMenu->setEnabled(true);
 		scrActions["viewPreviewMode"]->blockSignals(true);
 		scrActions["viewPreviewMode"]->setChecked(doc->drawAsPreview);
 		scrActions["viewPreviewMode"]->blockSignals(false);
@@ -6209,7 +6199,7 @@ void ScribusMainWindow::deletePage2(int pg)
 	view->deselectItems(true);
 	if (doc->Pages->count() == 1)
 		return;
-	deletePage(pg+1, pg+1);
+	deletePage(pg + 1, pg + 1);
 }
 
 void ScribusMainWindow::deletePage()
@@ -8153,7 +8143,7 @@ void ScribusMainWindow::restoreGrouping(SimpleState *state, bool isUndo)
 	view->deselectItems();
 	for (int i = 0; i < itemCount; ++i)
 	{
-		int itemNr = doc->getItemNrfromUniqueID(state->getUInt(QString("item%1").arg(i)));
+		int itemNr = doc->getItemNrFromUniqueID(state->getUInt(QString("item%1").arg(i)));
 		if (doc->Items->at(itemNr)->uniqueNr == state->getUInt(QString("item%1").arg(i)))
 			view->selectItemByNumber(itemNr);
 	}
@@ -8169,7 +8159,7 @@ void ScribusMainWindow::restoreUngrouping(SimpleState *state, bool isUndo)
 	view->deselectItems();
 	for (int i = 0; i < itemCount; ++i)
 	{
-		int itemNr = doc->getItemNrfromUniqueID(state->getUInt(QString("item%1").arg(i)));
+		int itemNr = doc->getItemNrFromUniqueID(state->getUInt(QString("item%1").arg(i)));
 		if (doc->Items->at(itemNr)->uniqueNr == state->getUInt(QString("item%1").arg(i)))
 			view->selectItemByNumber(itemNr);
 	}
@@ -8553,7 +8543,7 @@ void ScribusMainWindow::slotStoryEditor(bool fromTable)
 
 void ScribusMainWindow::emergencySave()
 {
-	emergencyActivated=true;
+	emergencyActivated = true;
 	if (!m_prefsManager.appPrefs.miscPrefs.saveEmergencyFile)
 		return;
 	std::cout << "Calling Emergency Save" << std::endl;
@@ -8562,7 +8552,7 @@ void ScribusMainWindow::emergencySave()
 		return;
 
 	int windowCount = windows.count();
-	for (int i=0; i<windowCount ; ++i)
+	for (int i = 0; i < windowCount; ++i)
 	{
 		ActWin = dynamic_cast<ScribusWin*>(windows.at(i)->widget());
 		doc = ActWin->doc();
@@ -8586,12 +8576,9 @@ void ScribusMainWindow::emergencySave()
 		std::cout << "Saving: " << fileName.toStdString() << std::endl;
 		FileLoader fl(fileName);
 		fl.saveFile(fileName, doc, nullptr);
-		view->close();
-		int numPages = doc->Pages->count();
-		for (int j = 0; j < numPages; ++j)
-			delete doc->Pages->at(j);
-		delete doc;
-		ActWin->close();
+		// ActWin->close() will trigger ScribusWin::closeEvent()
+		// so no need to manually close view or delete doc
+		ActWin->getSubWin()->close();
 	}
 }
 
@@ -8667,7 +8654,7 @@ void ScribusMainWindow::callImageEditor()
 	if (currItem->imageIsAvailable)
 	{
 		bool startFailed=false;
-	#ifdef Q_OS_OSX
+	#ifdef Q_OS_MACOS
 		QString osxcmd(imageEditorExecutable);
 		if (osxcmd.endsWith(".app"))
 			osxcmd.prepend("open -a \"");

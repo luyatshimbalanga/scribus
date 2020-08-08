@@ -6,6 +6,9 @@
 %global	build_timestamp %(date +"%Y%m%d")
 %global	rel_build %{build_timestamp}git%{build_shortcommit}%{?dist}
 
+# Force out of source build
+%undefine __cmake_in_source_build
+ 
 Name:		scribus
 Version:	%{version_string}
 Release:	0.%{rel_build}
@@ -115,8 +118,6 @@ pathfix.py -pni "%{__python3} %{py3_shbang_opts}" \
 	scribus/plugins/scriptplugin/{samples,scripts}/*.py
 
 %build
-mkdir build
-pushd build
 %cmake  -DWANT_CCACHE=YES \
 	-DWANT_DISTROBUILD=YES \
 	-DWANT_GRAPHICSMAGICK=1 \
@@ -127,13 +128,10 @@ pushd build
 	-DWITH_BOOST=1 \
 	-DWITH_PODOFO=1 ..
 
-%make_build VERBOSE=1
-popd
+%cmake_build
 
 %install
-pushd build
-%make_install
-popd
+%cmake_install
 
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 

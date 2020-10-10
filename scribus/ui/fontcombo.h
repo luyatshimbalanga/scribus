@@ -74,8 +74,6 @@ public:
 	FontComboH(QWidget* parent, bool labels=false);
 	~FontComboH() {}
 	
-	virtual void changeEvent(QEvent *e);
-	
 	QString currentFont();
 	void rebuildList(ScribusDoc *currentDoc, bool forAnnotation = false, bool forSubstitute = false);
 
@@ -105,39 +103,41 @@ protected:
 	QPixmap otfFont;
 	QPixmap psFont;
 	QPixmap substFont;
+
+	void changeEvent(QEvent *e) override;
 };
 
 // based on Qfontcombobox class from Qt project
 class FontFamilyDelegate : public QAbstractItemDelegate
 {
 	Q_OBJECT
-public:
-	explicit FontFamilyDelegate(QObject *parent);
+	public:
+		explicit FontFamilyDelegate(QObject *parent);
 
-	// painting
-	void paint(QPainter *painter,
-			   const QStyleOptionViewItem &option,
-			   const QModelIndex &index) const Q_DECL_OVERRIDE;
-
-	bool helpEvent(QHelpEvent * event, QAbstractItemView * view, 
-	               const QStyleOptionViewItem & option, const QModelIndex & index) Q_DECL_OVERRIDE;
-
-	QSize sizeHint(const QStyleOptionViewItem &option,
+		// painting
+		void paint(QPainter *painter,
+				   const QStyleOptionViewItem &option,
 				   const QModelIndex &index) const Q_DECL_OVERRIDE;
 
-	QFontDatabase::WritingSystem writingSystem;
+		bool helpEvent(QHelpEvent * event, QAbstractItemView * view,
+					   const QStyleOptionViewItem & option, const QModelIndex & index) Q_DECL_OVERRIDE;
 
-protected:
-	QFont m_font;
-	static QPixmapCache pixmapCache;
+		QSize sizeHint(const QStyleOptionViewItem &option,
+					   const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+		QFontDatabase::WritingSystem writingSystem;
+
+	protected:
+		QFont m_font;
+		static QPixmapCache pixmapCache;
 };
 
 class FontComboValidator : public QValidator
 {
 	Q_OBJECT
 
-public:
-	FontComboValidator(QObject* parent = nullptr);
-	virtual State validate(QString & input, int & pos) const;
+	public:
+		FontComboValidator(QObject* parent = nullptr);
+		virtual State validate(QString & input, int & pos) const;
 };
 #endif

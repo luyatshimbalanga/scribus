@@ -48,13 +48,13 @@ bool ScPrintEngine_PDF::print(PrintOptions& options)
 	if (options.toFile)
 		return true;
 
-	// Print and delete the PS file
+	// Print and delete the PDF file
 	QByteArray cmd;
 	if (options.useAltPrintCommand)
 	{
 		cmd += options.printerCommand;
 		cmd += " ";
-		cmd += fileName;
+		cmd += "\"" + fileName + "\"";
 		system(cmd.data());
 	}
 	else
@@ -66,7 +66,8 @@ bool ScPrintEngine_PDF::print(PrintOptions& options)
 		if (options.copies > 1)
 			cmd += " -#" + cc.setNum(options.copies);
 		cmd += options.printerOptions;
-		cmd += " " + fileName;
+		cmd += " ";
+		cmd += "\"" + fileName + "\"";
 		system(cmd.data());
 	}
 	// Disabled that for now, as kprinter won't work otherwise

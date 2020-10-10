@@ -42,15 +42,14 @@ Q_OBJECT
 public:
 	ScrPaletteBase( QWidget * parent = nullptr, const QString& prefsContext = QString(), bool modal = false, Qt::WindowFlags f = Qt::WindowFlags());
 	~ScrPaletteBase() {}
-	/** @brief Sample way to grab keystrokes, simply calls superclass at this point */
-	//virtual void keyPressEvent(QKeyEvent *keyEvent);
+
 	virtual void hide();
 	void startup();
 
 public slots:
 	virtual void setPaletteShown(bool);
 	virtual void setFontSize();
-	virtual int exec() { return QDialog::exec();}
+	int exec() override { return QDialog::exec();}
 	int exec(QWidget* newParent);
 
 signals:
@@ -66,19 +65,22 @@ protected:
 	void storeVisibility(bool);
 
 	/** @brief Restore the geometry of the window when showing it. */
-	virtual void showEvent(QShowEvent *showEvent);
+	void showEvent(QShowEvent *showEvent) override;
 	/** @brief Captures the close event and changes it to hide */
-	virtual void closeEvent(QCloseEvent *closeEvent);
+	void closeEvent(QCloseEvent *closeEvent) override;
 	/** @brief Stores the geometry of the window when hiding. */
-	virtual void hideEvent(QHideEvent*);
+	void hideEvent(QHideEvent*) override;
 
-	PrefsContext* m_palettePrefs;
+	/** @brief Sample way to grab keystrokes, simply calls superclass at this point */
+	//void keyPressEvent(QKeyEvent *keyEvent) override;
+
+	PrefsContext* m_palettePrefs { nullptr };
 	QString m_prefsContextName;
-	bool m_visibleOnStartup;
-	QWidget* m_originalParent;
-	QWidget* m_tempParent;
+	bool m_visibleOnStartup { false };
+	QWidget* m_originalParent { nullptr };
+	QWidget* m_tempParent { nullptr };
 
-	protected slots:
-	virtual void reject();
+protected slots:
+	void reject() override;
 };
 #endif

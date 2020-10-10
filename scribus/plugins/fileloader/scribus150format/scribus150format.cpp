@@ -3423,9 +3423,9 @@ bool Scribus150Format::readPrinterOptions(ScribusDoc* doc, ScXmlStreamReader& re
 	doc->Print_Options.colorMarks   = attrs.valueAsBool("colorMarks");
 	doc->Print_Options.includePDFMarks = attrs.valueAsBool("includePDFMarks", true);
 	if (attrs.hasAttribute("PrintEngine"))
-		doc->Print_Options.prnEngine = (PrintEngine) attrs.valueAsInt("PrintEngine", 3);
+		doc->Print_Options.prnLanguage = (PrintLanguage) attrs.valueAsInt("PrintEngine", 3);
 	else
-		doc->Print_Options.prnEngine = (PrintEngine) attrs.valueAsInt("PSLevel", 3);
+		doc->Print_Options.prnLanguage = (PrintLanguage) attrs.valueAsInt("PSLevel", 3);
 	doc->Print_Options.markLength    = attrs.valueAsDouble("markLength");
 	doc->Print_Options.markOffset    = attrs.valueAsDouble("markOffset");
 	doc->Print_Options.bleeds.setTop(attrs.valueAsDouble("BleedTop"));
@@ -6311,7 +6311,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 			QString mlName2 = mlName;
 			readMultiline(ml, reader);
 			QHash<QString,multiLine>::ConstIterator mlit = m_Doc->docLineStyles.find(mlName2);
-			if (mlit != m_Doc->docLineStyles.end() && ml != mlit.value())
+			if (mlit != m_Doc->docLineStyles.constEnd() && ml != mlit.value())
 					mlName2 = getUniqueName(mlName2, m_Doc->docLineStyles);
 			m_Doc->docLineStyles.insert(mlName2, ml);
 		}
@@ -6991,7 +6991,7 @@ bool Scribus150Format::readLineStyles(const QString& fileName, QHash<QString,mul
 			readMultiline(ml, reader);
 			int copyC = 1;
 			QHash<QString,multiLine>::ConstIterator mlit = styles->find(mlName2);
-			if (mlit != styles->end() && ml != mlit.value())
+			if (mlit != styles->constEnd() && ml != mlit.value())
 			{
 				while (styles->contains(mlName2))
 				{

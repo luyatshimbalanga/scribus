@@ -41,7 +41,7 @@ for which a new license (GPL+exception) is in place.
 #include "undomanager.h"
 
 
-LayerPalette::LayerPalette(QWidget* parent) : ScDockPalette( parent, "Layers", nullptr ), m_Doc(nullptr)
+LayerPalette::LayerPalette(QWidget* parent) : ScDockPalette(parent, "Layers", Qt::WindowFlags()), m_Doc(nullptr)
 {
 	setObjectName(QString::fromLocal8Bit("Layers"));
 	setSizePolicy( QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
@@ -417,7 +417,7 @@ void LayerPalette::visibleLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -437,7 +437,7 @@ void LayerPalette::printLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -454,7 +454,7 @@ void LayerPalette::lockLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -475,7 +475,7 @@ void LayerPalette::flowToggleLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -492,7 +492,7 @@ void LayerPalette::outlineToggleLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -509,7 +509,7 @@ void LayerPalette::selectToggleLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;
@@ -565,7 +565,7 @@ void LayerPalette::markLayer()
 {
 	if (!m_Doc)
 		return;
-	int level = QString(sender()->objectName()).toInt();
+	int level = sender()->objectName().toInt();
 	int layerID = m_Doc->layerIDFromLevel(level);
 	if (layerID == -1)
 		return;

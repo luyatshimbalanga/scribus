@@ -38,7 +38,7 @@ public:
 	CharSelect(QWidget* parent);
 	~CharSelect();
 
-	void hide();
+	void hide() override;
 	void show();
 	void setDoc(ScribusDoc* doc);
 	void setEnabled(bool state, PageItem* item=0);
@@ -48,7 +48,8 @@ public:
 	//! Used for StoryEditor
 	CharTableModel * userTableModel() { return m_userTableModel; }
 
-	virtual void changeEvent(QEvent *e);
+protected:
+	void changeEvent(QEvent *e) override;
 
 signals:
 	/*! \brief A signall emittedthis palette tries to insert glyphs.

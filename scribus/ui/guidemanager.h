@@ -41,7 +41,7 @@ public:
 	void setDoc(ScribusDoc* doc);
 
 	/*! \brief Reimplement ScrPaletteBase::setVisible() */
-	virtual void setVisible(bool visible);
+	void setVisible(bool visible) override;
 
 	/*! \brief Set the widgets on the page change.
 	It has to be called on every page to page transition */
@@ -70,8 +70,9 @@ public:
 	int currentIndex() const { return tabWidget->currentIndex(); }
 
 	void setGuideLock(bool guidesLocked);
-	
-	virtual void changeEvent(QEvent *e);
+
+protected:
+	void changeEvent(QEvent *e) override;
 
 private:
 	//! \brief Store the guide values in the Qt4 model

@@ -8,11 +8,13 @@ for which a new license (GPL+exception) is in place.
 #include <QComboBox>
 #include <QListWidget>
 #include <QTextEdit>
+
 #include "hunspelldialog.h"
 #include "langmgr.h"
+#include "undomanager.h"
+#include "undotransaction.h"
 
-
-HunspellDialog::HunspellDialog(QWidget *parent, ScribusDoc *doc, StoryText *iText)
+HunspellDialog::HunspellDialog(QWidget *parent, ScribusDoc *doc, PageItem *item)
 {
 	setupUi( this );
 	setModal( true );
@@ -23,40 +25,51 @@ HunspellDialog::HunspellDialog(QWidget *parent, ScribusDoc *doc, StoryText *iTex
 	connect (changeAllPushButton, SIGNAL(clicked()), this, SLOT(changeAllWords()));
 	connect (languagesComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(languageComboChanged(const QString &)));
 
-	m_doc=doc;
-	m_docChanged=false;
-	m_iText=iText;
-	m_returnToDefaultLang=false;
-	m_primaryLangIndex=0;
+	m_doc = doc;
+	m_docChanged = false;
+	m_item  = item;
+	m_iText = &m_item->itemText;
+}
 
-	m_dictionaryMap = nullptr;
-	m_hspellerMap = nullptr;
-	m_wfList = nullptr;
-	m_wfListIndex = 0;
+HunspellDialog::HunspellDialog(QWidget *parent, ScribusDoc *doc, StoryText *item)
+{
+	setupUi( this );
+	setModal( true );
+
+	connect (ignoreOncePushButton, SIGNAL(clicked()), this, SLOT(goToNextWord()));
+	connect (ignoreAllPushButton, SIGNAL(clicked()), this, SLOT(ignoreAllWords()));
+	connect (changePushButton, SIGNAL(clicked()), this, SLOT(changeWord()));
+	connect (changeAllPushButton, SIGNAL(clicked()), this, SLOT(changeAllWords()));
+	connect (languagesComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(languageComboChanged(const QString &)));
+
+	m_doc = doc;
+	m_docChanged = false;
+	m_item  = nullptr;
+	m_iText = &m_item->itemText;
 }
 
 void HunspellDialog::set(QMap<QString, QString>* dictionaryMap, QMap<QString, HunspellDict*> *hspellerMap, QList<WordsFound> *wfList)
 {
-	m_dictionaryMap=dictionaryMap;
-	m_hspellerMap=hspellerMap;
-	m_wfList=wfList;
-	bool b=languagesComboBox->blockSignals(true);
+	m_dictionaryMap = dictionaryMap;
+	m_hspellerMap = hspellerMap;
+	m_wfList = wfList;
+	bool b = languagesComboBox->blockSignals(true);
 	languagesComboBox->clear();
 
 	QStringList langsToAdd;
 	auto it = m_dictionaryMap->cbegin();
 	while (it != m_dictionaryMap->cend())
 	{
-		QString lang=LanguageManager::instance()->getLangFromAbbrev(it.key(), true);
+		QString lang = LanguageManager::instance()->getLangFromAbbrev(it.key(), true);
 		if (!langsToAdd.contains(lang))
-			langsToAdd<<(!lang.isEmpty() ? lang : it.key());
+			langsToAdd << (!lang.isEmpty() ? lang : it.key());
 		++it;
 	}
 	languagesComboBox->addItems(langsToAdd);
 	languagesComboBox->setCurrentIndex(0);
-	m_primaryLangIndex=0;
+	m_primaryLangIndex = 0;
 	languagesComboBox->blockSignals(b);
-	m_wfListIndex=0;
+	m_wfListIndex = 0;
 	goToNextWord(0);
 }
 
@@ -71,12 +84,12 @@ void HunspellDialog::goToNextWord(int i)
 {
 	if (m_returnToDefaultLang)
 	{
-		bool b=languagesComboBox->blockSignals(true);
+		bool b = languagesComboBox->blockSignals(true);
 		languagesComboBox->setCurrentIndex(m_primaryLangIndex);
 		languagesComboBox->blockSignals(b);
 	}
-	if (i>=0)
-		m_wfListIndex=i;
+	if (i >= 0)
+		m_wfListIndex = i;
 	else
 	{
 		do {
@@ -100,7 +113,7 @@ void HunspellDialog::goToNextWord(int i)
 	setLanguageCombo(currWF.lang);
 	updateSuggestions(currWF.replacements);
 
-	int sentencePos=0;
+	int sentencePos = 0;
 	QString sentence(m_iText->sentence(currWF.start, sentencePos));
 	sentence.insert(currWF.end-sentencePos+currWF.changeOffset,"</b></font>");
 	sentence.insert(currWF.start-sentencePos+currWF.changeOffset,"<font color=red><b>");
@@ -132,52 +145,99 @@ void HunspellDialog::changeAllWords()
 {
 	if (m_wfList->at(m_wfListIndex).ignore && !m_wfList->at(m_wfListIndex).changed)
 		return;
-	QString wordToChange=m_wfList->at(m_wfListIndex).w;
+
+	UndoTransaction transaction;
+	if ((m_item != nullptr) && UndoManager::undoEnabled())
+		transaction = UndoManager::instance()->beginTransaction(m_item->getUName(), m_item->getUPixmap());
+
+	QString wordToChange = m_wfList->at(m_wfListIndex).w;
 	//Do we start from 0 or from the instance of the word where we are... 0 for now
-	for (int i=0;i<m_wfList->count();++i)
-		if (m_wfList->at(i).w==wordToChange)
+	for (int i = 0; i < m_wfList->count(); ++i)
+		if (m_wfList->at(i).w == wordToChange)
 			replaceWord(i);
+
+	if (transaction)
+		transaction.commit();
+
 	goToNextWord();
 }
 
 void HunspellDialog::replaceWord(int i)
 {
 	//TODO: rehyphenate after the replacement
+	int replaceStart = m_wfList->at(i).start + m_wfList->at(i).changeOffset;
+	QString oldText(m_iText->word(replaceStart));
 	QString newText(suggestionsListWidget->currentItem()->text());
-	int lengthDiff=m_iText->replaceWord(m_wfList->at(i).start+m_wfList->at(i).changeOffset, newText);
-	if (lengthDiff!=0)
+
+	UndoTransaction transaction;
+	if ((m_item != nullptr) && UndoManager::undoEnabled())
 	{
-		for (int k=i; k<m_wfList->count();++k)
-			(*m_wfList)[k].changeOffset+=lengthDiff;
+		UndoObject* undoTarget = m_item->isNoteFrame() ? dynamic_cast<UndoObject*>(m_item->doc()) : dynamic_cast<UndoObject*>(m_item);
+		transaction = UndoManager::instance()->beginTransaction(m_item->getUName(), m_item->getUPixmap());
+		if (oldText.length() > 0)
+		{
+			auto is = new ScItemState<CharStyle>(Um::DeleteText, "", Um::IDelete);
+			is->set("DELETE_FRAMETEXT");
+			is->set("ETEA",  QString("delete_frametext"));
+			is->set("TEXT_STR", oldText);
+			is->set("START", replaceStart);
+			is->setItem(m_item->itemText.charStyle(replaceStart));
+			if (m_item->isNoteFrame())
+				is->set("noteframeName", m_item->getUName());
+			UndoManager::instance()->action(undoTarget, is);
+		}
+		if (newText.length() > 0)
+		{
+			auto ss = new SimpleState(Um::InsertText, "", Um::ICreate);
+			ss->set("INSERT_FRAMETEXT");
+			ss->set("ETEA", QString("insert_frametext"));
+			ss->set("TEXT_STR", newText);
+			ss->set("START", replaceStart);
+			UndoObject * undoTarget = m_item;
+			if (m_item->isNoteFrame())
+				ss->set("noteframeName", m_item->getUName());
+			UndoManager::instance()->action(undoTarget, ss);
+		}
 	}
-	(*m_wfList)[i].changed=true;
-	m_docChanged=true;
+
+	int lengthDiff = m_iText->replaceWord(m_wfList->at(i).start + m_wfList->at(i).changeOffset, newText);
+	if (lengthDiff != 0)
+	{
+		for (int k = i; k < m_wfList->count(); ++k)
+			(*m_wfList)[k].changeOffset += lengthDiff;
+	}
+
+	if (transaction)
+		transaction.commit();
+
+	(*m_wfList)[i].changed = true;
+	m_docChanged = true;
 }
 
 void HunspellDialog::languageComboChanged(const QString &newLanguage)
 {
-	m_returnToDefaultLang=true;
-	QString wordLang=LanguageManager::instance()->getAbbrevFromLang(newLanguage, false);
+	m_returnToDefaultLang = true;
+	QString wordLang = LanguageManager::instance()->getAbbrevFromLang(newLanguage, false);
 	if (!m_hspellerMap->contains(wordLang) )
 	{
-		//qDebug()<<"hspeller"<<wordLang<<"does not exist";
+		//qDebug() << "hspeller"<<wordLang<<"does not exist";
 		return;
 	}
-	//qDebug()<<wordLang<<newLanguage;
-	if (m_wfList->count()==0)
+	//qDebug() << wordLang << newLanguage;
+	if (m_wfList->count() == 0)
 		return;
-	if (m_wfListIndex>=m_wfList->count())
-		m_wfListIndex=0;
-	QString word=m_wfList->at(m_wfListIndex).w;
-	if ((*m_hspellerMap)[wordLang]->spell(word)==0)
+	if (m_wfListIndex >= m_wfList->count())
+		m_wfListIndex = 0;
+	QString word = m_wfList->at(m_wfListIndex).w;
+	if ((*m_hspellerMap)[wordLang]->spell(word) == 0)
 	{
 		QStringList replacements = (*m_hspellerMap)[wordLang]->suggest(word);
 		updateSuggestions(replacements);
 	}
 	else
 	{
-		(*m_wfList)[m_wfListIndex].changed=true;
-		m_docChanged=true;
+		(*m_wfList)[m_wfListIndex].changed = true;
+		m_docChanged = true;
 		goToNextWord();
 	}
 }
@@ -191,7 +251,7 @@ void HunspellDialog::setLanguageCombo(const QString &newLangAbbrev)
 	{
 		if (it.key() == newLangAbbrev)
 		{
-			found=true;
+			found = true;
 			break;
 		}
 		++it;

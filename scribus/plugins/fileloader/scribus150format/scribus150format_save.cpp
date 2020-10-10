@@ -1111,8 +1111,8 @@ void Scribus150Format::writePrintOptions(ScXmlStreamWriter & docu)
 	docu.writeAttribute("registrationMarks", static_cast<int>(m_Doc->Print_Options.registrationMarks));
 	docu.writeAttribute("colorMarks", static_cast<int>(m_Doc->Print_Options.colorMarks));
 	docu.writeAttribute("includePDFMarks", static_cast<int>(m_Doc->Print_Options.includePDFMarks));
-	docu.writeAttribute("PSLevel", (int) ((m_Doc->Print_Options.prnEngine < PrintEngine::WindowsGDI) ? m_Doc->Print_Options.prnEngine : PrintEngine::PostScript3));
-	docu.writeAttribute("PrintEngine" , (int) m_Doc->Print_Options.prnEngine);
+	docu.writeAttribute("PSLevel", (int) ((m_Doc->Print_Options.prnLanguage < PrintLanguage::WindowsGDI) ? m_Doc->Print_Options.prnLanguage : PrintLanguage::PostScript3));
+	docu.writeAttribute("PrintEngine" , (int) m_Doc->Print_Options.prnLanguage);
 	docu.writeAttribute("markLength" , m_Doc->Print_Options.markLength);
 	docu.writeAttribute("markOffset" , m_Doc->Print_Options.markOffset);
 	docu.writeAttribute("BleedTop"   , m_Doc->Print_Options.bleeds.top());
@@ -1453,7 +1453,7 @@ void  Scribus150Format::writeNotesStyles(ScXmlStreamWriter & docu, const QString
 void Scribus150Format::writeNotesFrames(ScXmlStreamWriter &docu)
 {
 	QList<PageItem_NoteFrame*> nfList;
-	for (NotesStyle* noteStyle : m_Doc->m_docNotesStylesList)
+	for (NotesStyle* noteStyle : qAsConst(m_Doc->m_docNotesStylesList))
 		nfList.append(m_Doc->listNotesFrames(noteStyle));
 
 	writeNotesFrames(docu, nfList);

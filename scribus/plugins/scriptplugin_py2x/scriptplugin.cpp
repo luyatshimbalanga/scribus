@@ -356,6 +356,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getFillColor"), scribus_getfillcolor, METH_VARARGS, tr(scribus_getfillcolor__doc__)},
 	{const_cast<char*>("getFillShade"), scribus_getfillshade, METH_VARARGS, tr(scribus_getfillshade__doc__)},
 	{const_cast<char*>("getFillTransparency"), scribus_getfilltrans, METH_VARARGS, tr(scribus_getfilltrans__doc__)},
+	{const_cast<char*>("getFirstLineOffset"), scribus_getfirstlineoffset, METH_VARARGS, tr(scribus_getfirstlineoffset__doc__)},
 	{const_cast<char*>("getFirstLinkedFrame"), scribus_getfirstlinkedframe, METH_VARARGS, tr(scribus_getfirstlinkedframe__doc__)},
 	{const_cast<char*>("getFont"), scribus_getfont, METH_VARARGS, tr(scribus_getfont__doc__)},
 	{const_cast<char*>("getFontFeatures"), scribus_getfontfeatures, METH_VARARGS, tr(scribus_getfontfeatures__doc__)},
@@ -377,7 +378,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getLineColor"), scribus_getlinecolor, METH_VARARGS, tr(scribus_getlinecolor__doc__)},
 	{const_cast<char*>("getLineJoin"), scribus_getlinejoin, METH_VARARGS, tr(scribus_getlinejoin__doc__)},
 	{const_cast<char*>("getLineShade"), scribus_getlineshade, METH_VARARGS, tr(scribus_getlineshade__doc__)},
-	{const_cast<char*>("getLineSpacing"), scribus_getlinespace, METH_VARARGS, tr(scribus_getlinespace__doc__)},
+	{const_cast<char*>("getLineSpacing"), scribus_getlinespacing, METH_VARARGS, tr(scribus_getlinespacing__doc__)},
 	{const_cast<char*>("getLineStyle"), scribus_getlinestyle, METH_VARARGS, tr(scribus_getlinestyle__doc__)},
 	{const_cast<char*>("getLineStyles"), (PyCFunction)scribus_getlinestyles, METH_VARARGS, tr(scribus_getlinestyles__doc__)},
 	{const_cast<char*>("getLineTransparency"), scribus_getlinetrans, METH_VARARGS, tr(scribus_getlinetrans__doc__)},
@@ -517,6 +518,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setFillColor"), scribus_setfillcolor, METH_VARARGS, tr(scribus_setfillcolor__doc__)},
 	{const_cast<char*>("setFillShade"), scribus_setfillshade, METH_VARARGS, tr(scribus_setfillshade__doc__)},
 	{const_cast<char*>("setFillTransparency"), scribus_setfilltrans, METH_VARARGS, tr(scribus_setfilltrans__doc__)},
+	{const_cast<char*>("setFirstLineOffset"), scribus_setfirstlineoffset, METH_VARARGS, tr(scribus_setfirstlineoffset__doc__)},
 	{const_cast<char*>("setFont"), scribus_setfont, METH_VARARGS, tr(scribus_setfont__doc__)},
 	{const_cast<char*>("setFontFeatures"), scribus_setfontfeatures, METH_VARARGS, tr(scribus_setfontfeatures__doc__)},
 	{const_cast<char*>("setFontSize"), scribus_setfontsize, METH_VARARGS, tr(scribus_setfontsize__doc__)},
@@ -541,8 +543,8 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setLineColor"), scribus_setlinecolor, METH_VARARGS, tr(scribus_setlinecolor__doc__)},
 	{const_cast<char*>("setLineJoin"), scribus_setlinejoin, METH_VARARGS, tr(scribus_setlinejoin__doc__)},
 	{const_cast<char*>("setLineShade"), scribus_setlineshade, METH_VARARGS, tr(scribus_setlineshade__doc__)},
-	{const_cast<char*>("setLineSpacing"), scribus_setlinespace, METH_VARARGS, tr(scribus_setlinespace__doc__)},
-	{const_cast<char*>("setLineSpacingMode"), scribus_setlinespacemode, METH_VARARGS, tr(scribus_setlinespacemode__doc__)},
+	{const_cast<char*>("setLineSpacing"), scribus_setlinespacing, METH_VARARGS, tr(scribus_setlinespacing__doc__)},
+	{const_cast<char*>("setLineSpacingMode"), scribus_setlinespacingmode, METH_VARARGS, tr(scribus_setlinespacingmode__doc__)},
 	{const_cast<char*>("setLineStyle"), scribus_setlinestyle, METH_VARARGS, tr(scribus_setlinestyle__doc__)},
 	{const_cast<char*>("setLineTransparency"), scribus_setlinetrans, METH_VARARGS, tr(scribus_setlinetrans__doc__)},
 	{const_cast<char*>("setLineWidth"), scribus_setlinewidth, METH_VARARGS, tr(scribus_setlinewidth__doc__)},
@@ -564,7 +566,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setTableStyle"), scribus_settablestyle, METH_VARARGS, tr(scribus_settablestyle__doc__)},
 	{const_cast<char*>("setTableTopBorder"), scribus_settabletopborder, METH_VARARGS, tr(scribus_settabletopborder__doc__)},
 	{const_cast<char*>("setText"), scribus_settext, METH_VARARGS, tr(scribus_settext__doc__)},
-	{const_cast<char*>("setTextAlignment"), scribus_setalignment, METH_VARARGS, tr(scribus_setalign__doc__)},
+	{const_cast<char*>("setTextAlignment"), scribus_settextalignment, METH_VARARGS, tr(scribus_settextalignment__doc__)},
 	{const_cast<char*>("setTextColor"), scribus_settextfill, METH_VARARGS, tr(scribus_settextfill__doc__)},
 	{const_cast<char*>("setTextDirection"), scribus_setdirection, METH_VARARGS, tr(scribus_setdirection__doc__)},
 	{const_cast<char*>("setTextDistances"), scribus_settextdistances, METH_VARARGS, tr(scribus_settextdistances__doc__)},
@@ -670,51 +672,68 @@ void initscribus(ScribusMainWindow *mainWin)
 	// Done with exception setup
 
 	// CONSTANTS
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_POINTS"), PyInt_FromLong(unitIndexFromString("pt")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_MILLIMETERS"), PyInt_FromLong(unitIndexFromString("mm")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_INCHES"), PyInt_FromLong(unitIndexFromString("in")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_PICAS"), PyInt_FromLong(unitIndexFromString("p")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_CENTIMETRES"), PyInt_FromLong(unitIndexFromString("cm")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_CICERO"), PyInt_FromLong(unitIndexFromString("c")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_PT"), PyInt_FromLong(unitIndexFromString("pt")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_MM"), PyInt_FromLong(unitIndexFromString("mm")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_IN"), PyInt_FromLong(unitIndexFromString("in")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_P"), PyInt_FromLong(unitIndexFromString("p")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_CM"), PyInt_FromLong(unitIndexFromString("cm")));
-	PyDict_SetItemString(d, const_cast<char*>("UNIT_C"), PyInt_FromLong(unitIndexFromString("c")));
+	// Units
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_POINTS"), PyLong_FromLong(unitIndexFromString("pt")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_MILLIMETERS"), PyLong_FromLong(unitIndexFromString("mm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_INCHES"), PyLong_FromLong(unitIndexFromString("in")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_PICAS"), PyLong_FromLong(unitIndexFromString("p")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_CENTIMETRES"), PyLong_FromLong(unitIndexFromString("cm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_CICERO"), PyLong_FromLong(unitIndexFromString("c")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_PT"), PyLong_FromLong(unitIndexFromString("pt")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_MM"), PyLong_FromLong(unitIndexFromString("mm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_IN"), PyLong_FromLong(unitIndexFromString("in")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_P"), PyLong_FromLong(unitIndexFromString("p")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_CM"), PyLong_FromLong(unitIndexFromString("cm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_C"), PyLong_FromLong(unitIndexFromString("c")));
+	// Page orientation
 	PyDict_SetItemString(d, const_cast<char*>("PORTRAIT"), Py_BuildValue(const_cast<char*>("i"), portraitPage));
 	PyDict_SetItemString(d, const_cast<char*>("LANDSCAPE"), Py_BuildValue(const_cast<char*>("i"), landscapePage));
+	// Page layout
 	PyDict_SetItemString(d, const_cast<char*>("NOFACINGPAGES"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("FACINGPAGES"),  Py_BuildValue(const_cast<char*>("i"), 1));
+	// First page position
 	PyDict_SetItemString(d, const_cast<char*>("FIRSTPAGERIGHT"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("FIRSTPAGELEFT"), Py_BuildValue(const_cast<char*>("i"), 0));
+	// Text horizontal alignment
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_LEFT"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_RIGHT"), Py_BuildValue(const_cast<char*>("i"), 2));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_CENTERED"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_BLOCK"), Py_BuildValue(const_cast<char*>("i"), 3));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_FORCED"), Py_BuildValue(const_cast<char*>("i"), 4));
+	// Text vertical alignment
 	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_TOP"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_CENTERED"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_BOTTOM"), Py_BuildValue(const_cast<char*>("i"), 2));
+	// Text direction
 	PyDict_SetItemString(d, const_cast<char*>("DIRECTION_LTR"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("DIRECTION_RTL"), Py_BuildValue(const_cast<char*>("i"), 1));
+	// First line offset
+	PyDict_SetItemString(d, const_cast<char*>("FLOP_REALGLYPHHEIGHT"), Py_BuildValue(const_cast<char*>("i"), (int) FLOPRealGlyphHeight));
+	PyDict_SetItemString(d, const_cast<char*>("FLOP_FONTASCENT"), Py_BuildValue(const_cast<char*>("i"), (int) FLOPFontAscent));
+	PyDict_SetItemString(d, const_cast<char*>("FLOP_LINESPACING"), Py_BuildValue(const_cast<char*>("i"), (int) FLOPLineSpacing));
+	PyDict_SetItemString(d, const_cast<char*>("FLOP_BASELINEGRID"), Py_BuildValue(const_cast<char*>("i"), (int) FLOPBaselineGrid));
+	// Fill mode
 	PyDict_SetItemString(d, const_cast<char*>("FILL_NOG"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_HORIZONTALG"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_VERTICALG"), Py_BuildValue(const_cast<char*>("i"), 2));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_DIAGONALG"), Py_BuildValue(const_cast<char*>("i"), 3));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_CROSSDIAGONALG"), Py_BuildValue(const_cast<char*>("i"), 4));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_RADIALG"), Py_BuildValue(const_cast<char*>("i"), 5));
+	// Stroke type
 	PyDict_SetItemString(d, const_cast<char*>("LINE_SOLID"), Py_BuildValue(const_cast<char*>("i"), Qt::SolidLine));
 	PyDict_SetItemString(d, const_cast<char*>("LINE_DASH"), Py_BuildValue(const_cast<char*>("i"), Qt::DashLine));
 	PyDict_SetItemString(d, const_cast<char*>("LINE_DOT"), Py_BuildValue(const_cast<char*>("i"), Qt::DotLine));
 	PyDict_SetItemString(d, const_cast<char*>("LINE_DASHDOT"), Py_BuildValue(const_cast<char*>("i"), Qt::DashDotLine));
 	PyDict_SetItemString(d, const_cast<char*>("LINE_DASHDOTDOT"), Py_BuildValue(const_cast<char*>("i"), Qt::DashDotDotLine));
+	// Line join type
 	PyDict_SetItemString(d, const_cast<char*>("JOIN_MITTER"), Py_BuildValue(const_cast<char*>("i"), Qt::MiterJoin));
 	PyDict_SetItemString(d, const_cast<char*>("JOIN_BEVEL"), Py_BuildValue(const_cast<char*>("i"), Qt::BevelJoin));
 	PyDict_SetItemString(d, const_cast<char*>("JOIN_ROUND"), Py_BuildValue(const_cast<char*>("i"), Qt::RoundJoin));
+	// Line cap type
 	PyDict_SetItemString(d, const_cast<char*>("CAP_FLAT"), Py_BuildValue(const_cast<char*>("i"), Qt::FlatCap));
 	PyDict_SetItemString(d, const_cast<char*>("CAP_SQUARE"), Py_BuildValue(const_cast<char*>("i"), Qt::SquareCap));
 	PyDict_SetItemString(d, const_cast<char*>("CAP_ROUND"), Py_BuildValue(const_cast<char*>("i"), Qt::RoundCap));
+	// QMessageBox buttons
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_NONE"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::NoButton));
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_OK"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Ok));
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_CANCEL"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Cancel));
@@ -725,6 +744,7 @@ void initscribus(ScribusMainWindow *mainWin)
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_IGNORE"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Ignore));
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_DEFAULT"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Default));
 	PyDict_SetItemString(d, const_cast<char*>("BUTTON_ESCAPE"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Escape));
+	// QMessageBox icons
 	PyDict_SetItemString(d, const_cast<char*>("ICON_NONE"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::NoIcon));
 	PyDict_SetItemString(d, const_cast<char*>("ICON_INFORMATION"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Information));
 	PyDict_SetItemString(d, const_cast<char*>("ICON_WARNING"), Py_BuildValue(const_cast<char*>("i"), QMessageBox::Warning));

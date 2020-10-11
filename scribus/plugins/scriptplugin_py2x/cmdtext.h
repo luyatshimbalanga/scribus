@@ -178,14 +178,24 @@ used.\n\
 PyObject *scribus_getalltext(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
-PyDoc_STRVAR(scribus_getlinespace__doc__,
+PyDoc_STRVAR(scribus_getfirstlineoffset__doc__,
+	QT_TR_NOOP("getFirstLineOffset([\"name\"]) -> integer\n\
+\n\
+Gets the offset of the first line of text inside text frame \"name\".\n\
+If \"name\" is not given the currently selected item is used.\n\
+"));
+/*! Get columns */
+PyObject *scribus_getfirstlineoffset(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_getlinespacing__doc__,
 QT_TR_NOOP("getLineSpacing([\"name\"]) -> float\n\
 \n\
 Returns the line spacing (\"leading\") of the text frame \"name\" expressed in\n\
 points. If \"name\" is not given the currently selected item is used.\n\
 "));
 /*! Get line space */
-PyObject *scribus_getlinespace(PyObject * /*self*/, PyObject* args);
+PyObject *scribus_getlinespacing(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_gettextdistances__doc__,
@@ -331,7 +341,20 @@ May throw ValueError for a font size that's out of bounds.\n\
 PyObject *scribus_setfontsize(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
-PyDoc_STRVAR(scribus_setlinespace__doc__,
+PyDoc_STRVAR(scribus_setfirstlineoffset__doc__,
+	QT_TR_NOOP("setFirstLineOffset(offset, [\"name\"])\n\
+\n\
+Sets the offset of the first line of text inside text frame \"name\" to the specified\n\
+offset policy. If \"name\" is not given the currently selected item is used. \"offset\" \n\
+should be one of the FLOP_* constants defined in this module - see dir(scribus).\n\
+\n\
+May throw ValueError for an invalid offset constant.\n\
+"));
+/*! Set vertical alignment */
+PyObject *scribus_setfirstlineoffset(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_setlinespacing__doc__,
 QT_TR_NOOP("setLineSpacing(size, [\"name\"])\n\
 \n\
 Sets the line spacing (\"leading\") of the text frame \"name\" to \"size\".\n\
@@ -341,10 +364,10 @@ item is used.\n\
 May throw ValueError if the line spacing is out of bounds.\n\
 "));
 /*! Set line space */
-PyObject *scribus_setlinespace(PyObject * /*self*/, PyObject* args);
+PyObject *scribus_setlinespacing(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
-PyDoc_STRVAR(scribus_setlinespacemode__doc__,
+PyDoc_STRVAR(scribus_setlinespacingmode__doc__,
 QT_TR_NOOP("setLineSpacingMode(mode, [\"name\"])\n\
 \n\
 Sets the line spacing mode of the text frame \"name\" to \"mode\".\n\
@@ -355,7 +378,7 @@ Mode values are the same as in createParagraphStyle.\n\
 May throw ValueError if the mode is out of bounds.\n\
 "));
 /*! Set line space mode */
-PyObject *scribus_setlinespacemode(PyObject * /*self*/, PyObject* args);
+PyObject *scribus_setlinespacingmode(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_settextdistances__doc__,
@@ -395,7 +418,7 @@ May throw ValueError if number of columns is not at least one.\n\
 PyObject *scribus_setcolumns(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
-PyDoc_STRVAR(scribus_setalign__doc__,
+PyDoc_STRVAR(scribus_settextalignment__doc__,
 QT_TR_NOOP("setTextAlignment(align, [\"name\"])\n\
 \n\
 Sets the text alignment of the text frame \"name\" to the specified alignment.\n\
@@ -405,7 +428,7 @@ be one of the ALIGN_ constants defined in this module - see dir(scribus).\n\
 May throw ValueError for an invalid alignment constant.\n\
 "));
 /*! Set alignt */
-PyObject *scribus_setalignment(PyObject * /*self*/, PyObject* args);
+PyObject *scribus_settextalignment(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_settextverticalalignment__doc__,
@@ -458,7 +481,7 @@ PyObject *scribus_selectframetext(PyObject * /*self*/, PyObject* args);
 PyDoc_STRVAR(scribus_selecttext__doc__,
 QT_TR_NOOP("selectText(start, count, [\"name\"])\n\
 \n\
-Selects \"count\" characters of text in the text frame \"name\" starting from the\n\
+Selects \"count\" characters of text in the story of the text frame \"name\" starting from the\n\
 character \"start\". Character counting starts at 0. If \"count\" is zero, any\n\
 text selection will be cleared.  If \"name\" is not given the currently\n\
 selected item is used.\n\

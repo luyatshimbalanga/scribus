@@ -11,10 +11,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusview.h"
 #include "sctextstream.h"
 #include "selection.h"
-#include "ui/propertiespalette.h" //CB argh.. noooooooooooooooooooooooooooooooooooo FIXME see other FIXME
-#include "ui/propertiespalette_image.h"
 #include "undomanager.h"
-
 
 PyObject *scribus_loadimage(PyObject* /* self */, PyObject* args)
 {
@@ -220,7 +217,7 @@ PyObject *scribus_setimagegrayscale(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_moveobjrel(PyObject* /* self */, PyObject* args)
+PyObject *scribus_moveobjectrel(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	double x, y;
@@ -261,7 +258,7 @@ PyObject *scribus_moveobjrel(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_moveobjabs(PyObject* /* self */, PyObject* args)
+PyObject *scribus_moveobjectabs(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	double x, y;
@@ -303,7 +300,7 @@ PyObject *scribus_moveobjabs(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_rotobjrel(PyObject* /* self */, PyObject* args)
+PyObject *scribus_rotateobjectrel(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	double x;
@@ -318,7 +315,7 @@ PyObject *scribus_rotobjrel(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_rotobjabs(PyObject* /* self */, PyObject* args)
+PyObject *scribus_rotateobjectabs(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	double x;
@@ -333,7 +330,7 @@ PyObject *scribus_rotobjabs(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_sizeobjabs(PyObject* /* self */, PyObject* args)
+PyObject *scribus_sizeobject(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	double x, y;
@@ -348,7 +345,7 @@ PyObject *scribus_sizeobjabs(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_groupobj(PyObject* /* self */, PyObject* args)
+PyObject *scribus_groupobjects(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	PyObject *il = nullptr;
@@ -403,7 +400,7 @@ PyObject *scribus_groupobj(PyObject* /* self */, PyObject* args)
 	return (group ? PyString_FromString(group->itemName().toUtf8()) : nullptr);
 }
 
-PyObject *scribus_ungroupobj(PyObject* /* self */, PyObject* args)
+PyObject *scribus_ungroupobjects(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
@@ -453,7 +450,7 @@ PyObject *scribus_scalegroup(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_getselobjnam(PyObject* /* self */, PyObject* args)
+PyObject *scribus_getselectedobject(PyObject* /* self */, PyObject* args)
 {
 	int i = 0;
 	if (!PyArg_ParseTuple(args, "|i", &i))
@@ -467,14 +464,14 @@ PyObject *scribus_getselobjnam(PyObject* /* self */, PyObject* args)
 	return PyString_FromString("");
 }
 
-PyObject *scribus_selcount(PyObject* /* self */)
+PyObject *scribus_selectioncount(PyObject* /* self */)
 {
 	if (!checkHaveDocument())
 		return nullptr;
 	return PyInt_FromLong(static_cast<long>(ScCore->primaryMainWindow()->doc->m_Selection->count()));
 }
 
-PyObject *scribus_selectobj(PyObject* /* self */, PyObject* args)
+PyObject *scribus_selectobject(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "es", "utf-8", &Name))
@@ -488,7 +485,7 @@ PyObject *scribus_selectobj(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject *scribus_deselect(PyObject* /* self */)
+PyObject *scribus_deselectall(PyObject* /* self */)
 {
 	if (!checkHaveDocument())
 		return nullptr;
@@ -506,6 +503,8 @@ PyObject *scribus_lockobject(PyObject* /* self */, PyObject* args)
 	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
 	if (item == nullptr)
 		return nullptr;
+	// FIXME: Rather than toggling the lock, we should probably let the user set the lock state
+	// and instead provide a different function like toggleLock()
 	item->toggleLock();
 	if (item->locked())
 		return PyInt_FromLong(1);
@@ -517,8 +516,6 @@ PyObject *scribus_islocked(PyObject* /* self */, PyObject* args)
 	char *name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &name))
 		return nullptr;
-	// FIXME: Rather than toggling the lock, we should probably let the user set the lock state
-	// and instead provide a different function like toggleLock()
 	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
@@ -657,27 +654,27 @@ void cmdmanidocwarnings()
 {
 	QStringList s;
 	s << scribus_combinepolygons__doc__
-	  << scribus_deselect__doc__
+	  << scribus_deselectall__doc__
 	  << scribus_flipobject__doc__
-	  << scribus_getselobjnam__doc__
-	  << scribus_groupobj__doc__
+	  << scribus_getselectedobject__doc__
+	  << scribus_groupobjects__doc__
 	  << scribus_islocked__doc__
 	  << scribus_loadimage__doc__
 	  << scribus_lockobject__doc__
-      << scribus_moveobjabs__doc__
-	  << scribus_moveobjrel__doc__
-	  << scribus_rotobjabs__doc__
-	  << scribus_rotobjrel__doc__
+      << scribus_moveobjectabs__doc__
+	  << scribus_moveobjectrel__doc__
+	  << scribus_rotateobjectabs__doc__
+	  << scribus_rotateobjectrel__doc__
 	  << scribus_scalegroup__doc__
 	  << scribus_scaleimage__doc__
-	  << scribus_selcount__doc__
-	  << scribus_selectobj__doc__
+	  << scribus_selectioncount__doc__
+	  << scribus_selectobject__doc__
 	  << scribus_setimagebrightness__doc__
 	  << scribus_setimagegrayscale__doc__
 	  << scribus_setimageoffset__doc__
 	  << scribus_setimagescale__doc__
 	  << scribus_setscaleframetoimage__doc__
 	  << scribus_setscaleimagetoframe__doc__
-	  << scribus_sizeobjabs__doc__ 
-	  << scribus_ungroupobj__doc__;
+	  << scribus_sizeobject__doc__ 
+	  << scribus_ungroupobjects__doc__;
 }

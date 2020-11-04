@@ -40,7 +40,7 @@ ScPlugin* importviva_getPlugin()
 
 void importviva_freePlugin(ScPlugin* plugin)
 {
-	ImportVivaPlugin* plug = dynamic_cast<ImportVivaPlugin*>(plugin);
+	ImportVivaPlugin* plug = qobject_cast<ImportVivaPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -143,7 +143,7 @@ bool ImportVivaPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportViva;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

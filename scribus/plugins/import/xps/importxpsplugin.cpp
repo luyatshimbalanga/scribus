@@ -40,7 +40,7 @@ ScPlugin* importxps_getPlugin()
 
 void importxps_freePlugin(ScPlugin* plugin)
 {
-	ImportXpsPlugin* plug = dynamic_cast<ImportXpsPlugin*>(plugin);
+	ImportXpsPlugin* plug = qobject_cast<ImportXpsPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -159,7 +159,7 @@ bool ImportXpsPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportXPS;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

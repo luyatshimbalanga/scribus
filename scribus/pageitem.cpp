@@ -1593,8 +1593,6 @@ void PageItem::setCornerRadius(double newRadius)
  */
 void PageItem::DrawObj(ScPainter *p, QRectF cullingArea)
 {
-	if (!m_Doc->DoDrawing)
-		return;
 	// #12698: Prevent drawing of line items
 	/*if (PoLine.isEmpty())
 		return;*/
@@ -2077,8 +2075,6 @@ void PageItem::DrawObj_Decoration(ScPainter *p)
 void PageItem::DrawObj_Embedded(ScPainter *p, QRectF cullingArea, const CharStyle& style, PageItem* cembedded)
 {
 	if (!cembedded)
-		return;
-	if (!m_Doc->DoDrawing)
 		return;
 	QList<PageItem*> emG;
 	emG.clear();
@@ -7379,11 +7375,11 @@ QList<ObjectAttribute> PageItem::getObjectAttributes(const QString& attributeNam
 
 ObjectAttribute PageItem::getObjectAttribute(const QString& attributeName) const
 {
-	int countFound=0;
+	int countFound = 0;
 	ObjAttrVector::const_iterator foundIt = pageItemAttributes.begin();
 	for (ObjAttrVector::const_iterator objAttrIt = pageItemAttributes.begin(); objAttrIt != pageItemAttributes.end(); ++objAttrIt)
 	{
-		if (objAttrIt->name==attributeName)
+		if (objAttrIt->name == attributeName)
 		{
 			++countFound;
 			foundIt=objAttrIt;
@@ -7400,7 +7396,7 @@ ObjectAttribute PageItem::getObjectAttribute(const QString& attributeName) const
 
 void PageItem::setObjectAttributes(ObjAttrVector* map)
 {
-	pageItemAttributes=*map;
+	pageItemAttributes = *map;
 }
 
 //if not `prependCopy` then string "Copy of" wil not be prepended
@@ -10396,7 +10392,7 @@ void PageItem::setFirstLineOffset(FirstLineOffsetPolicy flop)
 void PageItem::setInlineData(const QString& data)
 {
 	QByteArray inlineImageData;
-	inlineImageData.append(data);
+	inlineImageData.append(data.toUtf8());
 	if (inlineImageData.size() > 0)
 	{
 		QTemporaryFile *tempFile = new QTemporaryFile(QDir::tempPath() + "/scribus_temp_XXXXXX." + inlineExt);

@@ -144,8 +144,6 @@ void GroupBox::update()
 			m_naturalHeight = ceil(box->y() + box->ascent() - box->naturalDescent());
 		}
 	}
-
-//	emit boxChanged();
 }
 
 #if 0
@@ -345,8 +343,6 @@ void LineBox::update()
 		m_naturalAscent = qMax(m_naturalAscent, box->naturalAsc());
 		m_naturalDescent = qMin(m_naturalDescent, box->naturalDescent());
 	}
-
-//	emit boxChanged();
 }
 
 #if 0
@@ -475,8 +471,6 @@ void PathLineBox::update()
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
 	}
-
-//	emit boxChanged();
 }
 
 void PathLineBox::drawBackGround(TextLayoutPainter *p) const

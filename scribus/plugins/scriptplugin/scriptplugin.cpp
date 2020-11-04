@@ -492,7 +492,8 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("selectObject"), scribus_selectobject, METH_VARARGS, tr(scribus_selectobject__doc__)},
 	{const_cast<char*>("selectText"), scribus_selecttext, METH_VARARGS, tr(scribus_selecttext__doc__)},
 	{const_cast<char*>("selectionCount"), (PyCFunction)scribus_selectioncount, METH_NOARGS, tr(scribus_selectioncount__doc__)},
-	{const_cast<char*>("sentToLayer"), scribus_senttolayer, METH_VARARGS, tr(scribus_senttolayer__doc__)},
+	{const_cast<char*>("sendToLayer"), scribus_sendtolayer, METH_VARARGS, tr(scribus_sendtolayer__doc__)},
+	{const_cast<char*>("sentToLayer"), scribus_sendtolayer, METH_VARARGS, tr(scribus_sendtolayer__doc__)}, // Deprecated, alias to sentToLayer
 	{const_cast<char*>("setActiveLayer"), scribus_setactivelayer, METH_VARARGS, tr(scribus_setactivelayer__doc__)},
 	{const_cast<char*>("setBaseLine"), scribus_setbaseline, METH_VARARGS, tr(scribus_setbaseline__doc__)},
 	{const_cast<char*>("setBleeds"), scribus_setbleeds, METH_VARARGS, tr(scribus_setbleeds__doc__)},
@@ -596,9 +597,12 @@ PyMethodDef scribus_methods[] = {
 // 	{const_cast<char*>("getChildren"), (PyCFunction)scribus_getchildren, METH_VARARGS|METH_KEYWORDS, tr(scribus_getchildren__doc__)},
 // 	{const_cast<char*>("getChild"), (PyCFunction)scribus_getchild, METH_VARARGS|METH_KEYWORDS, tr(scribus_getchild__doc__)},
 	// by Christian Hausknecht
-	{const_cast<char*>("duplicateObject"), scribus_duplicateobject, METH_VARARGS, tr(scribus_duplicateobject__doc__)},
-	{const_cast<char*>("copyObject"), scribus_copyobject, METH_VARARGS, tr(scribus_copyobject__doc__)},
-	{const_cast<char*>("pasteObject"), scribus_pasteobject, METH_VARARGS, tr(scribus_pasteobject__doc__)},
+	{const_cast<char*>("copyObject"), scribus_copyobject, METH_VARARGS, tr(scribus_copyobject__doc__)}, // Deprecated
+	{const_cast<char*>("copyObjects"), scribus_copyobjects, METH_VARARGS, tr(scribus_copyobjects__doc__)},
+	{const_cast<char*>("duplicateObject"), scribus_duplicateobject, METH_VARARGS, tr(scribus_duplicateobject__doc__)}, // Deprecated
+	{const_cast<char*>("duplicateObjects"), scribus_duplicateobjects, METH_VARARGS, tr(scribus_duplicateobjects__doc__)},
+	{const_cast<char*>("pasteObject"), scribus_pasteobject, METH_NOARGS, tr(scribus_pasteobject__doc__)}, // Deprecated
+	{const_cast<char*>("pasteObjects"), scribus_pasteobjects, METH_NOARGS, tr(scribus_pasteobjects__doc__)},
 	// by Tj (hacker@iam.tj>
 	{const_cast<char*>("combinePolygons"), (PyCFunction)scribus_combinepolygons, METH_NOARGS, tr(scribus_combinepolygons__doc__)},
 	// Internal methods - Not for public use

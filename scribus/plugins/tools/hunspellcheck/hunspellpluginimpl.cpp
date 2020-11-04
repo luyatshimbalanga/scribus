@@ -14,6 +14,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "scribusview.h"
 #include "selection.h"
+#include "text/scworditerator.h"
 #include "text/specialchars.h"
 #include "ui/storyeditor.h"
 #include "util.h"
@@ -112,12 +113,15 @@ bool HunspellPluginImpl::checkWithHunspellSE()
 
 bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 {
+	ScWordIterator wordIt(*iText);
+
 	int len = iText->length();
-	int currPos = iText->firstWord(), wordStart;
+	int currPos = wordIt.firstWord();
+	int wordStart;
 	while (currPos < len)
 	{
 		wordStart = currPos;
-		int wordEnd = iText->endOfWord(wordStart);
+		int wordEnd = wordIt.endOfWord(wordStart);
 		QString word = iText->text(wordStart, wordEnd - wordStart);
 		// remove any Ignorable Code Point
 		QString tmp = word;
@@ -178,10 +182,9 @@ bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 			wf.ignore = false;
 			wf.changeOffset = 0;
 			wf.lang = wordLang;
-			wf.replacements = hspellerMap[wordLang]->suggest(word);
 			wordsToCorrect.append(wf);
 		}
-		currPos = iText->nextWord(wordStart);
+		currPos = wordIt.nextWord(wordStart);
 	}
 	return true;
 }

@@ -40,7 +40,7 @@ ScPlugin* importodg_getPlugin()
 
 void importodg_freePlugin(ScPlugin* plugin)
 {
-	ImportOdgPlugin* plug = dynamic_cast<ImportOdgPlugin*>(plugin);
+	ImportOdgPlugin* plug = qobject_cast<ImportOdgPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -159,9 +159,9 @@ bool ImportOdgPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportOOoDraw;
 	trSettings.description  = fileName;
-	trSettings.actionPixmap = Um::IXFIG;
+	trSettings.actionPixmap = Um::IImportOOoDraw;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))
 		UndoManager::instance()->setUndoEnabled(false);
 	if (UndoManager::undoEnabled())

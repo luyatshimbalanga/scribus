@@ -34,7 +34,7 @@ ScPlugin* importcvg_getPlugin()
 
 void importcvg_freePlugin(ScPlugin* plugin)
 {
-	ImportCvgPlugin* plug = dynamic_cast<ImportCvgPlugin*>(plugin);
+	ImportCvgPlugin* plug = qobject_cast<ImportCvgPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -135,7 +135,7 @@ bool ImportCvgPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportCVG;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

@@ -143,6 +143,9 @@
     <ClInclude Include="..\..\..\scribus\colorsetmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\scribus\documentchecker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\scribus\documentinformation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -153,6 +156,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\scribus\fpointarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\scribus\text\boxes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\scribus\text\frect.h">
@@ -824,7 +830,7 @@
     <ClInclude Include="..\..\..\scribus\printpreviewcreatorfactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\scribus\ui\printlanguagecombo.h">
+    <ClInclude Include="..\..\..\scribus\text\scworditerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -2557,6 +2563,9 @@
     <ClCompile Include="..\..\..\scribus\ui\printlanguagecombo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\scribus\text\scworditerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Scribus.rc">
@@ -4121,9 +4130,6 @@
     <moc Include="..\..\..\scribus\ui\recoverdialog.h">
       <Filter>Header Files</Filter>
     </moc>
-    <moc Include="..\..\..\scribus\text\boxes.h">
-      <Filter>Header Files</Filter>
-    </moc>
     <moc Include="..\..\..\scribus\ui\directionselect.h">
       <Filter>Header Files</Filter>
     </moc>
@@ -4223,10 +4229,8 @@
     <moc Include="..\..\..\scribus\ui\outputpreview_ps.h">
       <Filter>Header Files</Filter>
     </moc>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\..\scribus\documentchecker.h">
+    <moc Include="..\..\..\scribus\ui\printlanguagecombo.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
+    </moc>
   </ItemGroup>
 </Project>

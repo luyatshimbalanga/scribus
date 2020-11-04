@@ -41,7 +41,7 @@ ScPlugin* importcgm_getPlugin()
 
 void importcgm_freePlugin(ScPlugin* plugin)
 {
-	ImportCgmPlugin* plug = dynamic_cast<ImportCgmPlugin*>(plugin);
+	ImportCgmPlugin* plug = qobject_cast<ImportCgmPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -142,7 +142,7 @@ bool ImportCgmPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportCGM;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

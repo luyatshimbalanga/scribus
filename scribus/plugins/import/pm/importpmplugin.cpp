@@ -34,7 +34,7 @@ ScPlugin* importpm_getPlugin()
 
 void importpm_freePlugin(ScPlugin* plugin)
 {
-	ImportPmPlugin* plug = dynamic_cast<ImportPmPlugin*>(plugin);
+	ImportPmPlugin* plug = qobject_cast<ImportPmPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -136,7 +136,7 @@ bool ImportPmPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportPageMaker;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

@@ -11,7 +11,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_FPIC}")
 
 set(SCRIBUS_TEXT_MOC_CLASSES
 	storytext.h
-	boxes.h
 )
 
 set(SCRIBUS_TEXT_LIB_SOURCES
@@ -23,6 +22,7 @@ set(SCRIBUS_TEXT_LIB_SOURCES
 	screenpainter.cpp
 	scrptrun.cpp
 	sctext_shared.cpp
+	scworditerator.cpp
 	shapedtext.cpp
 	shapedtextcache.cpp
 	shapedtextfeed.cpp

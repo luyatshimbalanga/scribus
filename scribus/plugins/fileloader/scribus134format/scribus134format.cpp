@@ -812,7 +812,7 @@ ScPlugin* scribus134format_getPlugin()
 
 void scribus134format_freePlugin(ScPlugin* plugin)
 {
-	Scribus134Format* plug = dynamic_cast<Scribus134Format*>(plugin);
+	Scribus134Format* plug = qobject_cast<Scribus134Format*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -2610,7 +2610,7 @@ PageItem* Scribus134Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 			bool inlineF = attrs.valueAsBool("isInlineImage", false);
 			QString dat  = attrs.valueAsString("ImageData", "");
 			QByteArray inlineImageData;
-			inlineImageData.append(dat);
+			inlineImageData.append(dat.toUtf8());
 			QString inlineImageExt = attrs.valueAsString("inlineImageExt", "");
 			if (inlineF)
 			{

@@ -34,7 +34,7 @@ ScPlugin* importvsd_getPlugin()
 
 void importvsd_freePlugin(ScPlugin* plugin)
 {
-	ImportVsdPlugin* plug = dynamic_cast<ImportVsdPlugin*>(plugin);
+	ImportVsdPlugin* plug = qobject_cast<ImportVsdPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -137,7 +137,7 @@ bool ImportVsdPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportVSD;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

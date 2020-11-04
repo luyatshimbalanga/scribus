@@ -73,7 +73,15 @@ void HunspellDialog::set(QMap<QString, QString>* dictionaryMap, QMap<QString, Hu
 	goToNextWord(0);
 }
 
-void HunspellDialog::updateSuggestions(QStringList &newSuggestions)
+void HunspellDialog::updateSuggestions(const WordsFound& wordFound)
+{
+	QStringList suggestions;
+	if (m_hspellerMap->contains(wordFound.lang))
+		suggestions = (*m_hspellerMap)[wordFound.lang]->suggest(wordFound.w);
+	updateSuggestions(suggestions);
+}
+
+void HunspellDialog::updateSuggestions(const QStringList &newSuggestions)
 {
 	suggestionsListWidget->clear();
 	suggestionsListWidget->addItems(newSuggestions);
@@ -94,10 +102,10 @@ void HunspellDialog::goToNextWord(int i)
 	{
 		do {
 			++m_wfListIndex;
-		} while (m_wfListIndex<m_wfList->count() && (m_wfList->at(m_wfListIndex).changed || m_wfList->at(m_wfListIndex).ignore));
+		} while (m_wfListIndex < m_wfList->count() && (m_wfList->at(m_wfListIndex).changed || m_wfList->at(m_wfListIndex).ignore));
 		//qDebug()<<"selected word index"<<m_wfListIndex;
 	}
-	if (m_wfListIndex>=m_wfList->count())
+	if (m_wfListIndex >= m_wfList->count())
 	{
 		statusLabel->setText(tr("Spelling check complete"));
 		suggestionsListWidget->clear();
@@ -109,14 +117,14 @@ void HunspellDialog::goToNextWord(int i)
 		return;
 	}
 	statusLabel->setText("");
-	currWF=m_wfList->at(m_wfListIndex);
+	currWF = m_wfList->at(m_wfListIndex);
 	setLanguageCombo(currWF.lang);
-	updateSuggestions(currWF.replacements);
+	updateSuggestions(currWF);
 
 	int sentencePos = 0;
-	QString sentence(m_iText->sentence(currWF.start, sentencePos));
-	sentence.insert(currWF.end-sentencePos+currWF.changeOffset,"</b></font>");
-	sentence.insert(currWF.start-sentencePos+currWF.changeOffset,"<font color=red><b>");
+	QString sentence(m_iText->sentence(currWF.start + currWF.changeOffset, sentencePos));
+	sentence.insert(currWF.end - sentencePos + currWF.changeOffset, "</b></font>");
+	sentence.insert(currWF.start - sentencePos + currWF.changeOffset, "<font color=red><b>");
 	sentenceTextEdit->setText(sentence);
 }
 
@@ -127,8 +135,10 @@ void HunspellDialog::ignoreAllWords()
 	QString wordToIgnore = m_wfList->at(m_wfListIndex).w;
 	//Do we start from 0 or from the instance of the word where we are... 0 for now
 	for (int i = 0; i < m_wfList->count(); ++i)
+	{
 		if (m_wfList->at(i).w == wordToIgnore)
 			(*m_wfList)[i].ignore = true;
+	}
 	goToNextWord();
 }
 
@@ -165,9 +175,12 @@ void HunspellDialog::changeAllWords()
 void HunspellDialog::replaceWord(int i)
 {
 	//TODO: rehyphenate after the replacement
+	QListWidgetItem* suggestionItem = suggestionsListWidget->currentItem();
+	if (!suggestionItem)
+		return;
 	int replaceStart = m_wfList->at(i).start + m_wfList->at(i).changeOffset;
 	QString oldText(m_iText->word(replaceStart));
-	QString newText(suggestionsListWidget->currentItem()->text());
+	QString newText(suggestionItem->text());
 
 	UndoTransaction transaction;
 	if ((m_item != nullptr) && UndoManager::undoEnabled())
@@ -218,7 +231,7 @@ void HunspellDialog::languageComboChanged(const QString &newLanguage)
 {
 	m_returnToDefaultLang = true;
 	QString wordLang = LanguageManager::instance()->getAbbrevFromLang(newLanguage, false);
-	if (!m_hspellerMap->contains(wordLang) )
+	if (!m_hspellerMap->contains(wordLang))
 	{
 		//qDebug() << "hspeller"<<wordLang<<"does not exist";
 		return;

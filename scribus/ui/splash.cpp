@@ -78,7 +78,7 @@ void ScSplashScreen::drawContents(QPainter* painter)
 	{
 #if defined(HAVE_SVNVERSION) && defined(SVNVERSION)
 		QString revText=QString("SVN Revision: %1").arg(SVNVERSION);
-		QRect r2 = rect().adjusted(0, 0, -15, -50);
+		QRect r2 = rect().adjusted(0, 0, -15, -30);
 		painter->setFont(f);
 		painter->drawText(r2, Qt::AlignRight | Qt::AlignAbsolute | Qt::AlignBottom, revText );
 #endif
@@ -93,9 +93,9 @@ void ScSplashScreen::drawContents(QPainter* painter)
 		wf.setPointSize(9);
 #endif
 		painter->setFont(wf);
-		painter->setPen(QPen(Qt::red));
-		QString warningText("UNSTABLE. For testing purposes only!");
-		QRect r3 = rect().adjusted(0, 0, -15, -25);
+//		painter->setPen(QPen(Qt::red));
+		QString warningText("Development Version");
+		QRect r3 = rect().adjusted(0, 0, -15, -45);
 		painter->drawText(r3, Qt::AlignRight | Qt::AlignAbsolute | Qt::AlignBottom, warningText );
 	}
 }

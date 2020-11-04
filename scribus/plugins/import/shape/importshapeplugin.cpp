@@ -34,7 +34,7 @@ ScPlugin* importshape_getPlugin()
 
 void importshape_freePlugin(ScPlugin* plugin)
 {
-	ImportShapePlugin* plug = dynamic_cast<ImportShapePlugin*>(plugin);
+	ImportShapePlugin* plug = qobject_cast<ImportShapePlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -136,7 +136,7 @@ bool ImportShapePlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportShape;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

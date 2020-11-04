@@ -40,7 +40,7 @@ ScPlugin* importpages_getPlugin()
 
 void importpages_freePlugin(ScPlugin* plugin)
 {
-	ImportPagesPlugin* plug = dynamic_cast<ImportPagesPlugin*>(plugin);
+	ImportPagesPlugin* plug = qobject_cast<ImportPagesPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -143,7 +143,7 @@ bool ImportPagesPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportApplePages;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

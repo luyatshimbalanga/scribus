@@ -41,7 +41,7 @@ ScPlugin* importdrw_getPlugin()
 
 void importdrw_freePlugin(ScPlugin* plugin)
 {
-	ImportDrwPlugin* plug = dynamic_cast<ImportDrwPlugin*>(plugin);
+	ImportDrwPlugin* plug = qobject_cast<ImportDrwPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -143,7 +143,7 @@ bool ImportDrwPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportDRW;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

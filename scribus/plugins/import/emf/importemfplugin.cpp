@@ -40,7 +40,7 @@ ScPlugin* importemf_getPlugin()
 
 void importemf_freePlugin(ScPlugin* plugin)
 {
-	ImportEmfPlugin* plug = dynamic_cast<ImportEmfPlugin*>(plugin);
+	ImportEmfPlugin* plug = qobject_cast<ImportEmfPlugin*>(plugin);
 	Q_ASSERT(plug);
 	delete plug;
 }
@@ -141,7 +141,7 @@ bool ImportEmfPlugin::import(QString fileName, int flags)
 	TransactionSettings trSettings;
 	trSettings.targetName   = hasCurrentPage ? m_Doc->currentPage()->getUName() : "";
 	trSettings.targetPixmap = Um::IImageFrame;
-	trSettings.actionName   = Um::ImportXfig;
+	trSettings.actionName   = Um::ImportEMF;
 	trSettings.description  = fileName;
 	trSettings.actionPixmap = Um::IXFIG;
 	if (emptyDoc || !(flags & lfInteractive) || !(flags & lfScripted))

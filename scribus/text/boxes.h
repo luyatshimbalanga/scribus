@@ -8,12 +8,9 @@
 #ifndef BOXES_H
 #define BOXES_H
 
-#include <QObject>
-
 #include "glyphcluster.h"
 #include "sctextstruct.h"
 #include "itextcontext.h"
-
 
 class StoryText;
 class TextLayoutPainter;
@@ -25,11 +22,11 @@ class ScreenPainter;
  and LineBoxes into GroupBox(T_Block).
  (and in the future: math atoms, tables & table cells, ...)
  */
-class Box: public QObject {
-	Q_OBJECT
-
+class Box
+{
 public:
-	enum BoxType {
+	enum BoxType
+	{
 		T_Invalid,
 		T_Block,
 		T_Line,
@@ -38,7 +35,8 @@ public:
 		T_Object
 	};
 
-	enum BoxDirection {
+	enum BoxDirection
+	{
 		D_Horizontal,
 		D_Vertical
 	};
@@ -144,11 +142,6 @@ public:
 	/// return box type
 	BoxType type() const { return m_type; }
 
-//public slots:
-//	virtual void childChanged() { }
-//signals:
-//	void boxChanged();
-
 protected:
 	BoxType m_type;
 	BoxDirection m_direction;
@@ -168,7 +161,6 @@ protected:
 
 class GroupBox: public Box
 {
-	Q_OBJECT
 public:
 	GroupBox(BoxDirection direction)
 	{
@@ -207,7 +199,6 @@ private:
 
 class LineBox: public GroupBox
 {
-	Q_OBJECT
 public:
 	LineBox()
 		: GroupBox(D_Horizontal)
@@ -239,7 +230,6 @@ protected:
 
 class PathLineBox: public LineBox
 {
-	Q_OBJECT
 public:
 	PathLineBox()
 	{
@@ -253,7 +243,6 @@ protected:
 
 class GlyphBox: public Box
 {
-	Q_OBJECT
 public:
 	GlyphBox(const GlyphCluster& run)
 		: m_glyphRun(run)
@@ -285,7 +274,6 @@ protected:
 
 class ObjectBox: public GlyphBox
 {
-	Q_OBJECT
 public:
 	ObjectBox(const GlyphCluster& run, ITextContext* ctx)
 		: GlyphBox(run)

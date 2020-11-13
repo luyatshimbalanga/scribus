@@ -5,8 +5,9 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 #include <QCompleter>
+#include <QComboBox>
 #include <QDebug>
-#include <QDirModel>
+#include <QFileSystemModel>
 #include <QFileDialog>
 #include <QImageWriter>
 #include <QToolTip>
@@ -17,6 +18,7 @@ for which a new license (GPL+exception) is in place.
 #include "prefscontext.h"
 #include "prefsfile.h"
 #include "prefsmanager.h"
+#include "scpaths.h"
 #include "scribusdoc.h"
 #include "ui/createrange.h"
 #include "ui/scrspinbox.h"
@@ -24,20 +26,20 @@ for which a new license (GPL+exception) is in place.
 #include "util.h"
 
 ExportForm::ExportForm(QWidget* parent, ScribusDoc* doc, int size, int quality, const QString& type)
-	: QDialog(parent, nullptr), m_doc(doc), m_PageCount(doc->DocPages.count())
+	: QDialog(parent, Qt::WindowFlags()), m_doc(doc), m_PageCount(doc->DocPages.count())
 {
 	setupUi(this);
 	setModal(true);
 	prefs = PrefsManager::instance().prefsFile->getPluginContext("pixmapexport");
 
-	QDirModel * dirModel = new QDirModel(this);
+	QFileSystemModel* dirModel = new QFileSystemModel(this);
 	dirModel->setFilter(QDir::AllDirs);
 	outputDirectory->setCompleter(new QCompleter(dirModel, this));
 
-	outputDirectory->setText( QDir::toNativeSeparators(prefs->get("wdir", QDir::currentPath())) );
 	QList<QByteArray> imgs = QImageWriter::supportedImageFormats();
 	for (int i = 0; i < imgs.count(); i++)
 		bitmapType->addItem(imgs[i]);
+
 	qualityBox->setValue(quality);
 	qualityBox->setWrapping(true);
 
@@ -75,13 +77,13 @@ void ExportForm::computeSize()
 
 void ExportForm::OutputDirectoryButton_pressed()
 {
-	QString lastDir = prefs->get("wdir", ".");
+	QString lastDir = prefs->get("ExportDirectory", ".");
 	QString dirName = QFileDialog::getExistingDirectory(this, tr("Choose an Export Directory"), lastDir);
 	if (dirName.length()>0)
 	{
 		dirName = QDir::toNativeSeparators(dirName);
 		outputDirectory->setText(dirName);
-		prefs->set("wdir", dirName);
+		prefs->set("ExportDirectory", dirName);
 	}
 }
 
@@ -131,6 +133,7 @@ void ExportForm::languageChange()
 
 void ExportForm::readConfig()
 {
+	outputDirectory->setText( QDir::toNativeSeparators(prefs->get("ExportDirectory", ScPaths::instance().userDocumentDir())) );
 	DPIBox->setValue(prefs->getUInt("DPIBox", 72));
 	enlargementBox->setValue(prefs->getInt("EnlargementBox", 100));
 	qualityBox->setValue(prefs->getUInt("QualityBox", -1));
@@ -146,7 +149,8 @@ void ExportForm::readConfig()
 	}
 	rangeVal->setEnabled(exportPageValue==2);
 	pageNrButton->setEnabled(exportPageValue==2);
-	bitmapType->setCurrentText("png");
+	bitmapType->setCurrentIndex(prefs->getInt("BitmapType",1));
+
 	rangeVal->setText(prefs->get("RangeVal", ""));
 }
 

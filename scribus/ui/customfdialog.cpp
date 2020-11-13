@@ -64,9 +64,9 @@ extern QString DocDir;
 
 ImIconProvider::ImIconProvider()
 {
-	fmts.clear();
 	QString tmp[] = {"eps", "epsi", "gif", "png", "jpg", "jpeg", "xpm", "tif", "tiff", "bmp", "pbm", "pgm", "ppm", "xbm", "xpm", "psd", "pat"};
 	size_t arraySize = sizeof(tmp) / sizeof(*tmp);
+	fmts.reserve(arraySize);
 	for (size_t i = 0; i < arraySize; ++i)
 		fmts.append(tmp[i]);
 	IconManager& im=IconManager::instance();
@@ -563,7 +563,7 @@ void CustomFDialog::handleCompress()
 	QString   fileName;
 	QFileInfo tmp(selectedFile());
 	QString   fn(tmp.fileName());
-	QStringList fc = fn.split(".", QString::KeepEmptyParts);
+	QStringList fc = fn.split(".", Qt::KeepEmptyParts);
 	if (fc.count() > 0)
 		fileName = fc.at(0);
 	for (int a = 1; a < fc.count(); a++)

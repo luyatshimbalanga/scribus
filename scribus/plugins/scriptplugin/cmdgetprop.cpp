@@ -4,6 +4,9 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
+
+#include <algorithm>
+
 #include "cmdgetprop.h"
 #include "cmdutil.h"
 #include "scribuscore.h"
@@ -40,6 +43,22 @@ PyObject *scribus_getobjecttype(PyObject* /* self */, PyObject* args)
 		result = "Polyline";
 	} else if (item->itemType() == PageItem::LatexFrame) {
 		result = "LatexFrame";
+	} else if (item->itemType() == PageItem::OSGFrame) {
+		result = "OSGFrame";
+	} else if (item->itemType() == PageItem::Symbol) {
+		result = "Symbol";
+	} else if (item->itemType() == PageItem::Group) {
+		result = "Group";
+	} else if (item->itemType() == PageItem::RegularPolygon) {
+		result = "RegularPolygon";
+	} else if (item->itemType() == PageItem::Arc) {
+		result = "Arc";
+	} else if (item->itemType() == PageItem::Spiral) {
+		result = "Spiral";
+	} else if (item->itemType() == PageItem::Table) {
+		result = "Table";
+	} else if (item->itemType() == PageItem::NoteFrame) {
+		result = "NoteFrame";
 	} else if (item->itemType() == PageItem::Multiple) {
 		result = "Multiple";
 	}
@@ -310,9 +329,9 @@ PyObject *scribus_getrotation(PyObject* /* self */, PyObject* args)
 
 PyObject *scribus_getallobjects(PyObject* /* self */, PyObject* args, PyObject *keywds)
 {
-	int type = -1;
+	int itemType = -1;
+	int layerId = -1;
 	uint counter = 0;
-	uint counter2 = 0;
 
 	if (!checkHaveDocument())
 		return nullptr;
@@ -322,7 +341,7 @@ PyObject *scribus_getallobjects(PyObject* /* self */, PyObject* args, PyObject *
 	char *kwlist[] = { const_cast<char*>("type"), const_cast<char*>("page"), const_cast<char*>("layer"), nullptr};
 	char* szLayerName = const_cast<char*>("");
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iies", kwlist, &type, &pageNr, "utf-8", &szLayerName))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iies", kwlist, &itemType, &pageNr, "utf-8", &szLayerName))
 		return nullptr;
 
 	int numPages = currentDoc->Pages->count();
@@ -332,45 +351,41 @@ PyObject *scribus_getallobjects(PyObject* /* self */, PyObject* args, PyObject *
 		return nullptr;
 	}
 
-	const ScLayer *layer = nullptr;
 	QString layerName = QString::fromUtf8(szLayerName);
 	if (!layerName.isEmpty())
 	{
-		layer = currentDoc->Layers.layerByName(layerName);
+		const ScLayer *layer = currentDoc->Layers.layerByName(layerName);
 		if (!layer)
 		{
 			PyErr_SetString(PyExc_ValueError, QObject::tr("layer name is invalid.", "python error").toLocal8Bit().constData());
 			return nullptr;
 		}
+		layerId = layer->ID;
 	}
 
-	// have doc already
+	auto isReturnedItem = [pageNr, layerId, itemType](PageItem* item)
+	{
+		if  (pageNr != item->OwnPage)
+			return false;
+		if ((itemType != -1) && (item->itemType() != itemType))
+			return false;
+		if ((layerId != -1) && (item->m_layerID) != layerId)
+			return false;
+		return true;
+	};
+
+	int returnedItemCount = std::count_if(currentDoc->DocItems.begin(), currentDoc->DocItems.end(), isReturnedItem);
+
+	PyObject* pyItemList = PyList_New(returnedItemCount);
 	for (int i = 0; i < currentDoc->Items->count(); ++i)
 	{
 		PageItem* item = currentDoc->Items->at(i);
-		if  (pageNr != item->OwnPage)
+		if (!isReturnedItem(item))
 			continue;
-		if ((type != -1) && (item->itemType() != type))
-			continue;
-		if (layer && (layer->ID != item->m_layerID))
-			continue;
+		PyList_SetItem(pyItemList, counter, PyUnicode_FromString(item->itemName().toUtf8()));
 		counter++;
 	}
-
-	PyObject* pyList = PyList_New(counter);
-	for (int i = 0; i < currentDoc->Items->count(); ++i)
-	{
-		PageItem* item = currentDoc->Items->at(i);
-		if  (pageNr != item->OwnPage)
-			continue;
-		if ((type != -1) && (item->itemType() != type))
-			continue;
-		if (layer && (layer->ID != item->m_layerID))
-			continue;
-		PyList_SetItem(pyList, counter2, PyUnicode_FromString(item->itemName().toUtf8()));
-		counter2++;
-	}
-	return pyList;
+	return pyItemList;
 }
 
 PyObject *scribus_getobjectattributes(PyObject* /* self */, PyObject* args)

@@ -15,8 +15,6 @@ for which a new license (GPL+exception) is in place.
 #include <QApplication>
 #include <QByteArray>
 #include <QScopedPointer>
-#include <QXmlInputSource>
-#include <QXmlSimpleReader>
 
 #include "scribusdoc.h"
 #include "styles/charstyle.h"
@@ -140,18 +138,15 @@ ODTIm::~ODTIm()
 
 bool ODTIm::parseRawDocReference(const QString& designMap)
 {
-	QByteArray f;
+	QByteArray xmlData;
 	QDomDocument designMapDom;
-	if (!uz->read(designMap, f))
+	if (!uz->read(designMap, xmlData))
 		return false;
-	QXmlInputSource xmlSource;
-	xmlSource.setData(f);
-	QXmlSimpleReader xmlReader;
-	xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-	QString errorMsg = "";
+
+	QString errorMsg;
 	int errorLine = 0;
 	int errorColumn = 0;
-	if (!designMapDom.setContent(&xmlSource, &xmlReader, &errorMsg, &errorLine, &errorColumn))
+	if (!designMapDom.setContent(xmlData, false, &errorMsg, &errorLine, &errorColumn))
 	{
 		qDebug() << "Error loading File" << errorMsg << "at Line" << errorLine << "Column" << errorColumn;
 		return false;
@@ -317,18 +312,15 @@ void ODTIm::parseRawText(QDomElement &elem, PageItem* item)
 
 bool ODTIm::parseStyleSheets(const QString& designMap)
 {
-	QByteArray f;
+	QByteArray xmlData;
 	QDomDocument designMapDom;
-	if (!uz->read(designMap, f))
+	if (!uz->read(designMap, xmlData))
 		return false;
-	QXmlInputSource xmlSource;
-	xmlSource.setData(f);
-	QXmlSimpleReader xmlReader;
-	xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-	QString errorMsg = "";
+
+	QString errorMsg;
 	int errorLine = 0;
 	int errorColumn = 0;
-	if (!designMapDom.setContent(&xmlSource, &xmlReader, &errorMsg, &errorLine, &errorColumn))
+	if (!designMapDom.setContent(xmlData, false, &errorMsg, &errorLine, &errorColumn))
 	{
 		qDebug() << "Error loading File" << errorMsg << "at Line" << errorLine << "Column" << errorColumn;
 		return false;
@@ -581,18 +573,15 @@ void ODTIm::parseStyles(QDomElement &sp, const QString& type)
 
 bool ODTIm::parseDocReference(const QString& designMap)
 {
-	QByteArray f;
+	QByteArray xmlData;
 	QDomDocument designMapDom;
-	if (!uz->read(designMap, f))
+	if (!uz->read(designMap, xmlData))
 		return false;
-	QXmlInputSource xmlSource;
-	xmlSource.setData(f);
-	QXmlSimpleReader xmlReader;
-	xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-	QString errorMsg = "";
+
+	QString errorMsg;
 	int errorLine = 0;
 	int errorColumn = 0;
-	if (!designMapDom.setContent(&xmlSource, &xmlReader, &errorMsg, &errorLine, &errorColumn))
+	if (!designMapDom.setContent(xmlData, false, &errorMsg, &errorLine, &errorColumn))
 	{
 		qDebug() << "Error loading File" << errorMsg << "at Line" << errorLine << "Column" << errorColumn;
 		return false;
@@ -1209,8 +1198,8 @@ void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, const QString& pAttrs)
 		}
 		if ((actStyle.tabDists.valid) && (actStyle.tabTypes.valid))
 		{
-			QStringList dists = actStyle.tabDists.value.split(";", QString::SkipEmptyParts);
-			QStringList types = actStyle.tabTypes.value.split(" ", QString::SkipEmptyParts);
+			QStringList dists = actStyle.tabDists.value.split(";", Qt::SkipEmptyParts);
+			QStringList types = actStyle.tabTypes.value.split(" ", Qt::SkipEmptyParts);
 			if (dists.count() == types.count())
 			{
 				tmpOStyle.tabStops.clear();
@@ -1279,7 +1268,7 @@ QString ODTIm::parseColor( const QString &s )
 	if (s.startsWith( "rgb(" ))
 	{
 		QString parse = s.trimmed();
-		QStringList colors = parse.split( ',', QString::SkipEmptyParts );
+		QStringList colors = parse.split( ',', Qt::SkipEmptyParts );
 		QString r = colors[0].right( ( colors[0].length() - 4 ) );
 		QString g = colors[1];
 		QString b = colors[2].left( ( colors[2].length() - 1 ) );

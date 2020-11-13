@@ -472,7 +472,7 @@ void ScribusMainWindow::setupMainWindow()
 	rebuildRecentFileMenu();
 	//For 1.3.5, we dump prefs first time around.
 	if (!m_prefsManager.firstTimeIgnoreOldPrefs())
-		m_prefsManager.ReadPrefsXML();
+		m_prefsManager.readPrefsXML();
 	if (m_prefsManager.appPrefs.verifierPrefs.checkerPrefsList.count() == 0)
 	{
 		m_prefsManager.initDefaultCheckerPrefs(m_prefsManager.appPrefs.verifierPrefs.checkerPrefsList);
@@ -1868,7 +1868,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 	m_prefsManager.appPrefs.scrapbookPrefs.RecentScrapbooks.clear();
 	m_prefsManager.appPrefs.scrapbookPrefs.RecentScrapbooks = scrapbookPalette->getOpenScrapbooks();
 	if (!emergencyActivated)
-		m_prefsManager.SavePrefs();
+		m_prefsManager.savePrefs();
 	UndoManager::deleteInstance();
 	FormatsManager::deleteInstance();
 //	qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
@@ -2328,9 +2328,9 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 				allItems = currItem->getAllChildren();
 			else
 				allItems.append(currItem);
-			for (int ii = 0; ii < allItems.count(); ii++)
+			for (int j = 0; j < allItems.count(); j++)
 			{
-				PageItem* item = allItems.at(ii);
+				PageItem* item = allItems.at(j);
 				if ((item->itemType() == PageItem::ImageFrame) && (!item->isLatexFrame()) && (!item->isOSGFrame()))
 				{
 					enablePicManager = true;
@@ -6281,44 +6281,16 @@ void ScribusMainWindow::MakeFrame(int f, int c, double *vals)
 void ScribusMainWindow::duplicateItem()
 {
 	slotSelect();
-	bool savedAlignGrid = doc->SnapGrid;
-	bool savedAlignGuides = doc->SnapGuides;
-	bool savedAlignElement = doc->SnapElement;
+
+	double shiftGapH = doc->opToolPrefs().dispX * doc->unitRatio();
+	double shiftGapV = doc->opToolPrefs().dispY * doc->unitRatio();
+
 	internalCopy = true;
-	doc->SnapGrid  = false;
-	doc->SnapGuides = false;
-	doc->SnapElement = false;
+	
+	doc->itemSelection_Duplicate(shiftGapH, shiftGapV);
 
-	UndoTransaction trans;
-	if (UndoManager::undoEnabled())
-		trans = m_undoManager->beginTransaction(Um::Selection, Um::IPolygon, Um::Duplicate, QString(), Um::IMultipleDuplicate);
-
-	ItemMultipleDuplicateData mdData;
-	mdData.type = 0;
-	mdData.copyCount = 1;
-	mdData.copyShiftOrGap = 0;
-	mdData.copyShiftGapH = doc->opToolPrefs().dispX * doc->unitRatio();
-	mdData.copyShiftGapV = doc->opToolPrefs().dispY * doc->unitRatio();
-
-	int oldItemCount = doc->Items->count();
-	doc->m_Selection->delaySignalsOn();
-	doc->itemSelection_MultipleDuplicate(mdData);
-	view->deselectItems(true);
-	for (int i = oldItemCount; i < doc->Items->count(); ++i)
-	{
-		PageItem* item = doc->Items->at(i);
-		doc->m_Selection->addItem(item);
-	}
-	doc->m_Selection->delaySignalsOff();
-
-	if (trans)
-		trans.commit();
-	doc->SnapGrid  = savedAlignGrid;
-	doc->SnapGuides = savedAlignGuides;
-	doc->SnapElement = savedAlignElement;
 	internalCopy = false;
 	internalCopyBuffer.clear();
-	view->DrawNew();
 }
 
 void ScribusMainWindow::duplicateItemMulti()
@@ -6590,7 +6562,7 @@ void ScribusMainWindow::slotPrefsOrg()
 	icm.setMaxCacheEntries(newPrefs.imageCachePrefs.maxCacheEntries);
 	icm.setCompressionLevel(newPrefs.imageCachePrefs.compressionLevel);
 
-	m_prefsManager.SavePrefs();
+	m_prefsManager.savePrefs();
 	m_mainWindowStatusLabel->setText( tr("Ready"));
 }
 
@@ -7853,7 +7825,7 @@ void ScribusMainWindow::restoreAddPage(SimpleState *state, bool isUndo)
 	int wo    = state->getInt("PAGE");
 	int where = state->getInt("WHERE");
 	int count = state->getInt("COUNT");
-	QStringList based = state->get("BASED").split("|", QString::SkipEmptyParts);
+	QStringList based = state->get("BASED").split("|", Qt::SkipEmptyParts);
 	double height = state->getDouble("HEIGHT");
 	double width = state->getDouble("WIDTH");
 	int orient = state->getInt("ORIENT");

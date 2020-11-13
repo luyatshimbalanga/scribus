@@ -433,7 +433,7 @@ PageItem::PageItem(ScribusDoc *doc, ItemType newType, double x, double y, double
 	PLineArt = Qt::PenStyle(m_Doc->itemToolPrefs().shapeLineStyle);
 	PLineEnd = Qt::FlatCap;
 	PLineJoin = Qt::MiterJoin;
-	m_textDistanceMargins=m_Doc->itemToolPrefs().textDistances;
+	m_textDistanceMargins = m_Doc->itemToolPrefs().textDistances;
 	pixm.imgInfo.lowResType = m_Doc->itemToolPrefs().imageLowResType;
 	switch (m_itemType)
 	{
@@ -641,6 +641,7 @@ PageItem::PageItem(ScribusDoc *doc, ItemType newType, double x, double y, double
 	}
 	GrMaskEndX = w;
 	mask_gradient = VGradient(VGradient::linear);
+	mask_gradient.clearStops();
 	const ScColor& col = m_Doc->PageColors["Black"];
 	QColor qcol = ScColorEngine::getRGBColor(col, m_Doc);
 	mask_gradient.addStop(qcol, 0.0, 0.5, 1.0, "Black", 100);
@@ -682,7 +683,7 @@ PageItem::PageItem(ScribusDoc *doc, ItemType newType, double x, double y, double
 	meshGradientArray.append(mgList);
 	meshGradientPatches.append(patch);
 
-	m_firstLineOffset = FLOPRealGlyphHeight;
+	m_firstLineOffset = m_Doc->itemToolPrefs().firstLineOffset;
 	m_columns = m_Doc->itemToolPrefs().textColumns;
 	m_columnGap = m_Doc->itemToolPrefs().textColumnGap;
 
@@ -690,15 +691,18 @@ PageItem::PageItem(ScribusDoc *doc, ItemType newType, double x, double y, double
 	m_startArrowIndex = m_Doc->itemToolPrefs().lineStartArrow;
 	m_endArrowIndex = m_Doc->itemToolPrefs().lineEndArrow;
 	effectsInUse.clear();
+
 	//Page Item Attributes
 	pageItemAttributes.clear();
-	for (ObjAttrVector::Iterator objAttrIt = m_Doc->itemAttributes().begin() ; objAttrIt != m_Doc->itemAttributes().end(); ++objAttrIt )
+	for (const ObjectAttribute& objAttr : qAsConst(m_Doc->itemAttributes()))
 	{
-		if (((*objAttrIt).autoaddto=="textframes" && m_itemType==TextFrame) ||
-			((*objAttrIt).autoaddto=="imageframes" && m_itemType==ImageFrame)
-			)
-			pageItemAttributes.append(*objAttrIt);
+		if ((objAttr.autoaddto == "textframes" && m_itemType == TextFrame) ||
+			(objAttr.autoaddto == "imageframes" && m_itemType == ImageFrame))
+		{
+			pageItemAttributes.append(objAttr);
+		}
 	}
+
 	hatchBackground = CommonStrings::None;
 	hatchBackgroundQ = QColor();
 	hatchForeground = "Black";
@@ -2988,6 +2992,7 @@ void PageItem::createGradientMesh(int rows, int cols)
 	for (int x = 0; x < rows + 1; x++)
 	{
 		QList<MeshPoint> mgList;
+		mgList.reserve(cols + 1);
 		for (int y = 0; y < cols + 1; y++)
 		{
 			MeshPoint mgP;

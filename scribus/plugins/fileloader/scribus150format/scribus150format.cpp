@@ -2412,6 +2412,8 @@ void Scribus150Format::readToolSettings(ScribusDoc* doc, ScXmlStreamAttributes& 
 	doc->opToolPrefs().constrain   = attrs.valueAsDouble("constrain", 15.0);
 	doc->itemToolPrefs().textTabFillChar = attrs.valueAsString("TabFill","");
 	doc->itemToolPrefs().textTabWidth   = attrs.valueAsDouble("TabWidth", 36.0);
+	doc->itemToolPrefs().firstLineOffset = (FirstLineOffsetPolicy) attrs.valueAsInt("FirstLineOffset", (int) FLOPRealGlyphHeight); // Default to FLOPRealGlyphHeight for legacy docs
+	doc->itemToolPrefs().firstLineOffset = qMax(FLOPRealGlyphHeight, qMin(doc->itemToolPrefs().firstLineOffset, FLOPBaselineGrid));
 	if (attrs.hasAttribute("CPICT"))
 		doc->itemToolPrefs().imageFillColor = attrs.valueAsString("CPICT");
 	doc->itemToolPrefs().imageFillColorShade = attrs.valueAsInt("PICTSHADE", 100);
@@ -2643,7 +2645,7 @@ void Scribus150Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 
 	static const QString FEATURES("FEATURES");
 	if (attrs.hasAttribute(FEATURES))
-		newStyle.setFeatures(attrs.valueAsString(FEATURES).split( " ", QString::SkipEmptyParts));
+		newStyle.setFeatures(attrs.valueAsString(FEATURES).split( " ", Qt::SkipEmptyParts));
 
 	static const QString SCOLOR("SCOLOR");
 	if (attrs.hasAttribute(SCOLOR))
@@ -5238,7 +5240,7 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 	if (attrs.hasAttribute("TXTSTW"))
 		pstyle.charStyle().setStrikethruWidth(qRound(attrs.valueAsDouble("TXTSTW") * 10));
 	if (attrs.hasAttribute("TXTFEATURES"))
-		pstyle.charStyle().setFeatures(attrs.valueAsString("TXTFEATURES").split(" ", QString::SkipEmptyParts));
+		pstyle.charStyle().setFeatures(attrs.valueAsString("TXTFEATURES").split(" ", Qt::SkipEmptyParts));
 	if (attrs.hasAttribute("TXTKERN"))
 		pstyle.charStyle().setTracking(qRound(attrs.valueAsDouble("TXTKERN", 0.0) * 10));
 	if (attrs.hasAttribute("wordTrack"))

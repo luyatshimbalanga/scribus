@@ -677,14 +677,14 @@ bool WpgPlug::convert(const QString& fn)
 	importedColors.clear();
 
 	QFile file(fn);
-	if ( !file.exists() )
+	if (!file.exists())
 	{
-		qDebug() << "File " << QFile::encodeName(fn).data() << " does not exist" << endl;
+		qDebug() << "File " << QFile::encodeName(fn).data() << " does not exist";
 		return false;
 	}
-	if ( !file.open( QIODevice::ReadOnly ) )
+	if (!file.open( QIODevice::ReadOnly))
 	{
-		qDebug() << "Cannot open file " << QFile::encodeName(fn).data() << endl;
+		qDebug() << "Cannot open file " << QFile::encodeName(fn).data();
 		return false;
 	}
 	QByteArray ba = file.readAll();

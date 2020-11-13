@@ -1095,6 +1095,7 @@ void Scribus134Format::readToolSettings(ScribusDoc* doc, ScXmlStreamAttributes& 
 	doc->opToolPrefs().constrain   = attrs.valueAsDouble("constrain", 15.0);
 	doc->itemToolPrefs().textTabFillChar = attrs.valueAsString("TabFill","");
 	doc->itemToolPrefs().textTabWidth   = attrs.valueAsDouble("TabWidth", 36.0);
+	doc->itemToolPrefs().firstLineOffset = FLOPRealGlyphHeight;
 	if (attrs.hasAttribute("CPICT"))
 		doc->itemToolPrefs().imageFillColor = attrs.valueAsString("CPICT");
 	doc->itemToolPrefs().imageFillColorShade = attrs.valueAsInt("PICTSHADE", 100);
@@ -1252,7 +1253,7 @@ void Scribus134Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 	
 	static const QString FEATURES("FEATURES");
 	if (attrs.hasAttribute(FEATURES))
-		newStyle.setFeatures(attrs.valueAsString(FEATURES).split( " ", QString::SkipEmptyParts));
+		newStyle.setFeatures(attrs.valueAsString(FEATURES).split( " ", Qt::SkipEmptyParts));
 	
 	static const QString SCOLOR("SCOLOR");
 	if (attrs.hasAttribute(SCOLOR))
@@ -2798,7 +2799,7 @@ PageItem* Scribus134Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 	if (attrs.hasAttribute("TXTSTYLE")) // Pre 1.4.x attribute, not used in 1.4.x
 		pstyle.charStyle().setFeatures(static_cast<StyleFlag>(attrs.valueAsInt("TXTSTYLE")).featureList());
 	if (attrs.hasAttribute("TXTFEATURES")) // Added to fix issue #13355
-		pstyle.charStyle().setFeatures(attrs.valueAsString("TXTFEATURES").split(" ", QString::SkipEmptyParts));
+		pstyle.charStyle().setFeatures(attrs.valueAsString("TXTFEATURES").split(" ", Qt::SkipEmptyParts));
 	if (attrs.hasAttribute("TXTKERN"))
 		pstyle.charStyle().setTracking(qRound(attrs.valueAsDouble("TXTKERN", 0.0) * 10));
 	if (attrs.hasAttribute("wordTrack"))

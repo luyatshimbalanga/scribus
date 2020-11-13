@@ -13,6 +13,7 @@ for which a new license (GPL+exception) is in place.
 
 #include <QByteArray>
 #include <QCursor>
+#include <QDebug>
 #include <QDrag>
 #include <QFile>
 #include <QList>
@@ -20,9 +21,6 @@ for which a new license (GPL+exception) is in place.
 #include <QRegExp>
 #include <QStack>
 #include <QUrl>
-#include <QXmlInputSource>
-#include <QXmlSimpleReader>
-#include <QDebug>
 
 #if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
 #define _USE_MATH_DEFINES
@@ -401,18 +399,15 @@ bool OdgPlug::convert(const QString& fn)
 
 bool OdgPlug::parseStyleSheets(const QString& designMap)
 {
-	QByteArray f;
+	QByteArray xmlData;
 	QDomDocument designMapDom;
-	if (!uz->read(designMap, f))
+	if (!uz->read(designMap, xmlData))
 		return false;
-	QXmlInputSource xmlSource;
-	xmlSource.setData(f);
-	QXmlSimpleReader xmlReader;
-	xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-	QString errorMsg = "";
+
+	QString errorMsg;
 	int errorLine = 0;
 	int errorColumn = 0;
-	if (!designMapDom.setContent(&xmlSource, &xmlReader, &errorMsg, &errorLine, &errorColumn))
+	if (!designMapDom.setContent(xmlData, false, &errorMsg, &errorLine, &errorColumn))
 	{
 		qDebug() << "Error loading File" << errorMsg << "at Line" << errorLine << "Column" << errorColumn;
 		return false;
@@ -528,18 +523,15 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 
 bool OdgPlug::parseDocReference(const QString& designMap)
 {
-	QByteArray f;
+	QByteArray xmlData;
 	QDomDocument designMapDom;
-	if (!uz->read(designMap, f))
+	if (!uz->read(designMap, xmlData))
 		return false;
-	QXmlInputSource xmlSource;
-	xmlSource.setData(f);
-	QXmlSimpleReader xmlReader;
-	xmlReader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-	QString errorMsg = "";
+
+	QString errorMsg;
 	int errorLine = 0;
 	int errorColumn = 0;
-	if (!designMapDom.setContent(&xmlSource, &xmlReader, &errorMsg, &errorLine, &errorColumn))
+	if (!designMapDom.setContent(xmlData, false, &errorMsg, &errorLine, &errorColumn))
 	{
 		qDebug() << "Error loading File" << errorMsg << "at Line" << errorLine << "Column" << errorColumn;
 		return false;
@@ -1015,13 +1007,13 @@ PageItem* OdgPlug::parseCustomShape(QDomElement &e)
 			mat.scale(sx, sy);
 			if (!textArea.isEmpty())
 			{
-				QStringList points = textArea.replace( QRegExp(","), " ").simplified().split( ' ', QString::SkipEmptyParts );
+				QStringList points = textArea.replace( QRegExp(","), " ").simplified().split( ' ', Qt::SkipEmptyParts );
 				texAreaPoints.append(QPointF(ScCLocale::toDoubleC(points[0]), ScCLocale::toDoubleC(points[1])));
 				texAreaPoints.append(QPointF(ScCLocale::toDoubleC(points[2]), ScCLocale::toDoubleC(points[3])));
 				texAreaPoints = mat.map(texAreaPoints);
 			}
 			QString shapeType = p.attribute("draw:type");
-			QStringList paths = enhPath.split("N", QString::SkipEmptyParts);
+			QStringList paths = enhPath.split("N", Qt::SkipEmptyParts);
 			if (!paths.isEmpty())
 			{
 				for (int a = 0; a < paths.count(); a++)
@@ -1913,16 +1905,16 @@ void OdgPlug::applyParagraphStyle(ParagraphStyle &tmpStyle, ObjStyle &oStyle)
 void OdgPlug::parseTransform(const QString &transform, double *rotation, double *transX, double *transY)
 {
 	double dx, dy;
-	QStringList subtransforms = transform.split(')', QString::SkipEmptyParts);
+	QStringList subtransforms = transform.split(')', Qt::SkipEmptyParts);
 	QStringList::ConstIterator it = subtransforms.begin();
 	QStringList::ConstIterator end = subtransforms.end();
 	for (; it != end; ++it)
 	{
-		QStringList subtransform = (*it).split('(', QString::SkipEmptyParts);
+		QStringList subtransform = (*it).split('(', Qt::SkipEmptyParts);
 		subtransform[0] = subtransform[0].trimmed().toLower();
 		subtransform[1] = subtransform[1].simplified();
 		QRegExp reg("[,( ]");
-		QStringList params = subtransform[1].split(reg, QString::SkipEmptyParts);
+		QStringList params = subtransform[1].split(reg, Qt::SkipEmptyParts);
 		if (subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
 			subtransform[0] = subtransform[0].right(subtransform[0].length() - 1);
 		if (subtransform[0] == "rotate")
@@ -1951,16 +1943,16 @@ void OdgPlug::parseTransform(FPointArray *composite, const QString &transform)
 {
 	double dx, dy;
 	QTransform result;
-	QStringList subtransforms = transform.split(')', QString::SkipEmptyParts);
+	QStringList subtransforms = transform.split(')', Qt::SkipEmptyParts);
 	QStringList::ConstIterator it = subtransforms.begin();
 	QStringList::ConstIterator end = subtransforms.end();
 	for (; it != end; ++it)
 	{
-		QStringList subtransform = (*it).split('(', QString::SkipEmptyParts);
+		QStringList subtransform = (*it).split('(', Qt::SkipEmptyParts);
 		subtransform[0] = subtransform[0].trimmed().toLower();
 		subtransform[1] = subtransform[1].simplified();
 		QRegExp reg("[,( ]");
-		QStringList params = subtransform[1].split(reg, QString::SkipEmptyParts);
+		QStringList params = subtransform[1].split(reg, Qt::SkipEmptyParts);
 		if (subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
 			subtransform[0] = subtransform[0].right(subtransform[0].length() - 1);
 		if (subtransform[0] == "rotate")
@@ -2005,7 +1997,7 @@ void OdgPlug::parseViewBox( const QDomElement& object, double *x, double *y, dou
 	if (!object.attribute( "svg:viewBox" ).isEmpty())
 	{
 		QString viewbox( object.attribute( "svg:viewBox" ) );
-		QStringList points = viewbox.replace( QRegExp(","), " ").simplified().split( ' ', QString::SkipEmptyParts );
+		QStringList points = viewbox.replace( QRegExp(","), " ").simplified().split( ' ', Qt::SkipEmptyParts );
 		*x = ScCLocale::toDoubleC(points[0]);
 		*y = ScCLocale::toDoubleC(points[1]);
 		*w = ScCLocale::toDoubleC(points[2]);
@@ -2026,7 +2018,7 @@ void OdgPlug::appendPoints(FPointArray *composite, const QDomElement& object, bo
 	parseViewBox(object, &vx, &vy, &vw, &vh);
 	double sx = (vw != 0.0) ? (w / vw) : w;
 	double sy = (vh != 0.0) ? (h / vh) : h;
-	QStringList ptList = object.attribute( "draw:points" ).split( ' ', QString::SkipEmptyParts );
+	QStringList ptList = object.attribute( "draw:points" ).split( ' ', Qt::SkipEmptyParts );
 	FPoint point, firstP;
 	bool bFirst = true;
 	for ( QStringList::Iterator it = ptList.begin(); it != ptList.end(); ++it)
@@ -2678,7 +2670,7 @@ void OdgPlug::resovleStyle(ObjStyle &tmpOStyle, const QString& pAttrs)
 		if (actStyle.markerViewBox.valid)
 		{
 			QString viewbox = actStyle.markerViewBox.value;
-			QStringList points = viewbox.replace( QRegExp(","), " ").simplified().split( ' ', QString::SkipEmptyParts );
+			QStringList points = viewbox.replace( QRegExp(","), " ").simplified().split( ' ', Qt::SkipEmptyParts );
 			tmpOStyle.markerViewBox = QRectF(ScCLocale::toDoubleC(points[0]), ScCLocale::toDoubleC(points[1]), ScCLocale::toDoubleC(points[2]), ScCLocale::toDoubleC(points[3]));
 		}
 		else
@@ -3235,7 +3227,7 @@ QString OdgPlug::parseColor( const QString &s )
 	if (s.startsWith( "rgb(" ))
 	{
 		QString parse = s.trimmed();
-		QStringList colors = parse.split( ',', QString::SkipEmptyParts );
+		QStringList colors = parse.split( ',', Qt::SkipEmptyParts );
 		QString r = colors[0].right( ( colors[0].length() - 4 ) );
 		QString g = colors[1];
 		QString b = colors[2].left( ( colors[2].length() - 1 ) );
@@ -3341,13 +3333,13 @@ QPointF OdgPlug::intersectBoundingRect(PageItem *item, QLineF gradientVector)
 {
 	QPointF interPoint;
 	QPointF gradEnd;
-	if (gradientVector.intersect(QLineF(0, 0, item->width(), 0), &interPoint) == QLineF::BoundedIntersection)
+	if (gradientVector.intersects(QLineF(0, 0, item->width(), 0), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(item->width(), 0, item->width(), item->height()), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(item->width(), 0, item->width(), item->height()), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(item->width(), item->height(), 0, item->height()), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(item->width(), item->height(), 0, item->height()), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(0, item->height(), 0, 0), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(0, item->height(), 0, 0), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
 	return gradEnd;
 }
@@ -3689,7 +3681,7 @@ void OdgPlug::finishItem(PageItem* item, ObjStyle &obState)
 			L1.setAngle(-45);
 			QLineF LCW = QLineF(0.0, item->height() / 2.0, item->width(), item->height() / 2.0);
 			QPointF P5;
-			LCW.intersect(L1, &P5);
+			LCW.intersects(L1, &P5);
 			QPointF P6 = QPointF(item->width() - P5.x(), P5.y());
 			QPolygonF pPoints;
 			pPoints << P1 << P2 << P3 << P4 << P5 << P6;

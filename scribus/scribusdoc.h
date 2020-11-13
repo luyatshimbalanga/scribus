@@ -1309,7 +1309,7 @@ public: // Public attributes
 	FPoint maxCanvasCoordinate;
 	double rulerXoffset {0.0};
 	double rulerYoffset {0.0};
-	//! Page is a pointer to the lists of pages that exist in a document. In Normal mode, it points to DocPages. In Master Page mode it points to MasterPages. See ScribusDoc::assignPageModeLists()
+	//! Pages is a pointer to the lists of pages that exist in a document. In Normal mode, it points to DocPages. In Master Page mode it points to MasterPages. See ScribusDoc::assignPageModeLists()
 	QList<ScPage*>* Pages {nullptr};
 	/** \brief List of Master Pages */
 	QList<ScPage*> MasterPages;
@@ -1470,7 +1470,6 @@ signals:
 	void docChanged();
 	void updateContents();
 	void updateContents(const QRect &r);
-	void refreshItem(PageItem *);
 	void firstSelectedItemType(int);
 
 	void updateEditItem();
@@ -1555,7 +1554,8 @@ public slots:
 	void itemSelection_DistributeTop();
 	void itemSelection_SwapLeft();
 	void itemSelection_SwapRight();
-	void itemSelection_MultipleDuplicate(const ItemMultipleDuplicateData&);
+	void itemSelection_Duplicate(double shiftX, double shiftY, Selection* customSelection = nullptr);
+	void itemSelection_MultipleDuplicate(const ItemMultipleDuplicateData&, Selection* customSelection = nullptr);
 	void itemSelection_UniteItems(Selection* customSelection = nullptr);
 	void itemSelection_SplitItems(Selection* customSelection = nullptr);
 	/**

@@ -62,18 +62,14 @@ void ScrPainterIm::endLayer(unsigned int id)
 void ScrPainterIm::setPen(const libwpg::WPGPen& pen)
 {
 	QVector<double> dashArray;
-	dashArray.clear();
 	Qt::PenJoinStyle lineJoin;
 	Qt::PenCapStyle lineEnd;
 	double LineW = 72 * pen.width;
 	QColor foreColor = QColor(pen.foreColor.red, pen.foreColor.green, pen.foreColor.blue, 255 - pen.foreColor.alpha);
 	if(!pen.solid)
 	{
-		dashArray.clear();
 		for (unsigned i = 0; i < pen.dashArray.count(); i++)
-		{
 			dashArray.append(pen.dashArray.at(i)*LineW);
-		}
 	}
 	switch (pen.joinstyle)
 	{
@@ -318,14 +314,14 @@ void ScImgDataLoader_WPG::loadEmbeddedProfile(const QString& fn, int /*page*/)
 bool ScImgDataLoader_WPG::loadPicture(const QString& fn, int /*page*/, int /*res*/, bool /*thumbnail*/)
 {
 	QFile file(fn);
-	if ( !file.exists() )
+	if (!file.exists())
 	{
-		qDebug() << "File " << QFile::encodeName(fn).data() << " does not exist" << endl;
+		qDebug() << "File " << QFile::encodeName(fn).data() << " does not exist";
 		return false;
 	}
-	if ( !file.open( QIODevice::ReadOnly ) )
+	if (!file.open( QIODevice::ReadOnly))
 	{
-		qDebug() << "Cannot open file " << QFile::encodeName(fn).data() << endl;
+		qDebug() << "Cannot open file " << QFile::encodeName(fn).data();
 		return false;
 	}
 	QByteArray ba = file.readAll();

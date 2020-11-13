@@ -27,7 +27,7 @@ double pageUnitYToDocY(double pageUnitY);
 /// \brief Doc units -> page-relative units
 double docUnitYToPageY(double pageUnitY);
 
-PageItem *GetItem(const QString& Name);
+PageItem *GetItem(const QString& name);
 void ReplaceColor(const QString& col, const QString& rep);
 
 /*!
@@ -54,6 +54,18 @@ PageItem* getPageItemByName(const QString& name);
 // 2004-10-27 Craig Ringer see cmdutil.cpp for description
 bool checkHaveDocument();
 
+/*!
+ * @brief Returns true if the page number is between 0 and the number of pages.
+ *
+ * If the page number is smaller than 0 or bigger than the number of pages
+ * a Python exception is set, before returning false.
+ *
+ * The caller is required to check the returned value and return nullptr on false.
+ *
+ * @author ale rimoldi
+ */
+bool checkValidPageNumber(int page);
+
 // 2004-11-12 Craig Ringer see cmdutil.cpp for description
 bool ItemExists(const QString& name);
 
@@ -68,7 +80,7 @@ QStringList getSelectedItemsByName();
  * Returns false if one or more items can't be selected, true if all were selected.
  * Selection state is undefined on failure.
  */
-bool setSelectedItemsByName(QStringList& itemNames);
+bool setSelectedItemsByName(const QStringList& itemNames);
 
 /*!
  * @brief Helper method to parse a border from a list of tuples.

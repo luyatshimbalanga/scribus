@@ -1070,11 +1070,13 @@ FPointArray SvmPlug::getPolyPolygonPoints(QDataStream &ds, quint16 version)
 				qint64 posC = ds.device()->pos();
 				quint16  numPoints;
 				ds >> numPoints;
+				points.reserve(numPoints);
 				for (uint i = 0; i < numPoints; ++i)
 				{
 					QPointF p = getPoint(ds);
 					points.append(p);
 				}
+				pTypes.reserve(numPoints);
 				for (uint i = 0; i < numPoints; ++i)
 				{
 					quint8 ptyc;
@@ -1175,13 +1177,13 @@ QPointF SvmPlug::intersectBoundingRect(PageItem *item, QLineF gradientVector)
 {
 	QPointF interPoint;
 	QPointF gradEnd;
-	if (gradientVector.intersect(QLineF(0, 0, item->width(), 0), &interPoint) == QLineF::BoundedIntersection)
+	if (gradientVector.intersects(QLineF(0, 0, item->width(), 0), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(item->width(), 0, item->width(), item->height()), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(item->width(), 0, item->width(), item->height()), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(item->width(), item->height(), 0, item->height()), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(item->width(), item->height(), 0, item->height()), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
-	else if (gradientVector.intersect(QLineF(0, item->height(), 0, 0), &interPoint) == QLineF::BoundedIntersection)
+	else if (gradientVector.intersects(QLineF(0, item->height(), 0, 0), &interPoint) == QLineF::BoundedIntersection)
 		gradEnd = interPoint;
 	return gradEnd;
 }
@@ -1968,6 +1970,7 @@ void SvmPlug::handleText(QDataStream &ds, quint16 version)
 		quint32 dLen;
 		ds >> ind >> len;
 		ds >> dLen;
+		dxTxt.reserve(len);
 		for (quint16 aa = 0; aa < len; aa++)
 		{
 			quint32 ptyc;
@@ -2365,7 +2368,7 @@ void SvmPlug::commonGradient(QDataStream &ds, PageItem* ite)
 		L1.setAngle(-45);
 		QLineF LCW = QLineF(0.0, ite->height() / 2.0, ite->width(), ite->height() / 2.0);
 		QPointF P5;
-		LCW.intersect(L1, &P5);
+		LCW.intersects(L1, &P5);
 		QPointF P6 = QPointF(ite->width() - P5.x(), P5.y());
 		QPolygonF pPoints;
 		pPoints << P1 << P2 << P3 << P4 << P5 << P6;
@@ -2846,6 +2849,8 @@ quint32 SvmPlug::handleEMPBrush(QDataStream &ds, quint16 id, bool first, bool co
 			ds >> cCount;
 			QList<float> posit;
 			QList<quint32> facts;
+			posit.reserve(cCount);
+			facts.reserve(cCount);
 			for (quint32 c = 0; c < cCount; c++)
 			{
 				float fact;
@@ -2924,6 +2929,8 @@ quint32 SvmPlug::handleEMPBrush(QDataStream &ds, quint16 id, bool first, bool co
 			ds >> cCount;
 			QList<float> posit;
 			QList<quint32> facts;
+			posit.reserve(cCount);
+			facts.reserve(cCount);
 			for (quint32 c = 0; c < cCount; c++)
 			{
 				float fact;
@@ -4711,6 +4718,7 @@ QImage SvmPlug::getImageDataFromStyle(quint8 flagsH)
 			QVector<QRgb> colorTbl;
 			quint32 palFlags, colorsUsed;
 			dsB >> palFlags >> colorsUsed;
+			colorTbl.reserve(colorsUsed);
 			for (quint32 pa = 0; pa < colorsUsed; pa++)
 			{
 				quint32 brushID;
@@ -4740,6 +4748,7 @@ QImage SvmPlug::getImageDataFromStyle(quint8 flagsH)
 			QVector<QRgb> colorTbl;
 			quint32 palFlags, colorsUsed;
 			dsB >> palFlags >> colorsUsed;
+			colorTbl.reserve(colorsUsed);
 			for (quint32 pa = 0; pa < colorsUsed; pa++)
 			{
 				quint32 brushID;
@@ -4779,6 +4788,7 @@ QImage SvmPlug::getImageDataFromStyle(quint8 flagsH)
 			QVector<QRgb> colorTbl;
 			quint32 palFlags, colorsUsed;
 			dsB >> palFlags >> colorsUsed;
+			colorTbl.reserve(colorsUsed);
 			for (quint32 pa = 0; pa < colorsUsed; pa++)
 			{
 				quint32 brushID;

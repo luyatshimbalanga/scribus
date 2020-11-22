@@ -1305,7 +1305,7 @@ const CharStyle & StoryText::charStyle(int pos) const
 	}
 	if (pos == length())
 	{
-		qDebug() << "storytext::charstyle: access at end of text %i" << pos;
+		//qDebug() << "storytext::charstyle: access at end of text %i" << pos;
 		--pos;
 	}
 	
@@ -1538,13 +1538,11 @@ void StoryText::eraseStyle(int pos, const ParagraphStyle& style)
 	invalidate(pos, qMin(i, length()));
 }
 
-
 void StoryText::setStyle(int pos, const ParagraphStyle& style)
 {
 	eraseStyle(pos, paragraphStyle(pos));
 	applyStyle(pos, style);
 }
-
 
 void StoryText::setCharStyle(int pos, uint len, const CharStyle& style)
 {
@@ -1571,8 +1569,6 @@ void StoryText::setCharStyle(int pos, uint len, const CharStyle& style)
 	invalidate(pos, pos + len);
 }
 
-
-
 void StoryText::getNamedResources(ResourceCollection& lists) const
 {
 	d->defaultStyle.getNamedResources(lists);
@@ -1588,7 +1584,6 @@ void StoryText::getNamedResources(ResourceCollection& lists) const
 			charStyle(i).getNamedResources(lists);
 	}
 }
-
 
 void StoryText::replaceStyles(const QMap<QString,QString>& newNameForOld)
 {
@@ -1619,7 +1614,6 @@ void StoryText::replaceNamedResources(ResourceCollection& newNames)
 	
 	invalidate(0, len);	
 }
-
 
 void StoryText::replaceCharStyles(QMap<QString,QString> newNameForOld)
 {
@@ -2210,7 +2204,7 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 	paragraphStyle(0).saxx(handler);
 	handler.begin("span", empty);
 	lastStyle.saxx(handler);
-	for (int i=0; i < length(); ++i)
+	for (int i = 0; i < length(); ++i)
 	{
 		const QChar curr(text(i));
 		const CharStyle& style(charStyle(i));
@@ -2259,7 +2253,7 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 				continue; //do not insert notes marks into text frames nad vice versa
 			Xml_attr mark_attr;
 			mark_attr.insert("label", mrk->label);
-			mark_attr.insert("typ", QString::number((int )mrk->getType()));
+			mark_attr.insert("typ", QString::number((int) mrk->getType()));
 //			if (!mrk->isType(MARKBullNumType))
 //			{
 //				mark_attr.insert("strtxt", mrk->getString());
@@ -2347,11 +2341,11 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 		}
 		else
 			continue;
-		lastPos = i+1;
+		lastPos = i + 1;
 	}
 	
 	if  (length() - lastPos > 0)
-		handler.chars(textWithSoftHyphens(lastPos, length()-lastPos));
+		handler.chars(textWithSoftHyphens(lastPos, length() - lastPos));
 	handler.end("span");
 	handler.end("p");
 	
@@ -2359,7 +2353,6 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 //		paragraphStyle(length()-1).saxx(handler);
 	
 	handler.end(elemtag);
-
 }
 
 
@@ -2381,14 +2374,14 @@ public:
 					obj->insertChars(obj->length(), txt.mid(lastPos, toInsert));
 				len = obj->length();
 				// qreal SHY means user provided SHY, single SHY is automatic one
-				if (obj->hasFlag(len-1, ScLayout_HyphenationPossible))
+				if (obj->hasFlag(len - 1, ScLayout_HyphenationPossible))
 				{
-					obj->clearFlag(len-1, ScLayout_HyphenationPossible);
+					obj->clearFlag(len - 1, ScLayout_HyphenationPossible);
 					obj->insertChars(len, QString(chr));
 				}
 				else
 				{
-					obj->setFlag(len-1, ScLayout_HyphenationPossible);
+					obj->setFlag(len - 1, ScLayout_HyphenationPossible);
 				}
 				lastPos = i + 1;
 			} 

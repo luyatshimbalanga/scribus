@@ -30,12 +30,13 @@ include_directories(
 	${HARFBUZZ_INCLUDE_DIRS}
 )
 
+include(colormgmt/CMakeLists.txt)
+include(desaxe/CMakeLists.txt)
+include(fonts/CMakeLists.txt)
+include(styles/CMakeLists.txt)
+include(text/CMakeLists.txt)
+
 add_subdirectory(dtd)
-add_subdirectory(colormgmt)
-add_subdirectory(desaxe)
-add_subdirectory(fonts)
-add_subdirectory(styles)
-add_subdirectory(text)
 add_subdirectory(ui/qml)
 if(WITH_TESTS)
 	add_subdirectory(tests)
@@ -315,6 +316,7 @@ set(SCRIBUS_MOC_CLASSES
 	scribuswin.h
 	selection.h
 	selectionrubberband.h
+	storyloader.h
 	styleitem.h
 	tocgenerator.h
 	undogui.h
@@ -581,6 +583,8 @@ set(SCRIBUS_MOC_CLASSES
 	ui/weldedit.h
 #	#{SCRIBUS_ITEMSETTERS_CLASS}
 	${SCRIBUS_OSG_CLASS}
+	${SCRIBUS_STYLES_MOC_CLASSES}
+	${SCRIBUS_TEXT_MOC_CLASSES}
 )
 
 set(SCRIBUS_SOURCES
@@ -771,6 +775,7 @@ set(SCRIBUS_SOURCES
 	selection.cpp
 	selectionrubberband.cpp
 	serializer.cpp
+	storyloader.cpp
 	styleitem.cpp
 	tableborder.cpp
 	tablecell.cpp
@@ -1132,11 +1137,6 @@ QT5_WRAP_CPP(SCRIBUS_MOC_SOURCES
 	)
 
 link_directories(
-	${CMAKE_CURRENT_BINARY_DIR}/colormgmt
-	${CMAKE_CURRENT_BINARY_DIR}/desaxe
-	${CMAKE_CURRENT_BINARY_DIR}/fonts
-	${CMAKE_CURRENT_BINARY_DIR}/styles
-	${CMAKE_CURRENT_BINARY_DIR}/text
 	${CMAKE_CURRENT_BINARY_DIR}/third_party/wpg
 	${CMAKE_CURRENT_BINARY_DIR}/third_party/pgf
 	${CMAKE_CURRENT_BINARY_DIR}/third_party/rtf-qt
@@ -1157,16 +1157,11 @@ if(HAVE_BOOST)
 	link_directories( ${CMAKE_CURRENT_BINARY_DIR}/third_party/lib2geom )
 endif ()
 
-set(SCRIBUS_COLORMGMT_LIB "scribus_colormgmt_lib")
-set(SCRIBUS_TEXT_LIB "scribus_text_lib")
 if(WITH_TESTS)
 	set(SCRIBUS_TESTS_LIB "scribus_tests_lib")
 else()
 	set(SCRIBUS_TESTS_LIB "")
 endif()
-set(SCRIBUS_STYLES_LIB "scribus_styles_lib")
-set(SCRIBUS_FONTS_LIB "scribus_fonts_lib")
-set(SCRIBUS_DESAXE_LIB "scribus_desaxe_lib")
 if(HAVE_OSG)
 	set(SCRIBUS_PRC_LIB "scribus_prc_lib")
 endif ()
@@ -1229,14 +1224,14 @@ endif()
 if(HAVE_OSG)
 	add_executable(${EXE_NAME}
 		${SCRIBUS_MOC_SOURCES}
-		${SCRIBUS_SOURCES}
 		${SCRIBUS_MAIN_CPP}
-		${SCRIBUS_UI_SOURCES}
-		${SCRIBUS_TEXT_SOURCES}
-		${SCRIBUS_STYLES_SOURCES}
+		${SCRIBUS_SOURCES}
 		${SCRIBUS_COLORMGMT_SOURCES}
-		${SCRIBUS_FONTS_SOURCES}
 		${SCRIBUS_DESAXE_SOURCES}
+		${SCRIBUS_FONTS_SOURCES}
+		${SCRIBUS_STYLES_SOURCES}
+		${SCRIBUS_TEXT_SOURCES}
+		${SCRIBUS_UI_SOURCES}
 		${SCRIBUS_WIN32_ONLY_SOURCES}
 		${GESTURE_FRAME_PREVIEW_SOURCES}
 		${SCRIBUS_PRC_SOURCES}
@@ -1244,14 +1239,14 @@ if(HAVE_OSG)
 else()
 	add_executable(${EXE_NAME}
 		${SCRIBUS_MOC_SOURCES}
-		${SCRIBUS_SOURCES}
 		${SCRIBUS_MAIN_CPP}
-		${SCRIBUS_UI_SOURCES}
-		${SCRIBUS_TEXT_SOURCES}
-		${SCRIBUS_STYLES_SOURCES}
+		${SCRIBUS_SOURCES}
 		${SCRIBUS_COLORMGMT_SOURCES}
-		${SCRIBUS_FONTS_SOURCES}
 		${SCRIBUS_DESAXE_SOURCES}
+		${SCRIBUS_FONTS_SOURCES}
+		${SCRIBUS_STYLES_SOURCES}
+		${SCRIBUS_TEXT_SOURCES}
+		${SCRIBUS_UI_SOURCES}
 		${SCRIBUS_WIN32_ONLY_SOURCES}
 		${GESTURE_FRAME_PREVIEW_SOURCES}
 	)
@@ -1361,11 +1356,6 @@ if (WANT_SVNVERSION)
 endif ()
 
 target_link_libraries(${EXE_NAME}
-	${SCRIBUS_COLORMGMT_LIB}
-	${SCRIBUS_DESAXE_LIB}
-	${SCRIBUS_TEXT_LIB}
-	${SCRIBUS_STYLES_LIB}
-	${SCRIBUS_FONTS_LIB}
 	${SCRIBUS_WPG_LIB}
 	${SCRIBUS_PGF_LIB}
 	${SCRIBUS_ZIP_LIB}

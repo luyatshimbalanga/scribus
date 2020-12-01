@@ -39,6 +39,7 @@ for which a new license (GPL+exception) is in place.
 #include <QRegExp>
 #include <QtAlgorithms>
 #include <QTime>
+#include <QTransform>
 //#include <qtconcurrentmap.h>
 
 #include "actionmanager.h"
@@ -1582,10 +1583,12 @@ void ScribusDoc::undoRedoBegin()
 {
 	m_docUpdater->beginUpdate();
 	m_Selection->delaySignalsOn();
+	++m_undoRedoOngoing;
 }
 
 void ScribusDoc::undoRedoDone()
 {
+	--m_undoRedoOngoing;
 	m_Selection->delaySignalsOff();
 	m_docUpdater->endUpdate();
 }
@@ -1872,17 +1875,19 @@ void ScribusDoc::restoreGrouping(SimpleState* ss, bool isUndo)
 	double x, y, w, h;
 	if (isUndo)
 	{
-		tempSelect.addItem(select.last());
+		tempSelect.addItem(select.first()->Parent);
 		tempSelect.getGroupRect(&x, &y, &w, &h);
 		itemSelection_UnGroupObjects(&tempSelect);
 	}
 	else
 	{
-		for (int i = 0; i < select.size()-1; ++i)
+		for (int i = 0; i < select.size() - 1; ++i)
 			tempSelect.addItem(select.at(i));
 		tempSelect.getGroupRect(&x, &y, &w, &h);
+		PageItem_Group* oldGroupItem = select.last()->asGroupFrame();
+		PageItem* newGroupItem = itemSelection_GroupObjects(false, false, &tempSelect, oldGroupItem);
 		select.removeLast();
-		select.append(itemSelection_GroupObjects(false, false,&tempSelect));
+		select.append(newGroupItem);
 		is->setItem(select);
 	}
 	QRectF rect(x, y , w, h);
@@ -2305,6 +2310,11 @@ void ScribusDoc::setModified(bool isModified)
 bool ScribusDoc::isModified() const
 {
 	return m_modified;
+}
+
+bool ScribusDoc::isUndoRedoOngoing() const
+{
+	return (m_undoRedoOngoing != 0);
 }
 
 /** sets page properties */
@@ -14903,7 +14913,7 @@ void ScribusDoc::groupObjectsToItem(PageItem* groupItem, QList<PageItem*> &itemL
 	itemList.append(groupItem);
 }
 
-PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Selection* customSelection)
+PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Selection* customSelection, PageItem_Group* groupItem)
 {
 	Selection* itemSelection = (customSelection != nullptr) ? customSelection : m_Selection;
 	if (itemSelection->count() < 1)
@@ -14988,8 +14998,11 @@ PageItem * ScribusDoc::itemSelection_GroupObjects(bool changeLock, bool lock, Se
 	double gh = maxy - miny;
 
 	m_undoManager->setUndoEnabled(false);
-	int z = itemAdd(PageItem::Group, PageItem::Rectangle, gx, gy, gw, gh, 0, CommonStrings::None, CommonStrings::None);
-	PageItem *groupItem = Items->takeAt(z);
+	if (!groupItem)
+	{
+		int z = itemAdd(PageItem::Group, PageItem::Rectangle, gx, gy, gw, gh, 0, CommonStrings::None, CommonStrings::None);
+		groupItem = Items->takeAt(z)->asGroupFrame();
+	}
 	Items->insert(lowestItem, groupItem);
 	groupItem->setItemName( tr("Group%1").arg(GroupCounter));
 	groupItem->AutoName = false;
@@ -15074,6 +15087,7 @@ void ScribusDoc::itemSelection_UnGroupObjects(Selection* customSelection)
 		if (d >= 0)
 			list->removeAt(d);
 		itemSelection->removeItem(currItem);
+		QList<PageItem*> oldGroupItems = currItem->groupItemList;
 		int gcount = currItem->groupItemList.count();
 		for (int j = 0; j < gcount; j++)
 		{
@@ -15097,6 +15111,7 @@ void ScribusDoc::itemSelection_UnGroupObjects(Selection* customSelection)
 			ScItemState<QList<QPointer<PageItem> > > *is = new ScItemState<QList<QPointer<PageItem> > >(UndoManager::Ungroup);
 			is->set("UNGROUP");
 			Selection tempSelection(this, false);
+			tempSelection.addItems(oldGroupItems);
 			tempSelection.addItem(currItem, true);
 			is->setItem(tempSelection.selectionList());
 			m_undoManager->action(this, is);
@@ -15112,7 +15127,7 @@ void ScribusDoc::itemSelection_UnGroupObjects(Selection* customSelection)
 		currItem = toDelete.at(i);
 		if (currItem->isWelded())
 			currItem->unWeld();
-		if (!UndoManager::undoEnabled())
+		if (!UndoManager::undoEnabled() && !isUndoRedoOngoing())
 			delete currItem;
 	}
 
@@ -16352,10 +16367,10 @@ void ScribusDoc::itemResizeToMargin(PageItem* item, int direction)
 		return;
 	Canvas::FrameHandle fh = (Canvas::FrameHandle) direction;
 	ScPage *currPage = Pages->at(item->OwnPage);
-	QMatrix ma;
-	ma.translate(item->xPos(), item->yPos());
-	double inX = ma.dx() - m_currentPage->xOffset();
-	double inY = ma.dy() - m_currentPage->yOffset();
+	QTransform transform;
+	transform.translate(item->xPos(), item->yPos());
+	double inX = transform.dx() - m_currentPage->xOffset();
+	double inY = transform.dy() - m_currentPage->yOffset();
 	if (fh == Canvas::NORTH || fh == Canvas::NORTHWEST || fh == Canvas::NORTHEAST)
 	{
 		double top = currPage->topMargin();

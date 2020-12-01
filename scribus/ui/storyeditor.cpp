@@ -37,18 +37,19 @@ for which a new license (GPL+exception) is in place.
 #include <QKeyEvent>
 #include <QLabel>
 #include <QList>
-#include <QPair>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPaintEvent>
+#include <QPair>
 #include <QPalette>
 #include <QPixmap>
 #include <QRegExp>
-#include <QShowEvent>
-#include <QSignalBlocker>
 #include <QScopedPointer>
 #include <QScopedValueRollback>
+#include <QScreen>
 #include <QScrollBar>
+#include <QShowEvent>
+#include <QSignalBlocker>
 #include <QTextBlock>
 #include <QTextCodec>
 #include <QTextLayout>
@@ -1644,16 +1645,15 @@ void StoryEditor::loadPrefs()
 	int vwidth  = qMax(600, prefs->getInt("width", 600));
 	int vheight = qMax(400, prefs->getInt("height", 400));
 	// Check values against current screen size
-	QRect scr = QApplication::desktop()->screen()->geometry();
-	QSize gStrut = QApplication::globalStrut();
-	if ( vleft >= scr.width() )
-		vleft = 0;
-	if ( vtop >= scr.height() )
-		vtop = 64;
-	if ( vwidth >= scr.width() )
-		vwidth = qMax( gStrut.width(), scr.width() - vleft );
-	if ( vheight >= scr.height() )
-		vheight = qMax( gStrut.height(), scr.height() - vtop );
+	QRect scr = this->screen()->availableGeometry();
+	if (vleft >= scr.width())
+		vleft = scr.left();
+	if (vtop >= scr.height())
+		vtop = qMax(64, scr.top());
+	if (vwidth >= scr.width())
+		vwidth = qMax(0, scr.width() - vleft);
+	if (vheight >= scr.height())
+		vheight = qMax(0, scr.height() - vtop);
 	setGeometry(vleft, vtop, vwidth, vheight);
 	QByteArray state = "";
 	state = prefs->get("winstate","").toLatin1();

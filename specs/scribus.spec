@@ -90,13 +90,6 @@ understand tools, Scribus offers support for professional publishing
 features, such as CMYK color, easy PDF creation, Encapsulated Postscript
 import/export and creation of color separations.
 
-%package        devel
-Summary:	Header files for Scribus
-Requires:	%{name} = %{version}-%{release}
-
-%description    devel
-#Header files for Scribus.
-
 %package        doc
 Summary:	Documentation files for Scribus
 Requires:       %{name} = %{version}-%{release}
@@ -164,9 +157,6 @@ appstream-util validate-relax --nonet \
 %{_mandir}/man1/*
 %{_mandir}/pl/man1/*
 %{_mandir}/de/man1/*
-
-%files devel
-%doc AUTHORS COPYING
 
 %files doc
 %dir %{_defaultdocdir}/%{name}

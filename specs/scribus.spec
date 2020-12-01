@@ -65,8 +65,9 @@ BuildRequires:	pkgconfig(Qt5WebKit)
 BuildRequires:	pkgconfig(tk)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	python3dist(pillow)
-BuildRequires:	python3dist(qt5)
-BuildRequires:	python3dist(tkinter)
+BuildRequires:  python3-qt5-devel
+BuildRequires:  python3dist(setuptools)
+BuildRequires:  python3-tkinter
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7

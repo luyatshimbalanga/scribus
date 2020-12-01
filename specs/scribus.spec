@@ -1,6 +1,6 @@
 %global	build_repo https://github.com/scribusproject/scribus/
 %global	build_branch master
-%global	version_string 1.5.6
+%global	version_string 1.5.7
 %define	build_commit %(git ls-remote %{build_repo} | grep "refs/heads/%{build_branch}" | cut -c1-41)
 %define	build_shortcommit %(c=%{build_commit}; echo ${c:0:7})
 %global	build_timestamp %(date +"%Y%m%d")
@@ -64,9 +64,9 @@ BuildRequires:  pkgconfig(Qt5UiTools)
 BuildRequires:	pkgconfig(Qt5WebKit)
 BuildRequires:	pkgconfig(tk)
 BuildRequires:	pkgconfig(zlib)
-BuildRequires:	python3-pillow-devel
-BuildRequires:	python3-qt5-devel
-BuildRequires:	python3-tkinter
+BuildRequires:	python3dist(pillow)
+BuildRequires:	python3dist(qt5)
+BuildRequires:	python3dist(tkinter)
 
 
 %if 0%{?fedora} >= 23 || 0%{?rhel} > 7
@@ -172,7 +172,7 @@ appstream-util validate-relax --nonet \
 %lang(de) %{_defaultdocdir}/%{name}/de
 %lang(en) %{_defaultdocdir}/%{name}/en
 %lang(it) %{_defaultdocdir}/%{name}/it
-	%lang(ru) %{_defaultdocdir}/%{name}/ru
+%lang(ru) %{_defaultdocdir}/%{name}/ru
 %{_defaultdocdir}/%{name}/README*
 %{_defaultdocdir}/%{name}/LINKS
 %{_defaultdocdir}/%{name}/TRANSLATION

@@ -67,15 +67,29 @@ void SpiralWidget::updatePreview()
 {
 	startAngle->setMaximum(endAngle->value() - 1);
 	endAngle->setMinimum(startAngle->value() + 1);
-	QPixmap pm = QPixmap(Preview->width() - 5, Preview->height() - 5);
-	pm.fill(Qt::white);
+	
+	int spiralWidth = Preview->width() - 11;
+	int spiralHeight = Preview->height() - 11;
+	int pixWidth = (Preview->width() - 5) * devicePixelRatioF();
+	int pixHeight = (Preview->height() - 5) * devicePixelRatioF();
+
+	const QPalette& palette = this->palette();
+	const QColor& textColor = palette.color(QPalette::Text);
+	const QColor& windowColor = palette.color(QPalette::Base);
+
+	QPixmap pm(pixWidth, pixHeight);
+	pm.setDevicePixelRatio(devicePixelRatioF());
+	pm.fill(windowColor);
+
 	QPainter p;
 	p.begin(&pm);
+	p.setRenderHint(QPainter::Antialiasing, true);
 	p.setBrush(Qt::NoBrush);
-	p.setPen(Qt::black);
-	QPainterPath path = spiralPath(pm.width() - 6, pm.height() - 6, startAngle->value(), endAngle->value(), (static_cast<int>(arcFactor->value()) + 100) / 100.0);
+	p.setPen(textColor);
+	QPainterPath path = spiralPath(spiralWidth, spiralHeight, startAngle->value(), endAngle->value(), (static_cast<int>(arcFactor->value()) + 100) / 100.0);
 	path.translate(3, 3);
 	p.strokePath(path, p.pen());
 	p.end();
+
 	Preview->setPixmap(pm);
 }

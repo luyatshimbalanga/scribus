@@ -1218,9 +1218,9 @@ else()
 	set(EXE_NAME "scribus${TAG_VERSION}" CACHE STRING "Scribus version")
 endif()
 
-if(COMMAND cmake_policy)
-	cmake_policy(SET CMP0003 OLD)
-endif()
+#if(COMMAND cmake_policy)
+#	cmake_policy(SET CMP0003 OLD)
+#endif()
 
 if(HAVE_OSG)
 	add_executable(${EXE_NAME}
@@ -1289,10 +1289,10 @@ endif ()
 
 
 #Set up libraries to link with all found packages
-include_directories(${CAIRO_INCLUDE_DIR})
-target_link_libraries(${EXE_NAME} ${CAIRO_LIBRARIES})
-link_directories(${PREFIX_CAIRO_LIB})
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${PREFIX_CAIRO_LIB}")
+include_directories(${cairo_INCLUDE_DIR})
+target_link_libraries(${EXE_NAME} ${cairo_LIBRARIES})
+link_directories(${PREFIX_cairo_LIB})
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${PREFIX_cairo_LIB}")
 
 message("RPATH: ${CMAKE_INSTALL_RPATH}")
 

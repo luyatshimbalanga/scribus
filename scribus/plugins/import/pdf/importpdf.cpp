@@ -30,6 +30,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "importpdf.h"
 #include "importpdfconfig.h"
+#include "pdftextrecognition.h"
 #include "slaoutput.h"
 
 #include "commonstrings.h"
@@ -430,8 +431,9 @@ bool PdfPlug::convert(const QString& fn)
 				else if (getCBox(Art_Box, 1) != mediaRect)
 					boxesAreDifferent = true;
 				bool cropped = false;
+				bool importTextAsVectors = true;
 				int contentRect = Media_Box;
-				if (((interactive) || (importerFlags & LoadSavePlugin::lfCreateDoc)) && ((lastPage > 1) || boxesAreDifferent))
+				if ((interactive) || (importerFlags & LoadSavePlugin::lfCreateDoc))
 				{
 					if (progressDialog)
 						progressDialog->hide();
@@ -455,6 +457,7 @@ bool PdfPlug::convert(const QString& fn)
 					cropped = optImp->croppingEnabled();
 					if (!cropped)
 						crop = cropped;
+					importTextAsVectors = optImp->getImportAsVectors();
 					// When displaying  pages slices, we should always set useMediaBox to true
 					// in order to use MediaBox (x, y) as coordinate system
 					if (contentRect != Media_Box)
@@ -466,9 +469,18 @@ bool PdfPlug::convert(const QString& fn)
 					if (progressDialog)
 						progressDialog->show();
 				}
+
 				parsePagesString(pageString, &pageNs, lastPage);
+				if (pageNs.size() <= 0)
+					return false;
+
 				firstPage = pageNs[0];
-				SlaOutputDev *dev = new SlaOutputDev(m_Doc, &Elements, &importedColors, importerFlags);
+				SlaOutputDev* dev = nullptr;
+				if (importTextAsVectors)
+					dev = new SlaOutputDev(m_Doc, &Elements, &importedColors, importerFlags);
+				else
+					dev = new PdfTextOutputDev(m_Doc, &Elements, &importedColors, importerFlags);
+
 				if (dev->isOk())
 				{
 					OCGs* ocg = pdfDoc->getOptContentConfig();
@@ -895,7 +907,7 @@ QImage PdfPlug::readPreview(int pgNum, int width, int height, int box)
 {
 	if (!m_pdfDoc)
 		return QImage();
-	
+
 	double h = m_pdfDoc->getPageMediaHeight(pgNum);
 	double w = m_pdfDoc->getPageMediaWidth(pgNum);
 	double scale = qMin(height / h, width / w);

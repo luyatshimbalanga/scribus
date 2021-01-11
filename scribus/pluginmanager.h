@@ -34,11 +34,9 @@ class StoryEditor;
  */
 class SCRIBUS_API PluginManager : public QObject
 {
-
 	Q_OBJECT
 
 public:
-
 	PluginManager();
 	~PluginManager();
 
@@ -76,10 +74,6 @@ public:
 	/*! \brief Called when selection change
 	 */
 	void enablePluginActionsForSelection(ScribusMainWindow*);
-
-	/*! \brief Called when selection change
-	 */
-	void enablePluginActionsForSelection(ScribusDoc*);
 
 	/*! \brief Checks if is the plugin is in the plugin map, is loaded, and is enabled.
 	 *
@@ -141,14 +135,10 @@ public:
 	 */
 	QStringList pluginNames(bool includeDisabled = false, const char* inherits = nullptr) const;
 	
-	virtual void changeEvent(QEvent *e);
-
 public slots:
-
 	void languageChange();
 
 protected:
-
 	/**
 	 * \brief PluginData is structure for plugin related informations.
 	 * \param pluginFile path to the share library (with name).
@@ -203,9 +193,6 @@ protected:
 	 the plug-in from the GUI, calls its cleanup routine, etc.
 	 DOES NOT destroy the ScPlugin instance or unload the plugin. */
 	void disablePlugin(PluginData & pda);
-
-	/*! \brief Runs plugin's languageChange() method, and returns main menu item text if one exists */
-	QString callDLLForNewLanguage(const PluginData & pluginData);
 
 	/*! \brief Shuts down one plug-in. The DLL may not be unloaded, but
 	 *         it is cleaned up and its ScPlugin instance is destroyed.

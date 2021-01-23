@@ -24,12 +24,14 @@ for which a new license (GPL+exception) is in place.
 #ifndef COLORCHART_H
 #define COLORCHART_H
 
-#include <QWidget>
 #include <QPixmap>
-#include <QPaintEvent>
-#include <QMouseEvent>
+#include <QWidget>
+
 #include "scribusapi.h"
 
+class QMouseEvent;
+class QPaintEvent;
+class QResizeEvent;
 class ScribusDoc;
 
 /**
@@ -38,32 +40,38 @@ class ScribusDoc;
 
 class SCRIBUS_API ColorChart : public QWidget
 {
-
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	ColorChart(QWidget *parent);
 	ColorChart(QWidget *parent, ScribusDoc* doc);
 	~ColorChart() {};
 
-	void mouseMoveEvent(QMouseEvent *m);
-	void mousePressEvent(QMouseEvent *m);
-	void mouseReleaseEvent(QMouseEvent *m);
-	void paintEvent(QPaintEvent *e);
-
 	void setDoc(ScribusDoc* doc) { m_doc = doc; }
 	void drawMark(int x, int y);
 	void setMark(int h, int s);
 	void drawPalette(int val);
 
-	int Xp {0};
-	int Yp {0};
-	bool doDrawMark {false};
 	int drawMode {0};
-	QPixmap pmx;
 
 protected:
-	ScribusDoc* m_doc;
+	ScribusDoc* m_doc { nullptr };
+
+	int m_currentValue { 255 };
+	double m_markX { 0.0 };
+	double m_markY { 0.0 };
+	bool m_drawMark { false };
+	
+	QPixmap m_pixmap;
+
+	void drawHsvColorMap(int val);
+	void drawLabColorMap(int val);
+
+	void mouseMoveEvent(QMouseEvent *m);
+	void mousePressEvent(QMouseEvent *m);
+	void mouseReleaseEvent(QMouseEvent *m);
+	void paintEvent(QPaintEvent *e);
+	void resizeEvent(QResizeEvent *e);
 
 signals:
 	void ColorVal(int h, int s, bool ende);

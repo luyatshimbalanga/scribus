@@ -4105,7 +4105,7 @@ QMap<QString,int> ScribusDoc::reorganiseFonts()
 	return Really;
 }
 
-void ScribusDoc::getUsedFonts(QMap<QString, QMap<uint, FPointArray> > & Really)
+void ScribusDoc::getUsedFonts(QMap<QString, QMap<uint, QString> > & Really)
 {
 	QList<PageItem*>  allItems;
 	QList<PageItem*>* itemLists[] = { &MasterItems, &DocItems };
@@ -4161,14 +4161,18 @@ void ScribusDoc::getUsedFonts(QMap<QString, QMap<uint, FPointArray> > & Really)
 class UsedGlyphsPainter: public TextLayoutPainter
 {
 public:
-	UsedGlyphsPainter(QMap<QString, QMap<uint, FPointArray> > & Really)
-		: m_really(Really)
+	UsedGlyphsPainter(QMap<QString, QMap<uint, QString> > & usedFonts)
+		: m_fonts(usedFonts)
 	{}
 
 	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isControlGlyphs())
 			return;
+
+		const QList<GlyphLayout>& glyphs = gc.glyphs();
+		int glyphCount = glyphs.count();
+
 		for (const GlyphLayout& gl : gc.glyphs())
 		{
 			uint gid = gl.glyph;
@@ -4178,8 +4182,10 @@ public:
 			QString replacementName = font().replacementName();
 			if (!replacementName.isEmpty())
 			{
-				FPointArray outline = font().glyphOutline(gid);
-				m_really[replacementName].insert(gid, outline);
+				QString unicode;
+				if (glyphCount == 1)
+					unicode = gc.getText();
+				m_fonts[replacementName].insert(gid, unicode);
 			}
 		}
 	}
@@ -4195,10 +4201,10 @@ public:
 	void drawObject(PageItem*) override {}
 
 private:
-	QMap<QString, QMap<uint, FPointArray> > & m_really;
+	QMap<QString, QMap<uint, QString> > & m_fonts;
 };
 
-void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPointArray> > & Really, uint lc)
+void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, QString> > & usedFonts, uint lc)
 {
 	if (!it->isTextFrame() && !it->isPathText())
 		return;
@@ -4213,7 +4219,7 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 
 	// This works pretty well except for the case of page numbers and al. placed on masterpages
 	// where layout may depend on the page where the masterpage item is placed
-	UsedGlyphsPainter p(Really);
+	UsedGlyphsPainter p(usedFonts);
 	it->textLayout.render(&p);
 
 	// Process page numbers and page count special characters on master pages
@@ -4259,8 +4265,8 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 			const ScFace& font = it->itemText.defaultStyle().charStyle().font();
 			QString fontName = font.replacementName();
 
-			if (!Really.contains(fontName) && !fontName.isEmpty())
-				Really.insert(fontName, QMap<uint, FPointArray>());
+			if (!usedFonts.contains(fontName) && !fontName.isEmpty())
+				usedFonts.insert(fontName, QMap<uint, QString>());
 
 			for (uint ww = 32; ww < 256; ++ww)
 			{
@@ -4268,9 +4274,9 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 				uint glyph  = font.char2CMap(unicode);
 				if (glyph > 0)
 				{
-					FPointArray outline(font.glyphOutline(glyph));
+					QString uniStr = QChar(unicode);
 					if (!fontName.isEmpty())
-						Really[fontName].insert(glyph, outline);
+						usedFonts[fontName].insert(glyph, uniStr);
 				}
 			}
 		}
@@ -16499,6 +16505,7 @@ void ScribusDoc::setupNumerations()
 		numS = new NumStruct;
 		numS->m_name = "default";
 		Numeration newNum;
+		newNum.suffix = ".";
 		numS->m_nums.insert(0, newNum);
 		numS->m_counters.insert(0, 0);
 		numS->m_lastlevel = -1;
@@ -16570,14 +16577,21 @@ int ScribusDoc::updateLocalNums(StoryText& itemText)
 	{
 		if (pos != 0 && itemText.text(pos - 1) != SpecialChars::PARSEP)
 			continue;
-		Mark* mark = itemText.mark(pos);
-		if (mark == nullptr)
-			continue;
-		if (!mark->isType(MARKBullNumType) || !itemText.paragraphStyle(pos).hasNum())
-			continue;
 
 		const ParagraphStyle& style = itemText.paragraphStyle(pos);
-		if (style.numName() != "<local block>")
+		if (!style.hasNum() || (style.numName() != "<local block>"))
+			continue;
+
+		Mark* mark = itemText.mark(pos);
+		if (mark == nullptr)
+		{
+			BulNumMark* bnMark = new BulNumMark;
+			itemText.insertMark(bnMark, pos);
+			CharStyle emptyCS;
+			itemText.setCharStyle(pos, 1, emptyCS);
+			mark = itemText.mark(pos);
+		}
+		if (!mark->isType(MARKBullNumType))
 			continue;
 
 		int level = style.numLevel();
@@ -16604,7 +16618,7 @@ int ScribusDoc::updateLocalNums(StoryText& itemText)
 		else if (pos > 0)
 		{
 			ParagraphStyle prevStyle;
-			prevStyle = itemText.paragraphStyle(pos -1);
+			prevStyle = itemText.paragraphStyle(pos - 1);
 			reset = !prevStyle.hasNum()
 					|| prevStyle.numName() != "<local block>"
 					|| prevStyle.numLevel() < level
@@ -16634,7 +16648,8 @@ int ScribusDoc::updateLocalNums(StoryText& itemText)
 		if (mark->getString() != result)
 		{
 			mark->setString(result);
-			firstInvalidChar = pos;
+			if (firstInvalidChar < 0)
+				firstInvalidChar = pos;
 		}
 	}
 	return firstInvalidChar;
@@ -16766,7 +16781,8 @@ void ScribusDoc::updateNumbers(bool updateNumerations)
 					if (mark && mark->getString() != prefixStr)
 					{
 						mark->setString(prefixStr);
-						firstInvalidChar1 = pos;
+						if (firstInvalidChar1 < 0)
+							firstInvalidChar1 = pos;
 					}
 				}
 				if (item->itemText.text(pos) == SpecialChars::PARSEP)

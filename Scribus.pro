@@ -681,15 +681,8 @@ HEADERS += scribus/actionmanager.h \
            scribus/plugins/colorwheel/cwdialog.h \
            scribus/plugins/fontpreview/fontpreview.h \
            scribus/plugins/fontpreview/fontpreviewplugin.h \
-           scribus/plugins/imposition/imposition.h \
-           scribus/plugins/imposition/impositionplugin.h \
            scribus/plugins/myplugin/myplugin.h \
            scribus/plugins/myplugin/mypluginimpl.h \
-           scribus/plugins/newfromtemplateplugin/nftdialog.h \
-           scribus/plugins/newfromtemplateplugin/nftemplate.h \
-           scribus/plugins/newfromtemplateplugin/nftrcreader.h \
-           scribus/plugins/newfromtemplateplugin/nftsettings.h \
-           scribus/plugins/newfromtemplateplugin/nfttemplate.h \
            scribus/plugins/picbrowser/collection.h \
            scribus/plugins/picbrowser/findimage.h \
            scribus/plugins/picbrowser/imagedialog.h \
@@ -901,8 +894,6 @@ HEADERS += scribus/actionmanager.h \
            scribus/plugins/export/pixmapexport/export.h \
            scribus/plugins/export/svgexplugin/svgexplugin.h \
            scribus/plugins/export/xpsexport/xpsexplugin.h \
-           scribus/plugins/fileloader/oldscribusformat/oldscribusformat.h \
-           scribus/plugins/fileloader/oldscribusformat/oldscribusformatimpl.h \
            scribus/plugins/fileloader/scribus12format/scribus12format.h \
            scribus/plugins/fileloader/scribus12format/scribus12formatimpl.h \
            scribus/plugins/fileloader/scribus134format/scribus134format.h \
@@ -917,11 +908,8 @@ HEADERS += scribus/actionmanager.h \
            scribus/plugins/gettext/docxim/docxim.h \
            scribus/plugins/gettext/htmlim/htmlim.h \
            scribus/plugins/gettext/htmlim/htmlreader.h \
+           scribus/plugins/gettext/markdownim/markdownim.h \
            scribus/plugins/gettext/odt2im/importodt.h \
-           scribus/plugins/gettext/odtim/contentreader.h \
-           scribus/plugins/gettext/odtim/odtdia.h \
-           scribus/plugins/gettext/odtim/odtim.h \
-           scribus/plugins/gettext/odtim/stylereader.h \
            scribus/plugins/gettext/pdbim/pdbim.h \
            scribus/plugins/gettext/rtfim/rtfim.h \
            scribus/plugins/gettext/sxwim/contentreader.h \
@@ -1007,6 +995,10 @@ HEADERS += scribus/actionmanager.h \
            scribus/plugins/import/xps/xpsimportoptions.h \
            scribus/plugins/import/zmf/importzmf.h \
            scribus/plugins/import/zmf/importzmfplugin.h \
+           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortion.h \
+           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.h \
+           scribus/plugins/tools/2geomtools/pathalongpath/pathalongpath.h \
+           scribus/plugins/tools/2geomtools/pathalongpath/pathdialog.h \
            scribus/plugins/tools/flattenpath/flattenpath.h \
            scribus/plugins/tools/hunspellcheck/hunspelldialog.h \
            scribus/plugins/tools/hunspellcheck/hunspelldict.h \
@@ -1022,11 +1014,7 @@ HEADERS += scribus/actionmanager.h \
            scribus/plugins/tools/pathfinder/pathfinderdialog.h \
            scribus/plugins/tools/pathstroker/pathstroker.h \
            scribus/plugins/tools/smoothpath/smoothpath.h \
-           scribus/plugins/tools/subdivide/subdivide.h \
-           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortion.h \
-           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.h \
-           scribus/plugins/tools/2geomtools/pathalongpath/pathalongpath.h \
-           scribus/plugins/tools/2geomtools/pathalongpath/pathdialog.h
+           scribus/plugins/tools/subdivide/subdivide.h
 
 FORMS += scribus/ui/aboutplugins.ui \
          scribus/ui/actionsearchdialog.ui \
@@ -1159,29 +1147,27 @@ FORMS += scribus/ui/aboutplugins.ui \
          scribus/ui/weldeditbase.ui \
          scribus/plugins/barcodegenerator/barcodegenerator.ui \
          scribus/plugins/colorwheel/cwdialog.ui \
+         scribus/plugins/export/pixmapexport/exportform.ui \
          scribus/plugins/fontpreview/fontpreview.ui \
-         scribus/plugins/imposition/impositionbase.ui \
-         scribus/plugins/newfromtemplateplugin/nftdialog.ui \
+         scribus/plugins/import/pdf/pdfimportoptions.ui \
+         scribus/plugins/import/xps/xpsimportoptions.ui \
          scribus/plugins/picbrowser/imagedialog.ui \
          scribus/plugins/picbrowser/picturebrowser.ui \
          scribus/plugins/saveastemplateplugin/satdialog.ui \
+         scribus/plugins/scripter/python/excepthook.ui \
+         scribus/plugins/scripter/python/permitdlg.ui \
+         scribus/plugins/scripter/python/sceditor/mainwindow.ui \
          scribus/plugins/scriptplugin/pconsole.ui \
          scribus/plugins/scriptplugin/prefs_scripterbase.ui \
          scribus/plugins/scriptplugin/runscriptdialog.ui \
          scribus/plugins/short-words/prefs_shortwordsbase.ui \
          scribus/plugins/short-words/swdialog.ui \
-         scribus/plugins/export/pixmapexport/exportform.ui \
-         scribus/plugins/import/pdf/pdfimportoptions.ui \
-         scribus/plugins/import/xps/xpsimportoptions.ui \
-         scribus/plugins/scripter/python/excepthook.ui \
-         scribus/plugins/scripter/python/permitdlg.ui \
+         scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.ui \
+         scribus/plugins/tools/2geomtools/pathalongpath/pathdialogbase.ui \
          scribus/plugins/tools/hunspellcheck/hunspelldialogbase.ui \
          scribus/plugins/tools/lenseffects/lensdialogbase.ui \
          scribus/plugins/tools/pathconnect/pathconnectdialogbase.ui \
-         scribus/plugins/tools/pathfinder/pathfinderbase.ui \
-         scribus/plugins/scripter/python/sceditor/mainwindow.ui \
-         scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.ui \
-         scribus/plugins/tools/2geomtools/pathalongpath/pathdialogbase.ui
+         scribus/plugins/tools/pathfinder/pathfinderbase.ui
 
 SOURCES += scribus/actionmanager.cpp \
            scribus/actionsearch.cpp \
@@ -1808,15 +1794,8 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/plugins/colorwheel/cwdialog.cpp \
            scribus/plugins/fontpreview/fontpreview.cpp \
            scribus/plugins/fontpreview/fontpreviewplugin.cpp \
-           scribus/plugins/imposition/imposition.cpp \
-           scribus/plugins/imposition/impositionplugin.cpp \
            scribus/plugins/myplugin/myplugin.cpp \
            scribus/plugins/myplugin/mypluginimpl.cpp \
-           scribus/plugins/newfromtemplateplugin/nftdialog.cpp \
-           scribus/plugins/newfromtemplateplugin/nftemplate.cpp \
-           scribus/plugins/newfromtemplateplugin/nftrcreader.cpp \
-           scribus/plugins/newfromtemplateplugin/nftsettings.cpp \
-           scribus/plugins/newfromtemplateplugin/nfttemplate.cpp \
            scribus/plugins/picbrowser/collection.cpp \
            scribus/plugins/picbrowser/findimage.cpp \
            scribus/plugins/picbrowser/imagedialog.cpp \
@@ -2045,8 +2024,6 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/plugins/export/pixmapexport/export.cpp \
            scribus/plugins/export/svgexplugin/svgexplugin.cpp \
            scribus/plugins/export/xpsexport/xpsexplugin.cpp \
-           scribus/plugins/fileloader/oldscribusformat/oldscribusformat.cpp \
-           scribus/plugins/fileloader/oldscribusformat/oldscribusformatimpl.cpp \
            scribus/plugins/fileloader/scribus12format/scribus12format.cpp \
            scribus/plugins/fileloader/scribus12format/scribus12formatimpl.cpp \
            scribus/plugins/fileloader/scribus134format/scribus134format.cpp \
@@ -2062,11 +2039,8 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/plugins/gettext/docxim/docxim.cpp \
            scribus/plugins/gettext/htmlim/htmlim.cpp \
            scribus/plugins/gettext/htmlim/htmlreader.cpp \
+           scribus/plugins/gettext/markdownim/markdownim.cpp \
            scribus/plugins/gettext/odt2im/importodt.cpp \
-           scribus/plugins/gettext/odtim/contentreader.cpp \
-           scribus/plugins/gettext/odtim/odtdia.cpp \
-           scribus/plugins/gettext/odtim/odtim.cpp \
-           scribus/plugins/gettext/odtim/stylereader.cpp \
            scribus/plugins/gettext/pdbim/pdbim.cpp \
            scribus/plugins/gettext/rtfim/rtfim.cpp \
            scribus/plugins/gettext/sxwim/contentreader.cpp \
@@ -2163,6 +2137,10 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/plugins/scriptplugin/scripter2/scripter2_scribus_scribuswin.cpp \
            scribus/plugins/scriptplugin/scripter2/scripter2_scribusstructs.cpp \
            scribus/plugins/scriptplugin/scripter2/scripter2_styles.cpp \
+           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortion.cpp \
+           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.cpp \
+           scribus/plugins/tools/2geomtools/pathalongpath/pathalongpath.cpp \
+           scribus/plugins/tools/2geomtools/pathalongpath/pathdialog.cpp \
            scribus/plugins/tools/flattenpath/flattenpath.cpp \
            scribus/plugins/tools/hunspellcheck/hunspelldialog.cpp \
            scribus/plugins/tools/hunspellcheck/hunspelldict.cpp \
@@ -2177,12 +2155,10 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/plugins/tools/pathfinder/pathfinderdialog.cpp \
            scribus/plugins/tools/pathstroker/pathstroker.cpp \
            scribus/plugins/tools/smoothpath/smoothpath.cpp \
-           scribus/plugins/tools/subdivide/subdivide.cpp \
-           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortion.cpp \
-           scribus/plugins/tools/2geomtools/meshdistortion/meshdistortiondialog.cpp \
-           scribus/plugins/tools/2geomtools/pathalongpath/pathalongpath.cpp \
-           scribus/plugins/tools/2geomtools/pathalongpath/pathdialog.cpp
+           scribus/plugins/tools/subdivide/subdivide.cpp
+
 RESOURCES += scribus/plugins/scripter/python/sceditor/dockwidget_icons.qrc
+
 TRANSLATIONS += resources/translations/scribus.af.ts \
                 resources/translations/scribus.ar.ts \
                 resources/translations/scribus.be.ts \

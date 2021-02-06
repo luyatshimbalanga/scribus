@@ -1760,7 +1760,7 @@ QVariant ScribusMainWindow::inputMethodQuery ( Qt::InputMethodQuery query ) cons
 //AV -> CanvasMode
 void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 {
-	if (HaveDoc && view)
+	if (HaveDoc && view && (view->hasFocus() || view->widget()->hasFocus()))
 	{
 		view->canvasMode()->keyPressEvent(k);
 		return;
@@ -1771,7 +1771,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 
 void ScribusMainWindow::keyReleaseEvent(QKeyEvent *k)
 {
-	if (HaveDoc && view)
+	if (HaveDoc && view && (view->hasFocus() || view->widget()->hasFocus()))
 	{
 		view->canvasMode()->keyReleaseEvent(k);
 		return;
@@ -2218,7 +2218,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 	//Independent finishing tasks after tempDoc setup
 	if (showView)
 	{
-		if ( mdiArea->subWindowList().count() == 1)
+		if (mdiArea->subWindowList().count() == 1)
 			w->showMaximized();
 		else
 			w->show();

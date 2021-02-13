@@ -18,6 +18,8 @@ for which a new license (GPL+exception) is in place.
 *                                                                         *
 ***************************************************************************/
 
+#include <algorithm>
+
 #include <QDateTime>
 #include <QDir>
 #include <QDirIterator>
@@ -320,7 +322,7 @@ void ScImageCacheManager::MetaAgeList::update(ScImageCacheFile *p, const QFileIn
 
 void ScImageCacheManager::MetaAgeList::remove(ScImageCacheFile *p)
 {
-	FAL::iterator i = qBinaryFind(m_fa.begin(), m_fa.end(), p, ageLessThan);
+	FAL::iterator i = std::lower_bound(m_fa.begin(), m_fa.end(), p, ageLessThan);
 	Q_ASSERT(i != m_fa.end());
 	if (i != m_fa.end())
 		m_fa.erase(i);
@@ -337,8 +339,6 @@ ScImageCacheFile *ScImageCacheManager::MetaAgeList::getOldest()
 {
 	return m_fa.isEmpty() ? 0 : m_fa.front();
 }
-
-
 
 ScImageCacheManager & ScImageCacheManager::instance()
 {

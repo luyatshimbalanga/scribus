@@ -37,6 +37,9 @@ BarcodeGenerator::BarcodeGenerator(QWidget* parent, const char* name)
 	setObjectName(name);
 	setModal(true);
 
+	ui.bcodeBox->layout()->setAlignment(Qt::AlignTop);
+	ui.colorBox->layout()->setAlignment(Qt::AlignTop);
+
 	connect(&thread, SIGNAL(renderedImage(QString)),this, SLOT(updatePreview(QString)));
 
 	/*
@@ -671,8 +674,20 @@ void BarcodeGenerator::on_eccCombo_currentIndexChanged(int)
 
 void BarcodeGenerator::paintColorSample(QLabel *l, const ScColor & c)
 {
-	QRect rect = l->frameRect();
-	QPixmap pm(rect.width(), rect.height());
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+	QPixmap currentPixmap = l->pixmap(Qt::ReturnByValue);
+#else
+	QPixmap currentPixmap = l->pixmap() ? *(l->pixmap()) : QPixmap();
+#endif
+	
+	double pixelRatio = l->devicePixelRatioF();
+	QSize pixmapSize(currentPixmap.width(), currentPixmap.height());
+	if (currentPixmap.isNull())
+	{
+		QRect rect = l->frameRect();
+		pixmapSize = QSize(rect.width() * pixelRatio, rect.height() * pixelRatio);
+	}
+	QPixmap pm(pixmapSize.width(), pixmapSize.height());
 	pm.fill(c.getRawRGBColor()); // brute force sc2qt color convert for preview
 	l->setPixmap(pm);
 }
@@ -682,6 +697,11 @@ void BarcodeGenerator::bgColorButton_pressed()
 	ColorsAndFillsDialog d(this, &ScCore->primaryMainWindow()->doc->docGradients, ScCore->primaryMainWindow()->doc->PageColors, "", &ScCore->primaryMainWindow()->doc->docPatterns, ScCore->primaryMainWindow()->doc, ScCore->primaryMainWindow());
 	if (!d.exec())
 		return;
+
+	QString selectedColorName = d.selectedColorName();
+	if (selectedColorName == CommonStrings::None)
+		return;
+
 	bgColor = d.selectedColor();
 	ui.bgLabel->setToolTip(d.selectedColorName());
 	paintColorSample(ui.bgLabel, bgColor);
@@ -693,6 +713,11 @@ void BarcodeGenerator::lnColorButton_pressed()
 	ColorsAndFillsDialog d(this, &ScCore->primaryMainWindow()->doc->docGradients, ScCore->primaryMainWindow()->doc->PageColors, "", &ScCore->primaryMainWindow()->doc->docPatterns, ScCore->primaryMainWindow()->doc, ScCore->primaryMainWindow());
 	if (!d.exec())
 		return;
+
+	QString selectedColorName = d.selectedColorName();
+	if (selectedColorName == CommonStrings::None)
+		return;
+
 	lnColor = d.selectedColor();
 	ui.linesLabel->setToolTip(d.selectedColorName());
 	paintColorSample(ui.linesLabel, lnColor);
@@ -704,6 +729,11 @@ void BarcodeGenerator::txtColorButton_pressed()
 	ColorsAndFillsDialog d(this, &ScCore->primaryMainWindow()->doc->docGradients, ScCore->primaryMainWindow()->doc->PageColors, "", &ScCore->primaryMainWindow()->doc->docPatterns, ScCore->primaryMainWindow()->doc, ScCore->primaryMainWindow());
 	if (!d.exec())
 		return;
+
+	QString selectedColorName = d.selectedColorName();
+	if (selectedColorName == CommonStrings::None)
+		return;
+
 	txtColor = d.selectedColor();
 	ui.txtLabel->setToolTip(d.selectedColorName());
 	paintColorSample(ui.txtLabel, txtColor);
@@ -732,7 +762,7 @@ void BarcodeGenerator::okButton_pressed()
 
 	if (fmt)
 	{
-		fmt->loadFile(psFile, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive);
+		fmt->loadFile(psFile, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfNoDialogs);
 		if (tran)
 			tran.commit();
 	}

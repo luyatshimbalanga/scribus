@@ -19,8 +19,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-
-
 namespace sfnt
 {
 	uchar byte(QByteArray const & bb, uint pos);
@@ -34,30 +32,32 @@ namespace sfnt
 	QByteArray tag(QByteArray const & bb, uint pos);
 	QByteArray getTable(const QByteArray& ttf, const QByteArray& ttfTag);
 	
-
-	QByteArray subsetFace(const QByteArray& ttf, QList<uint>& glyphs);
 	QByteArray extractFace(const QByteArray& ttfColl, int faceIndex);
+	QByteArray subsetFace(const QByteArray& ttf, QList<uint>& glyphs, QMap<uint, uint>& glyphMap);
+	QByteArray subsetFaceWithHB(const QByteArray& fontData, QList<uint> glyphs, int faceIndex, QMap<uint, uint>& glyphMap);
 
-/**
- This class checks the post table of a ttf font.
- */
-class SCRIBUS_API PostTable
-{
-	public:
-		PostTable() = default;
-		uint numberOfGlyphs() const;
-		QString nameFor(uint glyphId) const;
-		void readFrom(FT_Face face);
-		bool usable() const;
-		void setUsable(bool usable);
-		QString errorMsg() const;
-		void setErrorMsg(const QString& errorMsg);
+	bool canSubsetOpenTypeFonts();
 
-	private:
-		QList<QString> m_names;
-		bool m_usable {false};
-		QString m_errorMsg;
-};
+	/**
+	 This class checks the post table of a ttf font.
+	 */
+	class SCRIBUS_API PostTable
+	{
+		public:
+			PostTable() = default;
+			uint numberOfGlyphs() const;
+			QString nameFor(uint glyphId) const;
+			void readFrom(FT_Face face);
+			bool usable() const;
+			void setUsable(bool usable);
+			QString errorMsg() const;
+			void setErrorMsg(const QString& errorMsg);
+
+		private:
+			QList<QString> m_names;
+			bool m_usable {false};
+			QString m_errorMsg;
+	};
 
 } //namespace
 #endif

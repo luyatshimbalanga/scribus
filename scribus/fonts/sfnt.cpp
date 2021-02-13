@@ -14,6 +14,43 @@
 #include FT_TRUETYPE_IDS_H
 
 #include <QDebug>
+#include <QScopedPointer>
+
+#include "scconfig.h"
+
+#include <harfbuzz/hb.h>
+#ifdef HAVE_HARFBUZZ_SUBSET
+#include <harfbuzz/hb-subset.h>
+#endif
+
+struct HbBlobDeleter
+{
+	static void cleanup(void *pointer)
+	{
+		if (pointer)
+			hb_blob_destroy((hb_blob_t*) pointer);
+	}
+};
+
+struct HbFaceDeleter
+{
+	static void cleanup(void *pointer)
+	{
+		if (pointer)
+			hb_face_destroy((hb_face_t*) pointer);
+	}
+};
+
+#ifdef HAVE_HARFBUZZ_SUBSET
+struct HbSubsetInputDeleter
+{
+	static void cleanup(void *pointer)
+	{
+		if (pointer)
+			hb_subset_input_destroy((hb_subset_input_t*) pointer);
+	}
+};
+#endif
 
 namespace sfnt {
 	
@@ -22,6 +59,7 @@ namespace sfnt {
 		const unsigned char * pp = reinterpret_cast<const unsigned char*>(bb.data()) + pos;
 		return pp[0];
 	}
+
 	quint32 word(const QByteArray & bb, uint pos)
 	{
 		const unsigned char * pp = reinterpret_cast<const unsigned char*>(bb.data()) + pos;
@@ -95,13 +133,7 @@ namespace sfnt {
 		return true;
 	}
 
-
-
-
-
-
 	const uint post_format10_names_count = 258;
-
 
 	static const char* post_format10_names[] = {
 		".notdef",
@@ -305,8 +337,6 @@ namespace sfnt {
 		"dcroat"
 	};
 
-
-
 	bool PostTable::usable() const
 	{
 		return m_usable;
@@ -342,7 +372,6 @@ namespace sfnt {
 			return post_format10_names[glyph];
 		return ".notdef";
 	}
-
 
 	void PostTable::readFrom(FT_Face face)
 	{
@@ -425,8 +454,6 @@ namespace sfnt {
 		m_usable = true;
 	}
 
-
-
 	int copyTable(QByteArray& ttf, uint destDirEntry, uint pos, const QByteArray& source, uint dirEntry)
 	{
 		FT_ULong tag = word(source, dirEntry + ttf_TableRecord_tag);
@@ -444,7 +471,6 @@ namespace sfnt {
 		
 		return tableSize;
 	}
-
 
 	QByteArray extractFace(const QByteArray& coll, int faceIndex)
 	{
@@ -561,7 +587,6 @@ namespace sfnt {
 		return result;
 	}
 
-
 	quint32 calcTableChecksum(QByteArray& table)
 	{
 		quint32 Sum = 0L;
@@ -569,7 +594,6 @@ namespace sfnt {
 			Sum += word(table, pos);
 		return Sum;
 	}
-
 
 	void writeTable(QByteArray& ttf, const QByteArray& tag, QByteArray& table)
 	{
@@ -586,7 +610,6 @@ namespace sfnt {
 		ttf.append(table);
 	}
 
-
 	bool hasLongLocaFormat(const QByteArray& ttf)
 	{
 		const QByteArray head = getTable(ttf, "head");
@@ -594,7 +617,6 @@ namespace sfnt {
 		//		qDebug() << "loca format:" << (void*)idxToLocFormat;
 		return idxToLocFormat == 1;
 	}
-
 
 	QList<quint32> readLoca(const QByteArray& ttf)
 	{
@@ -630,7 +652,6 @@ namespace sfnt {
 		return result;
 	}
 
-
 	QList<std::pair<qint16,quint16> > readHmtx(const QByteArray& ttf)
 	{
 		QList<std::pair<qint16,quint16> > result;
@@ -658,7 +679,6 @@ namespace sfnt {
 		return result;
 	}
 
-
 	QByteArray writeHmtx(const QList<std::pair<qint16,quint16> >& longHorMetrics)
 	{
 		QByteArray result;
@@ -672,7 +692,6 @@ namespace sfnt {
 		}
 		return result;
 	}
-
 
 	QMap<uint, uint> readCMap(const QByteArray& ttf)
 	{
@@ -800,8 +819,6 @@ namespace sfnt {
 		}
 		return result;
 	}
-
-
 
 	QByteArray writeCMap(const QMap<uint, uint>& cmap)
 	{
@@ -944,7 +961,6 @@ namespace sfnt {
 		return result;
 	}
 	
-	
 	QList<uint> copyGlyphComponents(QByteArray& destGlyf, const QByteArray& srcGlyf, uint srcOffset,
 									QMap<uint,uint>& newForOldGid, uint& nextFreeGid)
 	{
@@ -1018,7 +1034,6 @@ namespace sfnt {
 		
 		return result;
 	}
-	
 
 	QList<uint> copyGlyph(QList<uint>& destLoca, QByteArray& destGlyf, uint destGid,
 						  const QList<uint>& srcLoca, const QByteArray& srcGlyf, uint srcGid,
@@ -1060,16 +1075,13 @@ namespace sfnt {
 		return compositeElements;
 	}
 	
-	
-	QByteArray subsetFace(const QByteArray& ttf, QList<uint>& glyphs)
+	QByteArray subsetFace(const QByteArray& ttf, QList<uint>& glyphs, QMap<uint, uint>& glyphMap)
 	{
 		QMap<QByteArray,QByteArray> tables;
 		
-		
 		//		qDebug() << "loca table:" << (void*) oldLoca[0] << (void*) oldLoca[1] << (void*) oldLoca[2] << (void*) oldLoca[3] << (void*) oldLoca[4] << (void*) oldLoca[5] << (void*) oldLoca[6] << (void*) oldLoca[7];
-		
 
-		QMap<uint,uint> newForOldGid;
+		QMap<uint, uint> newForOldGid;
 		if (glyphs.length() == 0)
 		{
 			tables["loca"] = getTable(ttf, "loca");
@@ -1105,7 +1117,6 @@ namespace sfnt {
 			tables["glyf"] = newGlyf;
 		}
 		
-		
 		QMap<uint,uint> cmap = readCMap(ttf);
 		QMap<uint,uint>::iterator it;
 		uint firstChar = 0xFFFFFFFF;
@@ -1130,7 +1141,6 @@ namespace sfnt {
 			}
 		}
 		tables["cmap"] = writeCMap(cmap);
-
 		
 		QByteArray os2 = getTable(ttf, "OS/2");
 		if (os2.length() > ttf_os2_usLastCharIndex)
@@ -1201,12 +1211,10 @@ namespace sfnt {
 		QByteArray fpgm = getTable(ttf, "fpgm");
 		if (fpgm.length() > 0)
 			tables["fpgm"] = fpgm;
-		
 
 		QByteArray head = getTable(ttf, "head");
 		putWord(head, ttf_head_checkSumAdjustment, 0);
 		tables["head"] = head;
-		
 
 		QByteArray font = createTableDir(tables.keys());
 		QMap<QByteArray,QByteArray>::iterator tableP;
@@ -1220,9 +1228,69 @@ namespace sfnt {
 		headTable = word(font, headTable + ttf_TableRecord_offset);
 		putWord(font, headTable + ttf_head_checkSumAdjustment, checkSumAdjustment);
 		
+		glyphMap.clear();
+		for (int i = 0; i < glyphs.length(); ++i)
+			glyphMap[glyphs[i]] = i;
 		// done!
 		
 		return font;
+	}
+
+	QByteArray subsetFaceWithHB(const QByteArray& fontData, QList<uint> cids, int faceIndex, QMap<uint, uint>& glyphMap)
+	{
+		glyphMap.clear();
+
+#ifdef HAVE_HARFBUZZ_SUBSET
+		QScopedPointer<hb_blob_t, HbBlobDeleter> hbBlob(hb_blob_create(fontData.data(), fontData.length(), HB_MEMORY_MODE_READONLY, nullptr, nullptr));
+		if (hbBlob.isNull())
+			return QByteArray();
+
+		QScopedPointer<hb_face_t, HbFaceDeleter> hbFullFace(hb_face_create(hbBlob.get(), faceIndex));
+		if (hbFullFace.isNull())
+			return QByteArray();
+
+		QScopedPointer<hb_subset_input_t, HbSubsetInputDeleter> hbSubsetInput(hb_subset_input_create_or_fail());
+		hb_set_t* glyphSet = hb_subset_input_glyph_set(hbSubsetInput.get());
+		if (glyphSet == nullptr)
+			return QByteArray();
+
+		for (int i = 0; i < cids.count(); ++i)
+			hb_set_add(glyphSet, cids.at(i));
+	
+		hb_subset_input_set_retain_gids(hbSubsetInput.get(), true);
+		hb_subset_input_set_drop_hints(hbSubsetInput.get(), false);
+		hb_subset_input_set_name_legacy(hbSubsetInput.get(), true);
+
+		QScopedPointer<hb_face_t, HbFaceDeleter> hbSubsetFace(hb_subset(hbFullFace.get(), hbSubsetInput.get()));
+		if (hbSubsetFace.isNull())
+			return QByteArray();
+
+		QScopedPointer<hb_blob_t, HbBlobDeleter> hbSubsetBlob(hb_face_reference_blob(hbSubsetFace.get()));
+		if (hbSubsetBlob.isNull())
+			return QByteArray();
+
+		unsigned int length;
+		const char* subsetData = hb_blob_get_data(hbSubsetBlob.get(), &length);
+
+		QByteArray subset(subsetData, length);
+		if (!subset.isEmpty())
+		{
+			for (int i = 0; i < cids.length(); ++i)
+				glyphMap[cids[i]] = cids[i];
+		}
+		return subset;
+#else
+		return QByteArray();
+#endif
+	}
+
+	bool canSubsetOpenTypeFonts()
+	{
+#ifdef HAVE_HARFBUZZ_SUBSET
+		return true;
+#else
+		return false;
+#endif
 	}
 	
 } // namespace sfnt

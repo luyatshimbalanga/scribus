@@ -14,7 +14,7 @@ XpsImportOptions::XpsImportOptions(QWidget *parent) : QDialog(parent), ui(new Ui
 {
 	ui->setupUi(this);
 	ui->pageSelectButton->setIcon(IconManager::instance().loadIcon("ellipsis.png"));
-	m_maxPage = 0;
+	resize(minimumSizeHint());
 }
 
 XpsImportOptions::~XpsImportOptions()

@@ -235,6 +235,7 @@
   <ItemGroup>
     <moc Include="..\..\..\scribus\appmodehelper.h" />
     <ClInclude Include="..\..\..\scribus\actionsearch.h" />
+    <ClInclude Include="..\..\..\scribus\api\api_application.h" />
     <ClInclude Include="..\..\..\scribus\appmodes.h" />
     <ClInclude Include="..\..\..\scribus\collapsedtablepainterex.h" />
     <ClInclude Include="..\..\..\scribus\colormgmt\scciedata.h" />
@@ -857,6 +858,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\scribus\actionsearch.cpp" />
+    <ClCompile Include="..\..\..\scribus\api\api_application.cpp" />
     <ClCompile Include="..\..\..\scribus\appmodehelper.cpp" />
     <ClCompile Include="..\..\..\scribus\collapsedtablepainterex.cpp" />
     <ClCompile Include="..\..\..\scribus\colormgmt\scciedata.cpp" />
@@ -1262,6 +1264,7 @@
     <ClCompile Include="..\..\..\scribus\ui\prefs_miscellaneous.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\prefs_operatortools.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\prefs_pagesizes.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\prefs_pane.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\prefs_paths.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\prefs_pdfexport.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\prefs_plugins.cpp" />

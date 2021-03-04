@@ -16,6 +16,7 @@ for which a new license (GPL+exception) is in place.
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPalette>
 #include <QPixmap>
 #include <QPolygon>
 #include <QPushButton>
@@ -81,13 +82,17 @@ void RulerT::setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin)
 void RulerT::paintEvent(QPaintEvent *)
 {
 	double xl;
+
+	const QPalette& palette = this->palette();
+	const QColor& textColor = palette.color(QPalette::Text);
+
 	QPainter p;
 	p.begin(this);
 	p.drawLine(0, 24, width(), 24);
 	p.translate(-offset, 0);
-	p.setBrush(Qt::black);
+	p.setBrush(textColor);
 	p.setFont(font());
-	p.setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+	p.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
 	for (xl = 0; xl < width() + offset; xl += iter)
 	{
 		if (xl < offset)
@@ -127,39 +132,37 @@ void RulerT::paintEvent(QPaintEvent *)
 		}
 	}
 
-	if (tabValues.count() != 0)
+	for (int i = 0; i < tabValues.count(); i++)
 	{
-		for (int i = 0; i < tabValues.count(); i++)
+		if (i == actTab)
+			p.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+		else
+			p.setPen(QPen(textColor, 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
+		switch (static_cast<int>(tabValues[i].tabType))
 		{
-			if (i == actTab)
-				p.setPen(QPen(Qt::red, 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-			else
-				p.setPen(QPen(Qt::black, 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-			switch (static_cast<int>(tabValues[i].tabType))
-			{
-				case 0:
-					p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
-					p.drawLine(qRound(tabValues[i].tabPosition), 23, qRound(tabValues[i].tabPosition + 8), 23);
-					break;
-				case 1:
-					p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
-					p.drawLine(qRound(tabValues[i].tabPosition), 23, qRound(tabValues[i].tabPosition - 8), 23);
-					break;
-				case 2:
-				case 3:
-					p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
-					p.drawLine(qRound(tabValues[i].tabPosition - 4), 23, qRound(tabValues[i].tabPosition + 4), 23);
-					p.drawLine(qRound(tabValues[i].tabPosition + 3), 20, qRound(tabValues[i].tabPosition + 2), 20);
-					break;
-				case 4:
-					p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
-					p.drawLine(qRound(tabValues[i].tabPosition - 4), 23, qRound(tabValues[i].tabPosition + 4), 23);
-					break;
-				default:
-					break;
-			}
+			case 0:
+				p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
+				p.drawLine(qRound(tabValues[i].tabPosition), 23, qRound(tabValues[i].tabPosition + 8), 23);
+				break;
+			case 1:
+				p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
+				p.drawLine(qRound(tabValues[i].tabPosition), 23, qRound(tabValues[i].tabPosition - 8), 23);
+				break;
+			case 2:
+			case 3:
+				p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
+				p.drawLine(qRound(tabValues[i].tabPosition - 4), 23, qRound(tabValues[i].tabPosition + 4), 23);
+				p.drawLine(qRound(tabValues[i].tabPosition + 3), 20, qRound(tabValues[i].tabPosition + 2), 20);
+				break;
+			case 4:
+				p.drawLine(qRound(tabValues[i].tabPosition), 15, qRound(tabValues[i].tabPosition), 23);
+				p.drawLine(qRound(tabValues[i].tabPosition - 4), 23, qRound(tabValues[i].tabPosition + 4), 23);
+				break;
+			default:
+				break;
 		}
 	}
+
 	if (haveInd)
 	{
 		p.setPen(QPen(Qt::blue, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
@@ -506,11 +509,11 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	m_docUnitRatio=unitGetRatioFromIndex(dEin);
 	double ww = (wid < 0) ? 4000 : wid;
 	tabrulerLayout = new QVBoxLayout( this );
-	tabrulerLayout->setMargin(0);
-	tabrulerLayout->setSpacing(5);
+	tabrulerLayout->setContentsMargins(0, 0, 0, 0);
+	tabrulerLayout->setSpacing(6);
 	layout2 = new QHBoxLayout;
-	layout2->setMargin(0);
-	layout2->setSpacing(5);
+	layout2->setContentsMargins(0, 0, 0, 0);
+	layout2->setSpacing(6);
 
 	rulerScrollL = new QToolButton(this);
 	rulerScrollL->setArrowType(Qt::LeftArrow);
@@ -525,8 +528,8 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	layout2->addWidget( rulerScrollR );
 
 	layout1 = new QHBoxLayout;
-	layout1->setMargin(0);
-	layout1->setSpacing(5);
+	layout1->setContentsMargins(0, 0, 0, 0);
+	layout1->setSpacing(6);
 	layout1->setAlignment( Qt::AlignTop );
 	typeCombo = new QComboBox(this);
 	typeCombo->setEditable(false);
@@ -556,12 +559,12 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	layout1->addWidget( tabFillCombo );
 
 	layout4 = new QHBoxLayout;
-	layout4->setMargin(0);
-	layout4->setSpacing(5);
+	layout4->setContentsMargins(0, 0, 0, 0);
+	layout4->setSpacing(6);
 
 	indentLayout = new QHBoxLayout;
-	indentLayout->setMargin(0);
-	indentLayout->setSpacing(5);
+	indentLayout->setContentsMargins(0, 0, 0, 0);
+	indentLayout->setSpacing(6);
 	if (haveFirst)
 	{
 		firstLineData = new ScrSpinBox( -3000, ww / m_docUnitRatio, this, dEin);

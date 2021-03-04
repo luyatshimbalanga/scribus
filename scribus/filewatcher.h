@@ -24,9 +24,11 @@ class SCRIBUS_API FileWatcher : public QObject
 public:
 	FileWatcher(QObject* parent);
 	~FileWatcher() override;
-	bool isActive();
+
 	// Get if file check loop is running
-	void isFileCheckRunning();
+	bool isActive() const;
+	// Check if a file is currently being watched
+	bool isWatching(const QString& fileName) const;
 	// Set the timer length in milliseconds
 	void setTimeOut(const int newTimeOut, const bool restartTimer=false);
 	// Get the timer length

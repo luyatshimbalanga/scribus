@@ -717,9 +717,9 @@ PageItem::~PageItem()
 
 	if (isTextFrame())
 	{
-		if (!asTextFrame()->isInChain() && itemText.length() >0)
+		if (!asTextFrame()->isInChain() && itemText.length() > 0)
 		{
-			for (int pos=0; pos < itemText.length(); ++pos)
+			for (int pos = 0; pos < itemText.length(); ++pos)
 			{
 				if (itemText.hasMark(pos))
 				{
@@ -1998,7 +1998,7 @@ void PageItem::DrawObj_Decoration(ScPainter *p)
 					p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameLinkColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 				if (m_Locked)
 					p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-				p->setFillMode(0);
+				p->setFillMode(ScPainter::None);
 				if (itemType() == PathText)
 				{
 					if (Clip.count() != 0)
@@ -10442,7 +10442,7 @@ void PageItem::makeImageInline()
 	isInlineImage = true;
 	isTempFile = true;
 	copyFile(Pfile, fileName);
-	Pfile = fileName;
+	Pfile = QDir::fromNativeSeparators(fileName);
 	delete tempFile;
 }
 

@@ -7,47 +7,46 @@ for which a new license (GPL+exception) is in place.
 #ifndef TABRULER_H
 #define TABRULER_H
 
-#include <QVariant>
-#include <QWidget>
-#include <QHBoxLayout>
-#include <QPaintEvent>
+#include <QEvent>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMouseEvent>
-#include <QEvent>
+#include <QPaintEvent>
+#include <QVariant>
 #include <QVBoxLayout>
+#include <QWidget>
 
 #include "scribusapi.h"
 #include "sctextstruct.h"
 
 class QComboBox;
 class QPushButton;
-class ScrSpinBox;
 class QToolButton;
+class ScrSpinBox;
 
 class SCRIBUS_API RulerT : public QWidget
 {
 	Q_OBJECT
 
 public:
-	RulerT(QWidget* parent, int ein, const QList<ParagraphStyle::TabRecord>& Tabs, bool ind, double wid);
+	RulerT(QWidget* parent, int unit, const QList<ParagraphStyle::TabRecord>& tabs, bool ind, double wid);
 	~RulerT() {};
 
-	void setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin);
+	void setTabs(const QList<ParagraphStyle::TabRecord>& tabs, int unit);
 	void updateTabList();
 
-	bool mousePressed;
+	bool mousePressed { false };
 	QList<ParagraphStyle::TabRecord> tabValues;
-	bool haveInd;
-	int unitIndex;
-	int offset;
-	int actTab;
-	double leftIndent;
-	double firstLine;
-	double Width;
-	int rulerCode;
-	int mouseX;
-	int offsetIncrement;
+	bool haveInd { false };
+	int unitIndex { 0 };
+	int offset { 0 };
+	int actTab { -1 };
+	double leftIndent { 0.0 };
+	double firstLine { 0.0 };
+	int rulerCode { 0 };
+	int mouseX { 0 };
+	int offsetIncrement { 5 };
 
 public slots:
 	void resetOffsetInc();
@@ -79,7 +78,9 @@ protected:
 	virtual void leaveEvent(QEvent*);
 	
 private:
-	double iter, iter2;
+	double m_iter { 10.0 }; // Result of unitRulerGetIter1FromIndex() for point unit
+	double m_iter2 { 100.0 }; // Result of unitRulerGetIter2FromIndex() for point unit
+	double m_rulerWidth { 0.0 };
 };
 
 class SCRIBUS_API Tabruler : public QWidget
@@ -89,12 +90,12 @@ class SCRIBUS_API Tabruler : public QWidget
 public:
 	Tabruler(QWidget* parent,
 			 bool haveFirst = true,
-			 int dEin = 1,
-			 const QList<ParagraphStyle::TabRecord>& Tabs = QList<ParagraphStyle::TabRecord>(),
+			 int unit = 1,
+			 const QList<ParagraphStyle::TabRecord>& tabs = QList<ParagraphStyle::TabRecord>(),
 			 double wid = -1);
 	~Tabruler() {};
 
-	virtual void setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin);
+	virtual void setTabs(const QList<ParagraphStyle::TabRecord>& tabs, int unit);
 
 	QList<ParagraphStyle::TabRecord> getTabVals();
 	double getFirstLine();
@@ -142,8 +143,6 @@ protected:
 	QHBoxLayout* layout2 { nullptr };
 	QHBoxLayout* layout1 { nullptr };
 	QHBoxLayout* indentLayout { nullptr };
-//	QVBoxLayout* layout3 { nullptr };
-	QHBoxLayout* layout4 { nullptr };
 	QComboBox* typeCombo { nullptr };
 	QComboBox* tabFillCombo { nullptr };
 	QLabel* tabFillComboT { nullptr };
@@ -158,8 +157,8 @@ protected:
 	ScrSpinBox* firstLineData { nullptr };
 	ScrSpinBox* leftIndentData { nullptr };
 	ScrSpinBox* rightIndentData { nullptr };
-	QPushButton* clearButton { nullptr };
-	QPushButton* clearOneButton { nullptr };
+	QToolButton* clearButton { nullptr };
+	QToolButton* clearOneButton { nullptr };
 
 	bool   m_haveFirst;
 	double m_docUnitRatio;

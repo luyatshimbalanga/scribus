@@ -12,7 +12,6 @@ for which a new license (GPL+exception) is in place.
 #include "scribusapi.h"
 #include "ui/scdockpalette.h"
 #include "scribusstructs.h"
-#include "sclayer.h"
 
 class CheckBox;
 class QComboBox;
@@ -20,11 +19,11 @@ class QEvent;
 class QHBoxLayout;
 class QHeaderView;
 class QLabel;
-class QPushButton;
 class QTableWidget;
 class QTableWidgetItem;
 class QToolButton;
 class QVBoxLayout;
+class ScLayers;
 class ScrSpinBox;
 class ScribusDoc;
 
@@ -36,10 +35,10 @@ public:
 	LayerPalette(QWidget* parent);
 	~LayerPalette() {};
 
+	void installEventFilter(QObject *);
+
 	void setDoc(ScribusDoc* doc);
 	void rebuildList();
-	
-	QTableWidget* Table { nullptr };	//public for the event filter in scribus.cpp.. TODO
 
 public slots:
 	void addLayer();
@@ -66,11 +65,11 @@ public slots:
 
 signals:
 	void LayerChanged();
-	void LayerActivated(int);
 
 protected:
 	QWidget* containerWidget { nullptr };
 	ScribusDoc* m_Doc { nullptr };
+	QTableWidget* Table { nullptr };
 	QVBoxLayout* LayerPaletteLayout { nullptr };
 	QHBoxLayout* Layout1 { nullptr };
 	QHBoxLayout* layout1 { nullptr };
@@ -79,11 +78,12 @@ protected:
 	QLabel* textLabel2 { nullptr };
 	ScrSpinBox* opacitySpinBox { nullptr };
 	QHeaderView* Header { nullptr };
-	QPushButton* newLayerButton { nullptr };
-	QPushButton* duplicateLayerButton { nullptr };
-	QPushButton* deleteLayerButton { nullptr };
-	QPushButton* raiseLayerButton { nullptr };
-	QPushButton* lowerLayerButton { nullptr };
+	QToolButton* newLayerButton { nullptr };
+	QToolButton* duplicateLayerButton { nullptr };
+	QToolButton* deleteLayerButton { nullptr };
+	QToolButton* raiseLayerButton { nullptr };
+	QToolButton* lowerLayerButton { nullptr };
+
 	ScLayers *layers { nullptr };
 
 	void changeEvent(QEvent *e) override;

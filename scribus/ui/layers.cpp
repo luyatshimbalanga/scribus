@@ -24,7 +24,6 @@ for which a new license (GPL+exception) is in place.
 #include <QLabel>
 #include <QMessageBox>
 #include <QPixmap>
-#include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpacerItem>
 #include <QTableWidget>
@@ -34,13 +33,13 @@ for which a new license (GPL+exception) is in place.
 #include <QVBoxLayout>
 
 #include "iconmanager.h"
+#include "sclayer.h"
 #include "scribus.h"
 #include "scribusapp.h"
 #include "scribusdoc.h"
 #include "selection.h"
 #include "ui/scrspinbox.h"
 #include "undomanager.h"
-
 
 LayerPalette::LayerPalette(QWidget* parent) : ScDockPalette(parent, "Layers", Qt::WindowFlags()), m_Doc(nullptr)
 {
@@ -108,41 +107,46 @@ LayerPalette::LayerPalette(QWidget* parent) : ScDockPalette(parent, "Layers", Qt
 
 	Layout1 = new QHBoxLayout;
 	Layout1->setContentsMargins(0, 0, 0, 0);
-	Layout1->setSpacing(0);
+	Layout1->setSpacing(3);
 	QSpacerItem* spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum );
 	Layout1->addItem( spacer );
 
-	newLayerButton = new QPushButton( this );
-	newLayerButton->setMinimumSize( QSize( 50, 24 ) );
-	newLayerButton->setMaximumSize( QSize( 50, 24 ) );
+	newLayerButton = new QToolButton( this );
+	newLayerButton->setIconSize(QSize(16, 16));
+	newLayerButton->setMinimumSize( QSize( 48, 0 ) );
+	newLayerButton->setMaximumSize( QSize( 48, 16777215 ) );
 	newLayerButton->setText( "" );
 	newLayerButton->setIcon(IconManager::instance().loadIcon("16/list-add.png"));
 	Layout1->addWidget( newLayerButton );
 
-	deleteLayerButton = new QPushButton( this );
-	deleteLayerButton->setMinimumSize( QSize( 50, 24 ) );
-	deleteLayerButton->setMaximumSize( QSize( 50, 24 ) );
+	deleteLayerButton = new QToolButton( this );
+	deleteLayerButton->setIconSize(QSize(16, 16));
+	deleteLayerButton->setMinimumSize( QSize( 48, 0 ) );
+	deleteLayerButton->setMaximumSize( QSize( 48, 16777215 ) );
 	deleteLayerButton->setText( "" );
 	deleteLayerButton->setIcon(IconManager::instance().loadIcon("16/list-remove.png"));
 	Layout1->addWidget( deleteLayerButton );
 	
-	duplicateLayerButton = new QPushButton( this );
-	duplicateLayerButton->setMinimumSize( QSize( 50, 24 ) );
-	duplicateLayerButton->setMaximumSize( QSize( 50, 24 ) );
+	duplicateLayerButton = new QToolButton( this );
+	duplicateLayerButton->setIconSize(QSize(16, 16));
+	duplicateLayerButton->setMinimumSize( QSize( 48, 0 ) );
+	duplicateLayerButton->setMaximumSize( QSize( 48, 16777215 ) );
 	duplicateLayerButton->setText( "" );
 	duplicateLayerButton->setIcon(IconManager::instance().loadIcon("16/edit-copy.png"));
 	Layout1->addWidget( duplicateLayerButton );
 
-	raiseLayerButton = new QPushButton( this );
-	raiseLayerButton->setMinimumSize( QSize( 50, 24 ) );
-	raiseLayerButton->setMaximumSize( QSize( 50, 24 ) );
+	raiseLayerButton = new QToolButton( this );
+	raiseLayerButton->setIconSize(QSize(16, 16));
+	raiseLayerButton->setMinimumSize( QSize( 48, 0 ) );
+	raiseLayerButton->setMaximumSize( QSize( 48, 16777215 ) );
 	raiseLayerButton->setText( "" );
 	raiseLayerButton->setIcon(IconManager::instance().loadIcon("16/go-up.png"));
 	Layout1->addWidget( raiseLayerButton );
 
-	lowerLayerButton = new QPushButton( this );
-	lowerLayerButton->setMinimumSize( QSize( 50, 24 ) );
-	lowerLayerButton->setMaximumSize( QSize( 50, 24 ) );
+	lowerLayerButton = new QToolButton( this );
+	lowerLayerButton->setIconSize(QSize(16, 16));
+	lowerLayerButton->setMinimumSize( QSize( 48, 0 ) );
+	lowerLayerButton->setMaximumSize( QSize( 48, 16777215 ) );
 	lowerLayerButton->setText( "" );
 	lowerLayerButton->setIcon(IconManager::instance().loadIcon("16/go-down.png"));
 	Layout1->addWidget( lowerLayerButton );
@@ -164,6 +168,12 @@ LayerPalette::LayerPalette(QWidget* parent) : ScDockPalette(parent, "Layers", Qt
 	connect(opacitySpinBox, SIGNAL(valueChanged(double)), this, SLOT(changeOpacity()));
 	connect(blendMode, SIGNAL(activated(int)), this, SLOT(changeBlendMode(int)));
 	connect(header, SIGNAL(sectionClicked(int)), this, SLOT(toggleAllfromHeader(int)));
+}
+
+void LayerPalette::installEventFilter(QObject *obj)
+{
+	ScDockPalette::installEventFilter(obj);
+	Table->installEventFilter(obj);
 }
 
 void LayerPalette::clearContent()
@@ -190,7 +200,7 @@ void LayerPalette::setDoc(ScribusDoc* doc)
 	disconnect(Table, SIGNAL(cellChanged(int,int)), this, SLOT(changeName(int,int)));
 	if (!m_Doc)
 	{
-		layers=nullptr;
+		layers = nullptr;
 		newLayerButton->setEnabled(false);
 		duplicateLayerButton->setEnabled(false);
 		deleteLayerButton->setEnabled(false);

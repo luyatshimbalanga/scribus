@@ -32,49 +32,40 @@ for which a new license (GPL+exception) is in place.
 #include "units.h"
 #include "util.h"
 
-RulerT::RulerT(QWidget *pa, int ein, const QList<ParagraphStyle::TabRecord>& Tabs, bool ind, double wid) : QWidget(pa),
-	mousePressed(false),
-	tabValues(Tabs),
+RulerT::RulerT(QWidget *pa, int unit, const QList<ParagraphStyle::TabRecord>& tabs, bool ind, double wid) : QWidget(pa),
+	tabValues(tabs),
 	haveInd(ind),
-	unitIndex(ein),
-	offset(0),
-	actTab(-1),
-	leftIndent(0),
-	firstLine(0),
-	Width(0.0),
-	rulerCode(0),
-	mouseX(0),
-	offsetIncrement(5)
+	unitIndex(unit)
 {
 	QPalette palette;
 	palette.setColor(backgroundRole(), QColor(255,255,255));
 	setPalette(palette);
-	iter = unitRulerGetIter1FromIndex(unitIndex);
-	iter2 = unitRulerGetIter2FromIndex(unitIndex);
+	m_iter = unitRulerGetIter1FromIndex(unitIndex);
+	m_iter2 = unitRulerGetIter2FromIndex(unitIndex);
 
 	setMouseTracking(true);
 	if (wid < 0)
 	{
 		setMinimumSize(QSize(400,25));
 		setMaximumSize(QSize(4000,25));
-		Width = 4000;
+		m_rulerWidth = 4000;
 		resize(400, 25);
 	}
 	else
 	{
-		Width = wid;
-		setMinimumSize(QSize(qMin(static_cast<int>(Width), 400), 25));
+		m_rulerWidth = wid;
+		setMinimumSize(QSize(qMin(static_cast<int>(m_rulerWidth), 400), 25));
 		setMaximumSize(QSize(4000, 25));
 		resize(qMin(static_cast<int>(wid), 400), 25);
 	}
 }
 
-void RulerT::setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin)
+void RulerT::setTabs(const QList<ParagraphStyle::TabRecord>& tabs, int unit)
 {
-	unitIndex = dEin;
-	iter  = unitRulerGetIter1FromIndex(unitIndex);
-	iter2 = unitRulerGetIter2FromIndex(unitIndex);
-	tabValues = Tabs;
+	unitIndex = unit;
+	m_iter  = unitRulerGetIter1FromIndex(unitIndex);
+	m_iter2 = unitRulerGetIter2FromIndex(unitIndex);
+	tabValues = tabs;
 	actTab    = -1;
 	repaint();
 }
@@ -93,14 +84,14 @@ void RulerT::paintEvent(QPaintEvent *)
 	p.setBrush(textColor);
 	p.setFont(font());
 	p.setPen(QPen(textColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-	for (xl = 0; xl < width() + offset; xl += iter)
+	for (xl = 0; xl < width() + offset; xl += m_iter)
 	{
 		if (xl < offset)
 			continue;
 		p.drawLine(qRound(xl), 18, qRound(xl), 24);
 	}
 
-	for (xl = 0; xl < width() + (iter2 / 2) + offset; xl += iter2)
+	for (xl = 0; xl < width() + (m_iter2 / 2) + offset; xl += m_iter2)
 	{
 		if (xl < offset)
 			continue;
@@ -110,10 +101,10 @@ void RulerT::paintEvent(QPaintEvent *)
 			case 2:
 			{
 				QString tx;
-				int num1 = static_cast<int>(xl / iter2);
+				int num1 = static_cast<int>(xl / m_iter2);
 				if (num1 != 0)
 					tx = QString::number(num1);
-				double frac = (xl / iter2) - num1;
+				double frac = (xl / m_iter2) - num1;
 				if ((frac > 0.24) && (frac < 0.26))
 					tx += QChar(0xBC);
 				if ((frac > 0.49) && (frac < 0.51))
@@ -124,10 +115,10 @@ void RulerT::paintEvent(QPaintEvent *)
 				break;
 			}
 			case 3:
-				p.drawText(qRound(xl + 2), 17, QString::number(xl / iter));
+				p.drawText(qRound(xl + 2), 17, QString::number(xl / m_iter));
 				break;
 			default:
-				p.drawText(qRound(xl + 2), 17, QString::number(xl / iter * 10));
+				p.drawText(qRound(xl + 2), 17, QString::number(xl / m_iter * 10));
 				break;
 		}
 	}
@@ -289,10 +280,10 @@ void RulerT::mouseMoveEvent(QMouseEvent *m)
 		{
 			case 1:
 				firstLine -= mouseX - m->x();
-				if (firstLine+leftIndent+offset < offset)
+				if (firstLine + leftIndent + offset < offset)
 					firstLine += mouseX - m->x();
-				if (firstLine+leftIndent > Width)
-					firstLine  = Width - leftIndent;
+				if (firstLine + leftIndent > m_rulerWidth)
+					firstLine  = m_rulerWidth - leftIndent;
 				emit firstLineMoved(firstLine);
 				repaint();
 				break;
@@ -301,8 +292,8 @@ void RulerT::mouseMoveEvent(QMouseEvent *m)
 				leftIndent -= mouseX - m->x();
 				if (leftIndent < 0)
 					leftIndent = 0;
-				if (leftIndent > Width-1)
-					leftIndent  = Width-1;
+				if (leftIndent > m_rulerWidth - 1)
+					leftIndent  = m_rulerWidth - 1;
 				firstLine = oldInd - leftIndent;
 				emit leftIndentMoved(leftIndent);
 				emit firstLineMoved(firstLine);
@@ -312,8 +303,8 @@ void RulerT::mouseMoveEvent(QMouseEvent *m)
 				tabValues[actTab].tabPosition -= mouseX - m->x();
 				if (tabValues[actTab].tabPosition < 0)
 					tabValues[actTab].tabPosition = 0;
-				if (tabValues[actTab].tabPosition > Width-1)
-					tabValues[actTab].tabPosition = Width-1;
+				if (tabValues[actTab].tabPosition > m_rulerWidth - 1)
+					tabValues[actTab].tabPosition = m_rulerWidth - 1;
 				updateTabList();
 				emit tabMoved(tabValues[actTab].tabPosition);
 				repaint();
@@ -409,7 +400,7 @@ void RulerT::increaseOffset()
 	offsetIncrement++;
 	if (offsetIncrement > 30)
 		offsetIncrement = 30;
-	if (offset + width() > static_cast<int>(Width))
+	if (offset + width() > static_cast<int>(m_rulerWidth))
 		offset -= 5;
 	repaint();
 }
@@ -476,9 +467,9 @@ void RulerT::moveFirstLine(double t)
 		firstLine = 0-leftIndent;
 		emit firstLineMoved(firstLine);
 	}
-	if (firstLine+leftIndent > Width)
+	if (firstLine+leftIndent > m_rulerWidth)
 	{
-		firstLine = Width-leftIndent;
+		firstLine = m_rulerWidth - leftIndent;
 		emit firstLineMoved(firstLine);
 	}
 	repaint();
@@ -488,9 +479,9 @@ void RulerT::moveLeftIndent(double t)
 {
 	double oldInd = leftIndent + firstLine;
 	leftIndent = t;
-	if (leftIndent > Width-1)
+	if (leftIndent > m_rulerWidth - 1)
 	{
-		leftIndent  = Width - 1;
+		leftIndent  = m_rulerWidth - 1;
 		emit leftIndentMoved(leftIndent);
 	}
 	firstLine = oldInd - leftIndent;
@@ -498,15 +489,9 @@ void RulerT::moveLeftIndent(double t)
 	repaint();
 }
 
-Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<ParagraphStyle::TabRecord>& Tabs, double wid ) : QWidget( parent ),
-	firstLineLabel(nullptr),
-	leftIndentLabel(nullptr),
-	rightIndentLabel(nullptr),
-	firstLineData(nullptr),
-	leftIndentData(nullptr),
-	rightIndentData(nullptr)
+Tabruler::Tabruler( QWidget* parent, bool haveFirst, int unit, const QList<ParagraphStyle::TabRecord>& tabs, double wid ): QWidget( parent )
 {
-	m_docUnitRatio=unitGetRatioFromIndex(dEin);
+	m_docUnitRatio = unitGetRatioFromIndex(unit);
 	double ww = (wid < 0) ? 4000 : wid;
 	tabrulerLayout = new QVBoxLayout( this );
 	tabrulerLayout->setContentsMargins(0, 0, 0, 0);
@@ -519,7 +504,7 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	rulerScrollL->setArrowType(Qt::LeftArrow);
 	rulerScrollL->setAutoRepeat( true );
 	layout2->addWidget( rulerScrollL );
-	ruler = new RulerT( this, dEin, Tabs, haveFirst, wid );
+	ruler = new RulerT( this, unit, tabs, haveFirst, wid );
 	ruler->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 	layout2->addWidget( ruler );
 	rulerScrollR = new QToolButton(this);
@@ -540,7 +525,7 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	typeCombo->addItem( tr( "Comma" ) );
 	typeCombo->addItem( tr( "Center" ) );
 	layout1->addWidget( typeCombo );
-	tabData = new ScrSpinBox( 0, ww / m_docUnitRatio, this, dEin );
+	tabData = new ScrSpinBox( 0, ww / m_docUnitRatio, this, unit );
 	tabData->setValue(0);
 	positionLabel = new QLabel( tr("&Position:"), this );
 	positionLabel->setBuddy(tabData);
@@ -557,47 +542,41 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	tabFillComboT->setBuddy(tabFillCombo);
 	layout1->addWidget( tabFillComboT );
 	layout1->addWidget( tabFillCombo );
-
-	layout4 = new QHBoxLayout;
-	layout4->setContentsMargins(0, 0, 0, 0);
-	layout4->setSpacing(6);
+	clearOneButton = new QToolButton( this );
+	clearOneButton->setIcon(IconManager::instance().loadIcon("16/edit-delete.png"));
+	layout1->addSpacing(12);
+	layout1->addWidget(clearOneButton);
+	clearButton = new QToolButton( this );
+	clearButton->setIcon(IconManager::instance().loadIcon("16/edit-delete-all.png"));
+	layout1->addWidget(clearButton);
 
 	indentLayout = new QHBoxLayout;
 	indentLayout->setContentsMargins(0, 0, 0, 0);
 	indentLayout->setSpacing(6);
 	if (haveFirst)
 	{
-		firstLineData = new ScrSpinBox( -3000, ww / m_docUnitRatio, this, dEin);
+		firstLineData = new ScrSpinBox( -3000, ww / m_docUnitRatio, this, unit);
 		firstLineData->setValue(0);
 		firstLineLabel = new QLabel(this);
 		firstLineLabel->setText("");
 		firstLineLabel->setPixmap(IconManager::instance().loadPixmap("firstline.png"));
 		indentLayout->addWidget( firstLineLabel );
 		indentLayout->addWidget( firstLineData );
-		leftIndentData = new ScrSpinBox( 0, ww / m_docUnitRatio, this, dEin );
+		leftIndentData = new ScrSpinBox( 0, ww / m_docUnitRatio, this, unit);
 		leftIndentData->setValue(0);
 		leftIndentLabel = new QLabel(this);
 		leftIndentLabel->setText("");
 		leftIndentLabel->setPixmap(IconManager::instance().loadPixmap("leftindent.png"));
-		layout4->addWidget( leftIndentLabel );
-		layout4->addWidget( leftIndentData );
-		layout4->addStretch(10);
+		indentLayout->addWidget(leftIndentLabel);
+		indentLayout->addWidget(leftIndentData);
 		rightIndentLabel = new QLabel(this);
 		rightIndentLabel->setText("");
 		rightIndentLabel->setPixmap(IconManager::instance().loadPixmap("rightindent.png"));
-		rightIndentData = new ScrSpinBox(0, ww / m_docUnitRatio, this, dEin);
+		rightIndentData = new ScrSpinBox(0, ww / m_docUnitRatio, this, unit);
 		rightIndentData->setValue(0);
 		indentLayout->addWidget(rightIndentLabel);
 		indentLayout->addWidget(rightIndentData);
 	}
-	clearButton = new QPushButton( this );
-	clearButton->setText( tr( "Delete All" ) );
-	indentLayout->addSpacing(20);
-	indentLayout->addWidget( clearButton);
-	clearOneButton = new QPushButton( this );
-	clearOneButton->setText( tr( "Delete Selected" ) );
-	indentLayout->addWidget( clearOneButton);
-	indentLayout->addStretch(10);
 	if (!haveFirst)
 	{
 		QSpacerItem* spacer = new QSpacerItem( 20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum );
@@ -609,12 +588,11 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	tabrulerLayout->addLayout( layout2 );
 	indentLayout->addStretch( 10 );
 	tabrulerLayout->addLayout( indentLayout );
-	tabrulerLayout->addLayout(layout4);
 
 	tabData->setEnabled(false);
 	tabFillCombo->setEnabled(false);
 	typeCombo->setEnabled(false);
-	if (Tabs.count() == 0)
+	if (tabs.count() == 0)
 		clearButton->setEnabled(false);
 	clearOneButton->setEnabled(false);
 	resize( minimumSizeHint() );
@@ -659,8 +637,7 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 	clearButton->setToolTip( tr( "Delete all Tabulators" ) );
 	clearOneButton->setToolTip( tr("Delete selected Tabulator"));
 
-	QString ein = unitGetSuffixFromIndex(dEin);
-	if (dEin == 2)
+	if (unit == SC_INCHES)
 	{
 		if (haveFirst)
 		{
@@ -670,13 +647,6 @@ Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<Parag
 		}
 		tabData->setDecimals(4);
 	}
-	if (haveFirst)
-	{
-		firstLineData->setSuffix(ein);
-		leftIndentData->setSuffix(ein);
-		rightIndentData->setSuffix(ein);
-	}
-	tabData->setSuffix(ein);
 	m_haveFirst = haveFirst;
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
@@ -701,9 +671,12 @@ void Tabruler::iconSetChange()
 
 	if (leftIndentLabel)
 		leftIndentLabel->setPixmap(iconManager.loadPixmap("leftindent.png"));
-	
+
 	if (rightIndentLabel)
 		rightIndentLabel->setPixmap(iconManager.loadPixmap("rightindent.png"));
+
+	clearOneButton->setIcon(iconManager.loadIcon("16/edit-delete.png"));
+	clearButton->setIcon(iconManager.loadIcon("16/edit-delete-all.png"));
 }
 
 void Tabruler::languageChange()
@@ -763,18 +736,18 @@ void Tabruler::languageChange()
 	tabData->setSuffix(unitSuffix);
 }
 
-void Tabruler::setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin)
+void Tabruler::setTabs(const QList<ParagraphStyle::TabRecord>& tabs, int unit)
 {
-	m_docUnitRatio = unitGetRatioFromIndex(dEin);
-	tabData->setNewUnit(dEin);
+	m_docUnitRatio = unitGetRatioFromIndex(unit);
+	tabData->setNewUnit(unit);
 	if (m_haveFirst)
 	{
-		firstLineData->setNewUnit(dEin);
-		leftIndentData->setNewUnit(dEin);
-		rightIndentData->setNewUnit(dEin);
+		firstLineData->setNewUnit(unit);
+		leftIndentData->setNewUnit(unit);
+		rightIndentData->setNewUnit(unit);
 	}
-	ruler->setTabs(Tabs, dEin);
-	if (Tabs.count() == 0)
+	ruler->setTabs(tabs, unit);
+	if (tabs.count() == 0)
 		clearButton->setEnabled(false);
 	clearOneButton->setEnabled(false);
 	tabData->setEnabled(false);

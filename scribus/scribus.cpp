@@ -105,7 +105,6 @@ for which a new license (GPL+exception) is in place.
 #include "desaxe/digester.h"
 #include "desaxe/saxXML.h"
 #include "desaxe/simple_actions.h"
-#include "docinfo.h"
 #include "documentchecker.h"
 #include "documentinformation.h"
 #include "fileloader.h"
@@ -708,7 +707,6 @@ void ScribusMainWindow::initPalettes()
 	connect( scrActions["toolsLayers"], SIGNAL(toggled(bool)) , layerPalette, SLOT(setPaletteShown(bool)));
 	connect( layerPalette, SIGNAL(paletteShown(bool)), scrActions["toolsLayers"], SLOT(setChecked(bool)));
 	layerPalette->installEventFilter(this);
-	layerPalette->Table->installEventFilter(this);
 	scrapbookPalette = new Biblio(this);
 	connect( scrActions["toolsScrapbook"], SIGNAL(toggled(bool)) , scrapbookPalette, SLOT(setPaletteShown(bool)));
 	connect( scrapbookPalette, SIGNAL(paletteShown(bool)), scrActions["toolsScrapbook"], SLOT(setChecked(bool)));
@@ -1339,8 +1337,8 @@ void ScribusMainWindow::initStatusBar()
 
 	QWidget* zoomWidget = new QWidget( statusBar() );
 	QHBoxLayout* zoomLayout = new QHBoxLayout( zoomWidget );
-	zoomLayout->setMargin(0);
-	zoomLayout->setSpacing(1);
+	zoomLayout->setContentsMargins(0, 0, 0, 0);
+	zoomLayout->setSpacing(3);
 
 	zoomSpinBox = new ScrSpinBox( 1, 32000, zoomWidget, 6 );
 	zoomSpinBox->setFont(fo);

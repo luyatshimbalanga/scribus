@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>147</width>
+    <width>167</width>
     <height>135</height>
    </rect>
   </property>
@@ -36,11 +36,20 @@
      </property>
      <item>
       <widget class="QLabel" name="fillIcon">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/16/color-fill.png</pixmap>
        </property>
       </widget>
      </item>
@@ -59,11 +68,20 @@
      </item>
      <item>
       <widget class="QLabel" name="fillShadeLabel">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/shade.png</pixmap>
        </property>
       </widget>
      </item>
@@ -86,11 +104,20 @@
      </property>
      <item>
       <widget class="QLabel" name="strokeIcon">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/16/color-stroke.png</pixmap>
        </property>
       </widget>
      </item>
@@ -112,11 +139,20 @@
      </item>
      <item>
       <widget class="QLabel" name="strokeShadeLabel">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/shade.png</pixmap>
        </property>
       </widget>
      </item>
@@ -139,11 +175,20 @@
      </property>
      <item>
       <widget class="QLabel" name="backIcon">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/16/color-fill.png</pixmap>
        </property>
       </widget>
      </item>
@@ -162,11 +207,20 @@
      </item>
      <item>
       <widget class="QLabel" name="backShadeLabel">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
        <property name="text">
         <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap>../../resources/icons/shade.png</pixmap>
        </property>
       </widget>
      </item>

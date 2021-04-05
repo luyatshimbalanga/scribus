@@ -1121,7 +1121,7 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 		double dx = m_mouseSavedPoint.x() - m_mousePressPoint.x();
 		double dy = m_mouseSavedPoint.y() - m_mousePressPoint.y();
 		QRectF canvasSele = QRectF(m_mousePressPoint.x(), m_mousePressPoint.y(), dx, dy).normalized();
-		QRectF localSele  = m_canvas->canvasToLocal(canvasSele).normalized();
+		QRectF localSele  = m_canvas->canvasToLocalF(canvasSele).normalized();
 		if (!m_doc->masterPageMode())
 		{
 			uint docPagesCount = m_doc->Pages->count();
@@ -1159,7 +1159,7 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 				if (m_doc->canSelectItemOnLayer(docItem->m_layerID))
 				{
 					// get current item rect/bounding box
-					QRect apr2 = m_canvas->canvasToLocal( docItem->getCurrentBoundingRect(docItem->lineWidth()) );
+					QRectF apr2 = m_canvas->canvasToLocalF( docItem->getCurrentBoundingRect(docItem->lineWidth()) );
 
 					bool is_selected = docItem->isSelected();
 
@@ -1663,9 +1663,9 @@ bool CanvasMode_Normal::SeleItem(QMouseEvent *m)
 	currItem = nullptr;
 	if ((m->modifiers() & SELECT_BENEATH) != 0)
 	{
-		for (int i=0; i < m_doc->m_Selection->count(); ++i)
+		for (int i = 0; i < m_doc->m_Selection->count(); ++i)
 		{
-			if (m_canvas->frameHitTest(QPointF(mousePointDoc.x(),mousePointDoc.y()), m_doc->m_Selection->itemAt(i)) >= 0)
+			if (m_canvas->frameHitTest(QPointF(mousePointDoc.x(), mousePointDoc.y()), m_doc->m_Selection->itemAt(i)) >= 0)
 			{
 				currItem = m_doc->m_Selection->itemAt(i);
 				m_doc->m_Selection->removeItem(currItem);

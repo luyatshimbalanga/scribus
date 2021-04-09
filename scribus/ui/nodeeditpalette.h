@@ -17,6 +17,7 @@ for which a new license (GPL+exception) is in place.
 #include <QRadioButton>
 #include <QGridLayout>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QCloseEvent>
 
 class QEvent;
@@ -40,46 +41,47 @@ public:
 
 	void setDefaults(PageItem* currItem);
 
-	QToolButton* MoveNode;
-	QToolButton* MoveControl;
-	QToolButton* AddNode;
-	QToolButton* DeleteNode;
-	QToolButton* AsymMove;
-	QToolButton* SymMove;
-	QToolButton* ResNode;
-	QToolButton* Res1Node;
-	QToolButton* PolySplit;
-	QToolButton* BezierClose;
-	QToolButton* PolyMirrorH;
-	QToolButton* PolyMirrorV;
-	QToolButton* PolyShearL;
-	QToolButton* PolyShearR;
-	QToolButton* PolyShearU;
-	QToolButton* PolyShearD;
-	QToolButton* RotateCCW;
-	QToolButton* RotateCW;
-	QToolButton* Expand;
-	QToolButton* Shrink;
-	QToolButton* Enlarge;
-	QToolButton* Reduce;
-	QCheckBox* PreviewMode;
-	QGroupBox* AbsMode;
-	QRadioButton* absToCanvas;
-	QRadioButton* absToPage;
-	QCheckBox* EditCont;
-	QLabel* TextLabel1;
-	ScrSpinBox* YSpin;
-	QLabel* TextLabel2;
-	ScrSpinBox* XSpin;
-	QSpinBox *RotVal;
-	QSpinBox *scalePercentage;
-	ScrSpinBox *scaleDistance;
-	QPushButton* ResetCont;
-	QPushButton* ResetContClip;
-	QPushButton* ResetShape2Clip;
-	QPushButton* editEditButton;
-	QPushButton* cancelEditButton;
-	QPushButton* resetDefaultButton;
+	QToolButton* MoveNode { nullptr };
+	QToolButton* MoveControl { nullptr };
+	QToolButton* AddNode { nullptr };
+	QToolButton* DeleteNode { nullptr };
+	QToolButton* AsymMove { nullptr };
+	QToolButton* SymMove { nullptr };
+	QToolButton* ResNode { nullptr };
+	QToolButton* Res1Node { nullptr };
+	QToolButton* PolySplit { nullptr };
+	QToolButton* BezierClose { nullptr };
+	QToolButton* PolyMirrorH { nullptr };
+	QToolButton* PolyMirrorV { nullptr };
+	QToolButton* PolyShearL { nullptr };
+	QToolButton* PolyShearR { nullptr };
+	QToolButton* PolyShearU { nullptr };
+	QToolButton* PolyShearD { nullptr };
+	QToolButton* RotateCCW { nullptr };
+	QToolButton* RotateCW { nullptr };
+	QToolButton* Expand { nullptr };
+	QToolButton* Shrink { nullptr };
+	QToolButton* Enlarge { nullptr };
+	QToolButton* Reduce { nullptr };
+	QCheckBox* PreviewMode { nullptr };
+	QGroupBox* AbsMode { nullptr };
+	QRadioButton* absToCanvas { nullptr };
+	QRadioButton* absToPage { nullptr };
+	QCheckBox* EditCont { nullptr };
+	QLabel* TextLabel1 { nullptr };
+	ScrSpinBox* YSpin { nullptr };
+	QLabel* TextLabel2 { nullptr };
+	ScrSpinBox* XSpin { nullptr };
+	QSpinBox *RotVal { nullptr };
+	QSpinBox *scalePercentage { nullptr };
+	ScrSpinBox *scaleDistance { nullptr };
+	QPushButton* ResetCont { nullptr };
+	QPushButton* ResetContClip { nullptr };
+	QPushButton* ResetShape2Clip { nullptr };
+	QPushButton* editEditButton { nullptr };
+	QPushButton* cancelEditButton { nullptr };
+	QPushButton* resetDefaultButton { nullptr };
+
 	void setDoc(ScribusDoc *dc, ScribusView *vi);
 	ScribusDoc* currentDocument() const;
 
@@ -138,18 +140,19 @@ protected:
 
 	QVBoxLayout *vboxLayout { nullptr };
 	QVBoxLayout *vboxLayout1 { nullptr };
+	QHBoxLayout *hboxLayout { nullptr };
 	QGridLayout *gridLayout { nullptr };
-	QGridLayout *gridLayout1 { nullptr };
 	QGridLayout *gridLayout2 { nullptr };
+	QGridLayout *gridLayout3 { nullptr };
 
 	ScribusDoc *m_doc { nullptr };
 	ScribusView *m_view { nullptr };
 	
-	double unitRatio;
-	double xPos;
-	double yPos;
-	FPointArray itemPath;
-	FPointArray itemContourPath;
+	double m_unitRatio { 1.0 };
+	double m_xPos { 0.0 };
+	double m_yPos { 0.0 };
+	FPointArray m_itemPath;
+	FPointArray m_itemContourPath;
 	
 signals:
 	void DocChanged();

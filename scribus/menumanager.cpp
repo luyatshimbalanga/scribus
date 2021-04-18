@@ -28,10 +28,10 @@ for which a new license (GPL+exception) is in place.
 
 MenuManager::MenuManager(QMenuBar* mb, QObject *parent) : QObject(parent)
 {
-	scribusMenuBar=mb;
+	scribusMenuBar = mb;
 	menuStrings.clear();
-	m_undoMenu=new QMenu("undo");
-	m_redoMenu=new QMenu("redo");
+	m_undoMenu = new QMenu("undo");
+	m_redoMenu = new QMenu("redo");
 	rememberedMenus.clear();
 }
 
@@ -43,7 +43,7 @@ MenuManager::~MenuManager()
 
 bool MenuManager::createMenu(const QString &menuName, const QString &menuText, const QString& parent, bool checkable, bool rememberMenu)
 {
-	bool retVal=false;
+	bool retVal = false;
 	QList<QString> menuEntries;
 	menuStrings.insert(menuName, menuEntries);
 	menuStringTexts.insert(menuName, menuText);
@@ -57,7 +57,7 @@ bool MenuManager::createMenu(const QString &menuName, const QString &menuText, c
 
 bool MenuManager::clearMenu(const QString &menuName)
 {
-	bool retVal=false;
+	bool retVal = false;
 	if (menuBarMenus.contains(menuName))
 		menuBarMenus[menuName]->clear();
 	return retVal;
@@ -162,6 +162,9 @@ void MenuManager::addMenuItemStringsToMenuBar(const QString &menuName, const QMa
 			QMenu *subMenu = menuBarMenus[menuName]->addMenu(menuStringTexts[menuString]);
 			if (!subMenu)
 				continue;
+			//#16020 and related Qt bugs for QMenu/QAction Text Heuristics messing up detection. Turn off the role detection except where we explicitly set it in ActionManager
+			if (subMenu->menuAction()->menuRole() == QAction::TextHeuristicRole)
+				subMenu->menuAction()->setMenuRole(QAction::NoRole);
 			menuBarMenus.insert(menuString, subMenu);
 			if (rememberedMenus.contains(menuString))
 				rememberedMenus.insert(menuString, subMenu);
@@ -199,6 +202,9 @@ void MenuManager::addMenuItemStringsToMenu(const QString &menuName, QMenu *menuT
 			QMenu *subMenu = menuToAddTo->addMenu(menuStringTexts[menuString]);
 			if (!subMenu)
 				continue;
+			//#16020 and related Qt bugs for QMenu/QAction Text Heuristics messing up detection. Turn off the role detection except where we explicitly set it in ActionManager
+			if (subMenu->menuAction()->menuRole() == QAction::TextHeuristicRole)
+				subMenu->menuAction()->setMenuRole(QAction::NoRole);
 			menuBarMenus.insert(menuString, subMenu);
 			if (rememberedMenus.contains(menuString))
 				rememberedMenus.insert(menuString, subMenu);
@@ -231,8 +237,8 @@ void MenuManager::addMenuItemStringAfter(const QString& s, const QString& after,
 {
 	if (menuStrings.contains(parent))
 	{
-		int i=menuStrings[parent].indexOf(after);
-		menuStrings[parent].insert(i+1, s);
+		int i = menuStrings[parent].indexOf(after);
+		menuStrings[parent].insert(i + 1, s);
 	}
 }
 
@@ -250,7 +256,7 @@ void MenuManager::removeMenuItem(const QString& s, ScrAction *menuAction, const 
 
 bool MenuManager::removeMenuItem(ScrAction *menuAction, const QString &parent)
 {
-	bool retVal=false;
+	bool retVal = false;
 	/*
 	 if (menuList.contains(parent) && menuList[parent]!=nullptr)
 		retVal=menuList[parent]->removeMenuItem(menuAction);
@@ -286,12 +292,12 @@ void MenuManager::dumpMenuStrings()
 	while (i.hasNext())
 	{
 		i.next();
-		qDebug() << "Menu name:"<<i.key();// << ": " << i.value() << endl;
+		qDebug() << "Menu name:" << i.key();// << ": " << i.value() << endl;
 
 		QListIterator<QString> li (i.value());
 		while (li.hasNext())
 		{
-			qDebug() << "Menu entry:"<<li.next();
+			qDebug() << "Menu entry:" << li.next();
 		}
 	}
 }

@@ -127,9 +127,9 @@ About::About( QWidget* parent, AboutMode diaMode ) : QDialog( parent )
 	buildID = new QLabel( tab );
 	buildID->setAlignment(Qt::AlignCenter);
 	buildID->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	QString BUILD_DAY = "13";
-	QString BUILD_MONTH = CommonStrings::december;
-	QString BUILD_YEAR = "2020";
+	QString BUILD_DAY = "25";
+	QString BUILD_MONTH = CommonStrings::april;
+	QString BUILD_YEAR = "2021";
 	QString BUILD_TIME = "";
 	QString BUILD_TZ = "";
 	QString BUILD_NAME = "";
@@ -141,7 +141,7 @@ About::About( QWidget* parent, AboutMode diaMode ) : QDialog( parent )
 	if (BUILD_NAME == "BleedingEdge")
 		built = tr("%3-%2-%1 %4 %5").arg(BUILD_DAY, BUILD_MONTH, BUILD_YEAR, BUILD_TIME, BUILD_TZ);
 
-	if (ScribusAPI::haveSVNRevision())
+	if (ScribusAPI::isSVN() && ScribusAPI::haveSVNRevision())
 	{
 		QString revText(tr("SVN Revision: "));
 		revText += ScribusAPI::getSVNRevision();

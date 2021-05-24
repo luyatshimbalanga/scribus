@@ -1,6 +1,6 @@
-%global	build_repo https://github.com/scribusproject/scribus/
+%global	build_repo https://github.com/luyatshimbalanga/scribus/
 %global	build_branch master
-%global	version_string 1.5.7
+%global	version_string 1.5.8
 %define	build_commit %(git ls-remote %{build_repo} | grep "refs/heads/%{build_branch}" | cut -c1-41)
 %define	build_shortcommit %(c=%{build_commit}; echo ${c:0:7})
 %global	build_timestamp %(date +"%Y%m%d")

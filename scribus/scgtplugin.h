@@ -12,11 +12,11 @@ for which a new license (GPL+exception) is in place.
 #include "scplugin.h"
 #include "ui/customfdialog.h"
 
-class QString;
-class QCheckBox;
-class QStringList;
-class QDir;
-class QWidget;
+#include <QCheckBox>
+#include <QDir>
+#include <QString>
+#include <QStringList>
+#include <QWidget>
 
 /**
   @brief Super class for all text importer plugins.
@@ -49,7 +49,7 @@ public:
 	/**
 	  @brief Run the plugin and import from the file <code>filename</code>
 
-	  This function is ment to be overriden by all file format plugins.
+	  This function is meant to be overridden by all file format plugins.
 	  Once the file decoding and text and style has been sorted out use the
 	  function forward() to pass the text and it's style forward to a text frame
 	  or to another plugin.
@@ -63,7 +63,7 @@ public:
 	  @brief Run the plugin and do the magic with the <code>text</code> and
 	  @brief <code>style</code>.
 	
-	  This function is ment to be overriden by all text and style handler plugins.
+	  This function is meant to be overridden by all text and style handler plugins.
 	  @param text text to work with
 	 */
 	virtual void run(const QString&text /*, insert style stuff here */) {};

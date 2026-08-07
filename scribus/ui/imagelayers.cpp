@@ -192,8 +192,7 @@ void ImageLayers::addListItem(QList<PSDLayer>::iterator it, int layerID, ImageIn
 	// Layer
 	QCheckBox *cp = new QCheckBox();
 	cp->setPalette(palette);
-	QPixmap pm;
-	pm = QPixmap::fromImage(it->thumb);
+	QPixmap pm = QPixmap::fromImage(it->thumb);
 	cp->setIcon(pm);
 	layerTable->setCellWidget(tableRow(layerID), 0, cp);
 	if ((info->isRequest) && (info->RequestProps.contains(layerID)))

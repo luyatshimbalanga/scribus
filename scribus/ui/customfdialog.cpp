@@ -118,9 +118,8 @@ FDialogPreview::FDialogPreview(QWidget *pa) : QLabel(pa)
 
 void FDialogPreview::updatePix()
 {
-	QPixmap pm;
 	QRect inside = contentsRect();
-	pm = QPixmap(inside.width(), inside.height());
+	QPixmap pm(inside.width(), inside.height());
 	pm.fill(Qt::white);
 	setPixmap(pm);
 }

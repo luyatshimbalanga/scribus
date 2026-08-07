@@ -112,7 +112,7 @@ void ScClipboardProcessor::debugDumpClipboard()
 
 bool ScClipboardProcessor::process()
 {
-// #define SCCLIP_DEBUG
+#define SCCLIP_DEBUG
 #ifdef SCCLIP_DEBUG
 	debugDumpClipboard();
 #endif
@@ -416,7 +416,7 @@ void ScClipboardProcessor::html_MSFT_Process_CSS(const QMap<QString, QString> &s
 						style = "Book";
 					const ScFace& face = availableFonts.findFont(fontName, style);
 					QString textFont;
-					if (face != ScFace::none())
+					if (!face.isReplacement())
 						textFont = face.family() + " " + face.style();
 					else
 						textFont = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
@@ -1005,7 +1005,7 @@ void ScClipboardProcessor::html_LibreOffice_ParseParagraphs(xmlNode *node, QMap<
 				if (segment.fontsize > 0.0)
 					currPstyle.charStyle().setFontSize(segment.fontsize);
 				const ScFace& face = availableFonts.findFont(currFamily, style);
-				if (face != ScFace::none())
+				if (!face.isReplacement())
 					currPstyle.charStyle().setFont(face);
 				else
 					qDebug()<<"No face found";
@@ -1110,7 +1110,7 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 				if (segment.fontsize > 0.0)
 					currPstyle.charStyle().setFontSize(segment.fontsize);
 				const ScFace& face = availableFonts.findFont(currFamily, style);
-				if (face != ScFace::none())
+				if (!face.isReplacement())
 					currPstyle.charStyle().setFont(face);
 				else
 					qDebug()<<"No face found";
@@ -1394,11 +1394,14 @@ void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, 
 		else
 			style = availableFonts.getRegularStyle(currFamily);
 
-		// Underline: set bit 8 when on, clear when off.
-		int featureBits = 0;
+		// Underline: set bit 8 when on. Only when on -- writing an empty feature
+		// list for every other run pins "not underlined" as direct formatting and
+		// stops the character style from ever supplying it.
 		if (segment.hasUnderline)
-			featureBits |= ScStyle_Underline;
-		currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(featureBits).featureList());
+		{
+			int featureBits = ScStyle_Underline;
+			currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(featureBits).featureList());
+		}
 
 		if (!segment.color.isEmpty())
 		{
@@ -1411,9 +1414,25 @@ void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, 
 		if (segment.fontsize > 0.0)
 			currPstyle.charStyle().setFontSize(segment.fontsize);
 
-		const ScFace &face = availableFonts.findFont(currFamily, style);
-		if (face != ScFace::none())
-			currPstyle.charStyle().setFont(face);
+		// Only pin a font when the source asked for one, or when bold or italic
+		// forces a different face. currFamily falls back to the inherited family,
+		// so setting it unconditionally turned inherited formatting into direct
+		// character formatting on every run. That outranks the paragraph and
+		// character styles, so editing those had no effect on pasted text and the
+		// cell style's ParagraphStyleName could not reach it either.
+		if (!segment.family.isEmpty() || segment.isBold || segment.isItalic)
+		{
+			// SCFonts::findFont() returns ScFace::none() only for an empty name: for
+			// any other unknown name it fabricates a replacement face and inserts it,
+			// so a none() test never rejects anything. isReplacement() is the real
+			// test -- the same one getSubstitutions() uses. A font the source named
+			// but this system does not have is then left to the paragraph and
+			// character styles instead of being pinned as unrenderable direct
+			// formatting.
+			const ScFace &face = availableFonts.findFont(currFamily, style);
+			if (!face.isReplacement())
+				currPstyle.charStyle().setFont(face);
+		}
 
 		frame->itemText.insertChars(pos, segment.text);
 		frame->itemText.applyStyle(pos, currPstyle);
@@ -1575,7 +1594,7 @@ void ScClipboardProcessor::html_Cocoa_ProcessCSS(const QMap<QString, QString> &s
 						style = "Book";
 					const ScFace& face = availableFonts.findFont(fontName, style);
 					QString textFont;
-					if (face != ScFace::none())
+					if (!face.isReplacement())
 						textFont = face.family() + " " + face.style();
 					else
 						textFont = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
@@ -1671,7 +1690,7 @@ void ScClipboardProcessor::html_Cocoa_ParseParagraphs(xmlNode *node, QMap<QStrin
 					currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(s).featureList());
 				}
 				const ScFace& face = availableFonts.findFont(currFamily, style);
-				if (face != ScFace::none())
+				if (!face.isReplacement())
 					currPstyle.charStyle().setFont(face);
 				else
 					qDebug()<<"No face found";

@@ -99,6 +99,7 @@ private slots:
 	void slotParentChanged(const QString &parent);
 	void slotCellPaddingChanged(const MarginStruct &padding);
 	void slotVerticalAlignmentChanged();
+	void slotParagraphStyle(const QString& psName);
 	void slotBordersChanged(TableSides sides, const TableBorder& border);
 };
 

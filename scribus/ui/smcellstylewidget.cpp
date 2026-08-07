@@ -57,6 +57,7 @@ void SMCellStyleWidget::iconSetChange()
 	buttonLineColor->setPixmap(iconManager.loadPixmap("color-stroke"));
 	addBorderLineButton->setIcon(iconManager.loadIcon("stroke-add"));
 	removeBorderLineButton->setIcon(iconManager.loadIcon("stroke-remove"));
+	labelParagraphStyle->setPixmap(iconManager.loadPixmap("paragraph-style"));
 }
 
 void SMCellStyleWidget::languageChange()
@@ -133,6 +134,8 @@ void SMCellStyleWidget::handleUpdateRequest(int updateFlags)
 {
 	if (!m_Doc)
 		return;
+	if (updateFlags & reqTextStylesUpdate)
+		paragraphStyleComboBox->updateStyleList();
 }
 
 void SMCellStyleWidget::setDoc(ScribusDoc* doc)
@@ -150,6 +153,7 @@ void SMCellStyleWidget::setDoc(ScribusDoc* doc)
 
 	buttonLineColor->colorButton->setDoc(m_Doc);
 	buttonFillColor->colorButton->setDoc(m_Doc);
+	paragraphStyleComboBox->setDoc(m_Doc);
 
 	connect(m_Doc->scMW(), SIGNAL(UpdateRequest(int)), this , SLOT(handleUpdateRequest(int)));
 }
@@ -193,6 +197,14 @@ void SMCellStyleWidget::show(CellStyle *cellStyle, QList<CellStyle> &cellStyles,
 	else
 		verticalAlignmentSelect->setStyle(cellStyle->verticalAlignment());
 
+	// Paragraph style. CellStyle has no per-attribute inherit affordance for
+	// this yet, so an empty name shows as the default entry and means
+	// "whatever the parent or the document default supplies".
+	{
+		QSignalBlocker psBlocker(paragraphStyleComboBox);
+		paragraphStyleComboBox->setStyle(cellStyle->paragraphStyleName());
+	}
+
 	parentCombo->clear();
 	parentCombo->addItem( cellStyle->isDefaultStyle()? tr("A default style cannot be assigned a parent style") : "");
 	if (!cellStyle->isDefaultStyle())
@@ -227,6 +239,7 @@ void SMCellStyleWidget::show(QList<CellStyle*> &cellStyles, QList<CellStyle> &ce
 		showColors(cellStyles);
 		parentCombo->setEnabled(false);
 		verticalAlignmentSelect->setEnabled(false);
+		paragraphStyleComboBox->setEnabled(false);
 	}
 }
 

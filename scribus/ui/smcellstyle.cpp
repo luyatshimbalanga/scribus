@@ -428,6 +428,7 @@ void SMCellStyle::setupConnections()
 	connect(m_page->cellPaddingWidget, SIGNAL(valuesChanged(MarginStruct)), this, SLOT(slotCellPaddingChanged(MarginStruct)));
 	connect(m_page->verticalAlignmentSelect, SIGNAL(State(int)), this, SLOT(slotVerticalAlignmentChanged()));
 	connect(m_page->verticalAlignmentSelect->parentButton, SIGNAL(clicked()), this, SLOT(slotVerticalAlignmentChanged()));
+	connect(m_page->paragraphStyleComboBox, SIGNAL(newStyle(QString)), this, SLOT(slotParagraphStyle(QString)));
 	connect(m_page, SIGNAL(bordersChanged(TableSides, TableBorder)), this, SLOT(slotBordersChanged(TableSides, TableBorder)));
 }
 
@@ -441,6 +442,7 @@ void SMCellStyle::removeConnections()
 	disconnect(m_page->cellPaddingWidget, SIGNAL(valuesChanged(MarginStruct)), this, SLOT(slotCellPaddingChanged(MarginStruct)));
 	disconnect(m_page->verticalAlignmentSelect, SIGNAL(State(int)), this, SLOT(slotVerticalAlignmentChanged()));
 	disconnect(m_page->verticalAlignmentSelect->parentButton, SIGNAL(clicked()), this, SLOT(slotVerticalAlignmentChanged()));
+	disconnect(m_page->paragraphStyleComboBox, SIGNAL(newStyle(QString)), this, SLOT(slotParagraphStyle(QString)));
 	disconnect(m_page, SIGNAL(bordersChanged(TableSides, TableBorder)), this, SLOT(slotBordersChanged(TableSides, TableBorder)));
 }
 
@@ -543,6 +545,18 @@ void SMCellStyle::slotVerticalAlignmentChanged()
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setVerticalAlignment(alignment);
 	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMCellStyle::slotParagraphStyle(const QString& psName)
+{
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setParagraphStyleName(psName);
 
 	if (!m_selectionIsDirty)
 	{

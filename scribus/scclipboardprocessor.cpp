@@ -112,7 +112,7 @@ void ScClipboardProcessor::debugDumpClipboard()
 
 bool ScClipboardProcessor::process()
 {
-#define SCCLIP_DEBUG
+// #define SCCLIP_DEBUG
 #ifdef SCCLIP_DEBUG
 	debugDumpClipboard();
 #endif

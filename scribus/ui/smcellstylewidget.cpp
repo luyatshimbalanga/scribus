@@ -197,9 +197,9 @@ void SMCellStyleWidget::show(CellStyle *cellStyle, QList<CellStyle> &cellStyles,
 	else
 		verticalAlignmentSelect->setStyle(cellStyle->verticalAlignment());
 
-	// Paragraph style. CellStyle has no per-attribute inherit affordance for
-	// this yet, so an empty name shows as the default entry and means
-	// "whatever the parent or the document default supplies".
+	// Paragraph style. Unlike the fill and alignment controls, this combo has no
+	// inherit state: "[Default Paragraph Style]" stores an empty name rather
+	// than restoring inheritance from the parent style.
 	{
 		QSignalBlocker psBlocker(paragraphStyleComboBox);
 		paragraphStyleComboBox->setStyle(cellStyle->paragraphStyleName());

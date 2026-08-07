@@ -11,7 +11,7 @@ class SCRIBUS_API MarkIndex : public MarkInsert, private Ui::MarkIndexDlg
 public:
 	explicit MarkIndex(QWidget *parent = nullptr) {};
 	explicit MarkIndex(const QString& indexEntry, const QString& index, const QStringList& indexList, QWidget *parent = nullptr);
-	~MarkIndex() {}
+	~MarkIndex() override = default;
 
 	void values(QString &label) override;
 	void setValues(const QString label) override;
@@ -20,6 +20,9 @@ public:
 
 protected:
 	void changeEvent(QEvent *e) override;
+
+private slots:
+	void onEntryTextChanged(const QString&);
 };
 
 #endif // MARKINDEX_H

@@ -9397,38 +9397,32 @@ void ScribusMainWindow::insertMark(MarkType mType)
 	int startOfWord = -1;
 	if (mType == MARKIndexType)
 	{
-		int startOfSelection = 0;
-		// int endOfSelection = 0;
-		if (currItem->itemText.hasSelection())
+		if (currItem->itemText.isEmpty())
+			startOfWord = 0;
+		else if (currItem->itemText.hasSelection())
 		{
-			startOfSelection = currItem->itemText.startOfSelection();
-			// endOfSelection = currItem->itemText.endOfSelection();
+			initialText = currItem->itemText.selectedText();
+			startOfWord = currItem->itemText.startOfSelection();
 		}
-		// qDebug()<<"start of selection:"<<startOfSelection<<currItem->itemText.text(startOfSelection);
-		int cp = currItem->itemText.cursorPosition();
-		// qDebug()<<"Cursor Position:"<<cp<<currItem->itemText.text(cp);
-		if (SpecialChars::isBreakingSpace(currItem->itemText.text(cp)) || currItem->itemText.text(cp).isSpace())
+		else
 		{
-			// qDebug()<<"Found a space";
-		}
-		if (currItem->itemText.text(cp) == SpecialChars::OBJECT)
-		{
-			// qDebug()<<"Found an object";
-			//detect when there is already a Mark
-			if (currItem->itemText.hasMark(cp))
-			{
+			int cp = currItem->itemText.cursorPosition();
+			while (cp < currItem->itemText.length() - 1 && currItem->itemText.hasMark(cp))
 				++cp;
-				// qDebug()<<"Found a Mark";
-			}
+			if (cp == 0 && currItem->itemText.text(cp).isLetterOrNumber())
+				startOfWord = 0;
+			else if (cp == 0 && !currItem->itemText.text(cp).isLetterOrNumber())
+				startOfWord = currItem->itemText.nextWord(cp);
+			else if (SpecialChars::isBreakingSpace(currItem->itemText.text(cp)) || currItem->itemText.text(cp).isSpace())
+				startOfWord = currItem->itemText.nextWord(cp);
+			else if (cp > 0 && currItem->itemText.text(cp).isLetterOrNumber() && !currItem->itemText.text(cp - 1).isLetterOrNumber())
+				startOfWord = cp;
+			else
+				startOfWord = currItem->itemText.prevWord(cp);
+			int endOfWord = currItem->itemText.endOfWord(startOfWord);
+			initialText = currItem->itemText.text(startOfWord, endOfWord - startOfWord);
 		}
-		startOfWord = qMax(0, qMin(startOfSelection, cp));
-		// qDebug()<<"minStartPos:"<<startOfWord<<currItem->itemText.text(startOfWord);
-
-		// startOfWord = currItem->itemText.prevWord(cp);
-		int endOfWord = currItem->itemText.endOfWord(cp);
-
-		// qDebug()<<"startOfWord:"<<cp<<currItem->itemText.text(startOfWord)<<"end word"<<endOfWord;
-		initialText = currItem->itemText.text(startOfWord, endOfWord - startOfWord);
+		initialText = initialText.trimmed();
 		// qDebug()<<"Word for Index"<<initialText;
 	}
 

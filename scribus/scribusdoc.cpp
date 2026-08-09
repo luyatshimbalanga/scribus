@@ -442,6 +442,22 @@ void ScribusDoc::init()
 	defaultCellStyle.setBottomPadding(1.0);
 	m_docCellStyles.create(defaultCellStyle);
 	m_docCellStyles.makeDefault(&(m_docCellStyles[0]));
+
+	// Create default line style.
+	// A plain 1pt solid black line. Unlike the styles above, line styles are
+	// held as MultiLine in a QHash and have no default-style flag, so this is an
+	// ordinary style that merely exists in every new document: the user can
+	// rename or delete it.
+	MultiLine defaultLineStyle;
+	SingleLine defaultSingleLine;
+	defaultSingleLine.Width = 1.0;
+	defaultSingleLine.Dash = Qt::SolidLine;
+	defaultSingleLine.LineEnd = Qt::FlatCap;
+	defaultSingleLine.LineJoin = Qt::MiterJoin;
+	defaultSingleLine.Color = "Black";
+	defaultSingleLine.Shade = 100;
+	defaultLineStyle.append(defaultSingleLine);
+	docLineStyles.insert(CommonStrings::DefaultLineStyle, defaultLineStyle);
 	
 	Layers.addLayer( tr("Background") );
 	// FIXME: Check PDF version input

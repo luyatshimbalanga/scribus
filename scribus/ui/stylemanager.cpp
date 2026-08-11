@@ -7,6 +7,8 @@ for which a new license (GPL+exception) is in place.
 
 #include <QDebug>
 #include <QEvent>
+#include <QHash>
+#include <QSet>
 #include <QMenu>
 #include <QToolTip>
 #include <QMessageBox>
@@ -52,6 +54,7 @@ StyleManager::StyleManager(QWidget *parent, const char *name)
 	if (pname.isEmpty())
 		pname = "styleManager";
 	m_prefs = PrefsManager::instance().prefsFile->getContext(pname);
+	m_defaultStylesFirst = m_prefs->getBool("defaultStylesFirst", true);
 	m_editPosition.setX(m_prefs->getInt("eX", x()));
 	m_editPosition.setY(m_prefs->getInt("eY", y()));
 
@@ -159,6 +162,9 @@ void StyleManager::languageChange()
 	styleView->resizeColumnToContents(0);
 
 	m_rightClickPopup->clear();
+	// clear() deleted every entry this menu owned, so nothing kept here still
+	// points at one.
+	m_rcpNewSeparator = nullptr;
 	m_rcpNewId = m_rightClickPopup->addMenu(m_newPopup);
 	m_rcpNewId->setText( tr("New"));
 	m_rightClickPopup->addAction( tr("Import"), this, SLOT(slotImport()));
@@ -168,6 +174,11 @@ void StyleManager::languageChange()
 //	m_rcpToScrapId = m_rightClickPopup->addAction( tr("Send to Scrapbook"), this, SLOT(slotScrap()));
 	m_rightClickPopup->addSeparator();
 	m_rcpDeleteId = m_rightClickPopup->addAction( tr("Delete"), this, SLOT(slotDelete()));
+	m_rightClickPopup->addSeparator();
+	m_rcpDefaultStylesFirstId = m_rightClickPopup->addAction( tr("Default Styles at Top"), this, SLOT(slotToggleDefaultStylesFirst(bool)));
+	m_rcpDefaultStylesFirstId->setCheckable(true);
+	m_rcpDefaultStylesFirstId->setChecked(m_defaultStylesFirst);
+	m_rightClickPopup->addSeparator();
 }
 
 void StyleManager::unitChange()
@@ -181,7 +192,7 @@ void StyleManager::unitChange()
 	}
 }
 
-template<class ItemType> 
+template<class ItemType>
 ItemType* StyleManager::item()
 {
 	for (int i = 0; i < m_items.count(); ++i)
@@ -863,7 +874,7 @@ void StyleManager::slotImport()
 void StyleManager::setSelection(const QList<QPair<QString, QString> > &selected)
 {
 	styleView->clearSelection();
-	
+
 	QTreeWidgetItemIterator it(styleView, QTreeWidgetItemIterator::Selectable);
 	StyleViewItem *item;
 
@@ -928,7 +939,7 @@ void StyleManager::slotClone()
 			if (item && !item->isRoot())
 			{
 				if (item->rootName() == m_styleClassesSP[m_rcType] &&
-				    item->text(0) == m_rcStyle)
+					item->text(0) == m_rcStyle)
 				{
 					styleView->setCurrentItem(item);
 					item->setSelected(true);
@@ -958,7 +969,7 @@ void StyleManager::slotClone()
 
 void StyleManager::slotScrap()
 {
-	
+
 }
 
 
@@ -997,6 +1008,41 @@ void StyleManager::slotNewPopup()
 	slotNewPopup(m_rcpNewId);
 }
 
+void StyleManager::setNewMenuEntry(const QString& text)
+{
+	// Out with the old one. removeAction() only detaches it, so it has to be
+	// deleted too or a dead entry is left behind on every right click.
+	m_rightClickPopup->removeAction(m_rcpNewId);
+	// Only delete an entry this function made itself. The entry for a submenu is
+	// the submenu's own action, owned by the submenu rather than by this menu:
+	// deleting it leaves QMenu::menuAction() dangling, and Scribus then crashes
+	// the next time that submenu is enabled or disabled.
+	if (m_rcpNewId && !m_rcpNewId->menu())
+		delete m_rcpNewId;
+	m_rcpNewId = nullptr;
+
+	m_rightClickPopup->removeAction(m_rcpNewSeparator);
+	delete m_rcpNewSeparator;
+	m_rcpNewSeparator = nullptr;
+
+	// An empty text means nothing is selected, so offer the whole list of style
+	// types as a submenu rather than one particular type.
+	QAction* before = m_rightClickPopup->actions().value(0);
+	if (text.isEmpty())
+	{
+		m_rcpNewId = m_rightClickPopup->insertMenu(before, m_newPopup);
+		m_rcpNewId->setText( tr("New"));
+	}
+	else
+	{
+		m_rcpNewId = new QAction(text, m_rightClickPopup);
+		connect(m_rcpNewId, SIGNAL(triggered()), this, SLOT(slotNewPopup()));
+		m_rightClickPopup->insertAction(before, m_rcpNewId);
+	}
+
+	m_rcpNewSeparator = m_rightClickPopup->insertSeparator(before);
+}
+
 void StyleManager::slotRightClick(/*StyleViewItem *item, */const QPoint &point/*, int col*/)
 {
 	StyleViewItem *item = static_cast<StyleViewItem*>(styleView->currentItem());
@@ -1012,9 +1058,6 @@ void StyleManager::slotRightClick(/*StyleViewItem *item, */const QPoint &point/*
 
 	if (item && !item->isRoot())
 	{
-		m_rightClickPopup->removeAction(m_rcpNewId);
-		m_rcpNewId = m_rightClickPopup->addAction( tr("New %1").arg(m_styleClassesPS[item->rootName()]),
-												this, SLOT(slotNewPopup()));
 		m_rcpDeleteId->setEnabled(true);
 		m_rcpEditId->setEnabled(true);
 		m_rcpCloneId->setEnabled(true);
@@ -1022,7 +1065,7 @@ void StyleManager::slotRightClick(/*StyleViewItem *item, */const QPoint &point/*
 		m_rcStyle = item->text(0);
 		m_rcType = m_styleClassesPS[item->rootName()];
 		loadType(m_styleClassesPS[item->rootName()]);
-		
+
 
 		// Add "Apply" menu entry
 		if (m_selectedStyleAction)
@@ -1042,19 +1085,20 @@ void StyleManager::slotRightClick(/*StyleViewItem *item, */const QPoint &point/*
 				}
 			}
 		}
-		
+
+		// Added last so that it ends up above the apply entry.
+		setNewMenuEntry(tr("New %1").arg(m_styleClassesPS[item->rootName()]));
 	}
 	else if (item && item->isRoot())
 	{
-		m_rightClickPopup->removeAction(m_rcpNewId);
-		m_rcpNewId = m_rightClickPopup->addAction( tr("New %1").arg(m_styleClassesPS.value(item->text(0))), this, SLOT(slotNewPopup()));
+		setNewMenuEntry(tr("New %1").arg(m_styleClassesPS.value(item->text(0))));
 		m_rcpDeleteId->setEnabled(false);
 		m_rcpEditId->setEnabled(false);
 		m_rcpCloneId->setEnabled(false);
 //		m_rcpToScrapId->setEnabled(false);
 		m_rcType = m_styleClassesPS[item->text(0)];
 		loadType(m_rcType);
-		
+
 		if (m_selectedStyleAction)
 		{
 			m_rightClickPopup->removeAction(m_selectedStyleAction);
@@ -1063,14 +1107,12 @@ void StyleManager::slotRightClick(/*StyleViewItem *item, */const QPoint &point/*
 	}
 	else
 	{
-		m_rightClickPopup->removeAction(m_rcpNewId);
-		m_rcpNewId = m_rightClickPopup->addMenu(m_newPopup);
-		m_rcpNewId->setText( tr("New"));
+		setNewMenuEntry(QString());
 		m_rcpDeleteId->setEnabled(false);
 		m_rcpEditId->setEnabled(false);
 		m_rcpCloneId->setEnabled(false);
 //		m_rcpToScrapId->setEnabled(false);
-		
+
 		if (m_selectedStyleAction)
 		{
 			m_rightClickPopup->removeAction(m_selectedStyleAction);
@@ -1106,7 +1148,7 @@ void StyleManager::slotDoubleClick(QTreeWidgetItem *item, /*const QPoint &point,
 		//slotOk will recreate all items so sitem is invalid after that call
 		QString itext = sitem->text(0);
 		if (!m_isEditMode)
-			slotOk(); 
+			slotOk();
 		createNewStyle(itext);
 	}
 	m_rcStyle.clear();
@@ -1119,7 +1161,7 @@ void StyleManager::createNewStyle(const QString &typeName, const QString &fromPa
 		return;
 	loadType(typeName); // get the right style class
 	Q_ASSERT(m_item);
-	
+
 	QString newName = fromParent.isNull() ?
 			m_item->newStyle() : m_item->newStyle(fromParent);
 // 	qDebug() << "created new style:" << newName << " : " << m_item->isDefaultStyle(newName);
@@ -1246,6 +1288,69 @@ void StyleManager::slotOk()
 	adjustSize();
 }
 
+int StyleManager::styleDepth(const StyleName& style, const QHash<QString, QString>& parentOf)
+{
+	int depth = 0;
+	QSet<QString> seen;
+	QString parent = style.second;
+	while (!parent.isEmpty() && parentOf.contains(parent) && !seen.contains(parent))
+	{
+		seen.insert(parent);
+		parent = parentOf.value(parent);
+		++depth;
+	}
+	return depth;
+}
+
+void StyleManager::moveDefaultStyleToTop(QList<StyleName>& styles) const
+{
+	if (!m_item)
+		return;
+
+	for (int i = 0; i < styles.count(); ++i)
+	{
+		// The second test is a safeguard: only a style that is not based on
+		// anything can be moved without leaving some other style above its parent.
+		if (m_item->isDefaultStyle(styles[i].first) && styles[i].second.isEmpty())
+		{
+			styles.move(i, 0);
+			return;
+		}
+	}
+}
+
+void StyleManager::sortStylesByDepth(QList<StyleName>& styles)
+{
+	// Which style is each one based on?
+	QHash<QString, QString> parentOf;
+	for (const StyleName& style : std::as_const(styles))
+		parentOf.insert(style.first, style.second);
+
+	// How many generations below the top does each one sit?
+	int maxDepth = 0;
+	QHash<QString, int> depthOf;
+	for (const StyleName& style : std::as_const(styles))
+	{
+		int depth = styleDepth(style, parentOf);
+		depthOf.insert(style.first, depth);
+		maxDepth = qMax(maxDepth, depth);
+	}
+
+	// Collect one generation at a time. Taking them in the order they arrived
+	// keeps each generation alphabetical.
+	QList<StyleName> ordered;
+	ordered.reserve(styles.count());
+	for (int level = 0; level <= maxDepth; ++level)
+	{
+		for (const StyleName& style : std::as_const(styles))
+		{
+			if (depthOf.value(style.first) == level)
+				ordered.append(style);
+		}
+	}
+	styles = ordered;
+}
+
 void StyleManager::addNewType(StyleItem *item, bool loadFromDoc)
 {
 	if (!item)
@@ -1254,6 +1359,19 @@ void StyleManager::addNewType(StyleItem *item, bool loadFromDoc)
 	m_item = item;
 
 	QList<StyleName> styles = m_item->styles(loadFromDoc);
+
+	// Add parent styles before the styles based on them. This used to be handled
+	// by moving a style to the back of the queue whenever its parent had not been
+	// added yet, which left those styles out of alphabetical order: with the
+	// usual parent "Default Paragraph Style", every style named before "Default"
+	// ended up at the bottom of the list.
+	sortStylesByDepth(styles);
+
+	// Some people would rather always find the default style first than hunt for
+	// it among the others.
+	if (m_defaultStylesFirst)
+		moveDefaultStyleToTop(styles);
+
 	StyleViewItem *rootItem = new StyleViewItem(styleView, m_item->typeName());
 	styleView->expandItem(rootItem);
 	QMap<QString, StyleViewItem*> sitems;
@@ -1271,28 +1389,18 @@ void StyleManager::addNewType(StyleItem *item, bool loadFromDoc)
 			sitem = new StyleViewItem(parent, styles[i].first, m_item->typeName());
 			styleView->expandItem(parent);
 		}
-		else 
+		else
 		{
-			bool postpone = false;
-			// search if parent is in remaining styles
-			for (int j = i+1; j < styles.count(); ++j)
-			{
-				if (styles[j].first == styles[i].second)
-				{
-					styles.append(styles[i]); // postpone
-					postpone = true;
-				}
-			}
-			if (postpone)
-				continue;
+			// The parent has already been added, unless this style names one that
+			// does not exist. Show it at the top level in that case.
 			qDebug() << QString("stylemanager: unknown parent '%1' of %2 style '%3'").arg(styles[i].second, m_item->typeName(), styles[i].first);
 			sitem = new StyleViewItem(rootItem, styles[i].first, m_item->typeName());
 		}
-			
+
 		sitems[styles[i].first] = sitem;
 		QString shortcutValue(m_item->shortcut(sitem->text(NAME_COL)));
 		sitem->setText(SHORTCUT_COL, shortcutValue);
-			
+
 		QString key = sitem->rootName() + SEPARATOR + sitem->text(NAME_COL);
 		if (m_styleActions.contains(key))
 			continue;
@@ -1300,6 +1408,14 @@ void StyleManager::addNewType(StyleItem *item, bool loadFromDoc)
 		m_styleActions[key] = new ScrAction(ScrAction::DataQString, QString(), QString(), tr("&Apply"), shortcutValue, m_doc->view(), key);
 		connect(m_styleActions[key], SIGNAL(triggeredData(QString)), this, SLOT(slotApplyStyle(QString)));
 	}
+}
+
+void StyleManager::slotToggleDefaultStylesFirst(bool checked)
+{
+	m_defaultStylesFirst = checked;
+	m_prefs->set("defaultStylesFirst", m_defaultStylesFirst);
+	// Rebuild from the cached styles so that any unapplied edits survive.
+	reloadStyleView(false);
 }
 
 void StyleManager::slotDirty()
@@ -1380,7 +1496,7 @@ void StyleManager::reloadStyleView(bool loadFromDoc)
 			for (int i = 0; i < selected.count(); ++i)
 			{
 				if (selected[i].first == item->rootName() &&
-				    selected[i].second == item->text(NAME_COL))
+					selected[i].second == item->text(NAME_COL))
 				{
 					item->setDirty(false);
 					styleView->setCurrentItem(item);
@@ -1493,7 +1609,7 @@ void StyleManager::slotShortcutChanged(const QString& shortcut)
 	if (!shortcut.isNull() && shortcutExists(shortcut))
 	{
 		ScMessageBox::information(this, CommonStrings::trWarning,
-		                         tr("This key sequence is already in use"));
+								 tr("This key sequence is already in use"));
 		if (m_shortcutWidget)
 			m_shortcutWidget->setShortcut(m_item->shortcut(sitem->text(NAME_COL)));
 		return;
@@ -1658,7 +1774,7 @@ void StyleManager::slotDocSelectionChanged()
 
 	for (int i = 0; i < m_items.count(); ++i)
 		selected << QPair<QString, QString>(m_items.at(i)->typeName(), m_items.at(i)->fromSelection());
-	
+
 	QTreeWidgetItemIterator it(styleView, QTreeWidgetItemIterator::Selectable);
 	StyleViewItem *item;
 
@@ -1711,7 +1827,7 @@ QPair<QString, QStringList> StyleManager::namesFromSelection()
 				typeName.clear();
 				break; // two different types selected returning null
 			}
-	
+
 			if (!item->isRoot())
 				styleNames << item->text(NAME_COL);
 		}

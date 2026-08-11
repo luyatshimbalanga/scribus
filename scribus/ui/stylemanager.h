@@ -8,10 +8,13 @@ for which a new license (GPL+exception) is in place.
 #ifndef STYLEMANAGER_H
 #define STYLEMANAGER_H
 
+#include <QHash>
 #include <QPointer>
+#include <QSet>
 
 class QEvent;
 
+#include "styleitem.h"
 #include "ui/scrpalettebase.h"
 #include "ui_stylemanager.h"
 
@@ -80,8 +83,13 @@ private:
 	QAction            *m_rcpDeleteId { nullptr };
 	QAction            *m_rcpEditId { nullptr };
 	QAction            *m_rcpCloneId { nullptr };
+	QAction            *m_rcpDefaultStylesFirstId { nullptr };
+	QAction            *m_rcpNewSeparator { nullptr };
 	ScrAction	*m_selectedStyleAction { nullptr };
 
+	//! \brief Show each default style at the top of its list instead of in
+	//! alphabetical order. Remembered between sessions.
+	bool                m_defaultStylesFirst { true };
 	bool                m_isEditMode { true };
 	bool                m_isStoryEditMode { false };
 	QPoint              m_editPosition;
@@ -104,6 +112,45 @@ private:
 	void insertShortcutPage(QTabWidget *twidget);
 
 	bool nameIsUnique(const QString &name);
+
+	/**
+	 * @brief Counts how far @a style sits below the top of its family tree.
+	 *
+	 * A style that is not based on anything is at depth 0, a style based on that
+	 * one is at depth 1, and so on. If a style names a parent that is not in the
+	 * list at all, counting stops and the style is treated as a top level one.
+	 * The list of styles already seen is there so that two styles naming each
+	 * other as parent cannot send this in circles.
+	 */
+	static int styleDepth(const StyleName& style, const QHash<QString, QString>& parentOf);
+
+	/**
+	 * @brief Puts parent styles ahead of the styles based on them.
+	 *
+	 * The list arrives in alphabetical order. The style list shows each style
+	 * underneath the one it is based on, so a parent has to be added to the tree
+	 * before any of its children. Working through the list one generation at a
+	 * time does that, and leaves the names alphabetical within each generation.
+	 */
+	static void sortStylesByDepth(QList<StyleName>& styles);
+
+	/**
+	 * @brief Moves the default style, if there is one, to the front of @a styles.
+	 *
+	 * A default style is never based on another style, so bringing it to the
+	 * front cannot separate any other style from its parent.
+	 */
+	void moveDefaultStyleToTop(QList<StyleName>& styles) const;
+
+	/**
+	 * @brief Puts the "New ..." entry at the top of the right click menu.
+	 *
+	 * Replaces whatever New entry is there at the moment. An empty @a text asks
+	 * for the submenu listing every style type, which is what suits a right
+	 * click on empty space; any other text becomes a single entry for creating
+	 * one particular type.
+	 */
+	void setNewMenuEntry(const QString& text);
 
 	// will be used to map plural style name to it's singular
 	QMap<QString, QString> m_styleClassesPS;
@@ -170,6 +217,7 @@ private slots:
 	void slotDocSelectionChanged();
 	void slotDocStylesChanged();
 
+	void slotToggleDefaultStylesFirst(bool checked);
 	void slotDirty();
 	void slotClean();
 

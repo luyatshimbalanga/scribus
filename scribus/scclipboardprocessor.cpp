@@ -308,10 +308,7 @@ void ScClipboardProcessor::html_MSFT_Parse(xmlNode *node)
 				}
 			}
 			else
-			{
-				// Existing non-table path — unchanged.
 				html_MSFT_ParseParagraphs(cur->children, cssStyles);
-			}
 		}
 	}
 }
@@ -522,7 +519,6 @@ QString ScClipboardProcessor::html_MSFT_ExtractText(xmlNode *node, QList<TextSeg
 		else if (cur->type == XML_ELEMENT_NODE)
 		{
 			QString tag = QString::fromUtf8((const char *)cur->name);
-			// qDebug()<<"XML_ELEMENT_NODE"<<tag;
 
 			// Skip Office paragraph markers (e.g. <o:p>) — they're paragraph-end
 			// annotations, not content. The text inside them (typically &nbsp;
@@ -570,8 +566,6 @@ QString ScClipboardProcessor::html_MSFT_ExtractText(xmlNode *node, QList<TextSeg
 	}
 	return text;
 }
-
-
 
 bool ScClipboardProcessor::html_LibreOffice_Process()
 {
@@ -649,10 +643,7 @@ void ScClipboardProcessor::html_LibreOffice_Parse(xmlNodePtr node)
 				}
 			}
 			else
-			{
-				// Original behavior: pass body children to ParseParagraphs.
 				html_LibreOffice_ParseParagraphs(cur->children, cssStyles);
-			}
 		}
 	}
 }
@@ -758,7 +749,6 @@ QString ScClipboardProcessor::html_LibreOffice_ExtractText(xmlNode *node, QList<
 		else if (cur->type == XML_ELEMENT_NODE)
 		{
 			QString tag = QString::fromUtf8((const char *)cur->name);
-			// qDebug()<<"XML_ELEMENT_NODE"<<tag;
 			bool newBold = ts.isBold || (tag == "b");
 			bool newItalic = ts.isItalic || (tag == "i");
 			bool newUnderline = ts.hasUnderline || (tag == "u");
@@ -908,9 +898,8 @@ void ScClipboardProcessor::html_LibreOffice_ParseTable(xmlNode *tableNode, Parse
 					cell.paragraphs.append(para);
 				}
 
-				// Fallback: spreadsheets (Calc) and some other sources don't wrap cell
-				// content in <p>. Extract text directly from cellNode's children if no
-				// <p>-derived paragraph was produced.
+				// Fallback: Calc and some other sources don't wrap cell content in <p>.
+				// Extract text directly from cellNode's children if no <p>-derived paragraph was produced.
 				if (cell.paragraphs.isEmpty())
 				{
 					ParsedTableParagraph para;
@@ -961,11 +950,6 @@ void ScClipboardProcessor::html_LibreOffice_ParseParagraphs(xmlNode *node, QMap<
 			xmlFree(classAttr);
 			TextSegment ts;
 			QString content = html_LibreOffice_ExtractText(cur->children, segments, ts);
-			// qDebug() << "-----------------------------------";
-			// qDebug() << "Paragraph Class:" << className;
-			// qDebug() << "Text Content:" << content;
-
-
 			ParagraphStyle currPstyle;
 			if(m_doc->styleExists(className))
 				currPstyle = m_doc->paragraphStyle(className);
@@ -1033,10 +1017,7 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 	{
 		if (cur->type == XML_ELEMENT_NODE && xmlStrcmp(cur->name, (const xmlChar *)"span") == 0)
 		{
-			// qDebug() << "-----------------------------------";
 			xmlChar *styleAttr = xmlGetProp(cur, (const xmlChar *)"style");
-			// QString className = styleAttr ? QString::fromUtf8((const char*)styleAttr) : "None";
-			// qDebug()<<"Style in para:"<<className;
 			xmlFree(styleAttr);
 		}
 		if (cur->type == XML_ELEMENT_NODE)
@@ -1058,10 +1039,6 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 
 			TextSegment ts;
 			QString content = html_MSFT_ExtractText(cur->children, segments, ts);
-			// qDebug() << "-----------------------------------";
-			// qDebug() << "Paragraph Class:" << className;
-			// qDebug() << "Text Content:" << content;
-
 			ParagraphStyle paraSeedStyle;
 			if (m_doc->styleExists(styleName))
 				paraSeedStyle = m_doc->paragraphStyle(styleName);
@@ -1131,8 +1108,7 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 
 void ScClipboardProcessor::html_MSFT_ParseTable(xmlNode *tableNode, ParsedTable &out)
 {
-	// Word does not emit <col> elements; column count is derived from
-	// observed cell positions and spans.
+	// Word does not emit <col> elements; column count is derived from cell positions and spans.
 	QList<QList<bool>> occupied;
 
 	auto ensureRow = [&](int r, int minCols)
@@ -1162,8 +1138,7 @@ void ScClipboardProcessor::html_MSFT_ParseTable(xmlNode *tableNode, ParsedTable 
 			{
 				if (cellNode->type != XML_ELEMENT_NODE)
 					continue;
-				if (xmlStrcmp(cellNode->name, (const xmlChar *)"td") != 0 &&
-						xmlStrcmp(cellNode->name, (const xmlChar *)"th") != 0)
+				if (xmlStrcmp(cellNode->name, (const xmlChar *)"td") != 0 && xmlStrcmp(cellNode->name, (const xmlChar *)"th") != 0)
 					continue;
 
 				ensureRow(rowIdx, col + 1);
@@ -1216,8 +1191,8 @@ void ScClipboardProcessor::html_MSFT_ParseTable(xmlNode *tableNode, ParsedTable 
 					html_MSFT_ExtractText(pNode->children, para.segments, seedTs);
 					cell.paragraphs.append(para);
 				}
-				// Fallback: spreadsheets (Excel) and similar sources don't wrap cell content
-				// in <p>. If no paragraphs came from <p> extraction, pull text directly from
+				// Fallback: Excel and similar sources don't wrap cell content in <p>.
+				// If no paragraphs came from <p> extraction, pull text directly from
 				// the cell node, seeding from tag-level `td` CSS so default formatting applies.
 				if (cell.paragraphs.isEmpty())
 				{
@@ -1377,13 +1352,10 @@ void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, 
 	int pos = qMax(0, frame->itemText.cursorPosition());
 	for (const auto &segment : segments)
 	{
-		// Per-segment style starts fresh from the seed so attributes from
-		// prior segments don't bleed into this one.
+		// Per-segment style starts fresh so prior segments don't bleed into this one.
 		ParagraphStyle currPstyle = seedStyle;
 
-		QString currFamily(segment.family.isEmpty()
-						   ? currPstyle.charStyle().font().family()
-						   : segment.family);
+		QString currFamily(segment.family.isEmpty() ? currPstyle.charStyle().font().family() : segment.family);
 		QString style;
 		if (segment.isBold && segment.isItalic)
 			style = availableFonts.getBoldItalicStyle(currFamily);
@@ -1394,9 +1366,7 @@ void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, 
 		else
 			style = availableFonts.getRegularStyle(currFamily);
 
-		// Underline: set bit 8 when on. Only when on -- writing an empty feature
-		// list for every other run pins "not underlined" as direct formatting and
-		// stops the character style from ever supplying it.
+		// Underline: set ScStyle_Underline when on, only if the segment has underline so we don't have direct formatting set
 		if (segment.hasUnderline)
 		{
 			int featureBits = ScStyle_Underline;
@@ -1460,10 +1430,8 @@ bool ScClipboardProcessor::html_Cocoa_Process()
 	// Get the document's root <html> tag
 	xmlNodePtr root = xmlDocGetRootElement(doc);
 	if (root != nullptr)
-	{
-		// Parse the content
 		html_Cocoa_Parse(root);
-	}
+
 	// Clean up the document after parsing
 	xmlFreeDoc(doc);
 
@@ -1482,9 +1450,7 @@ void ScClipboardProcessor::html_Cocoa_Parse(xmlNodePtr node)
 		if (cur->type == XML_ELEMENT_NODE && xmlStrcmp(cur->name, (const xmlChar *)"head") == 0)
 		{
 			for (xmlNode *headChild = cur->children; headChild; headChild = headChild->next)
-			{
 				html_Cocoa_ParseStyles(headChild, cssStyles);
-			}
 		}
 	}
 
@@ -1494,9 +1460,7 @@ void ScClipboardProcessor::html_Cocoa_Parse(xmlNodePtr node)
 	for (xmlNode *cur = node->children; cur; cur = cur->next)
 	{
 		if (cur->type == XML_ELEMENT_NODE && xmlStrcmp(cur->name, (const xmlChar *)"body") == 0)
-		{
 			html_Cocoa_ParseParagraphs(cur->children, cssStyles);
-		}
 	}
 }
 
@@ -1559,7 +1523,6 @@ void ScClipboardProcessor::html_Cocoa_ProcessCSS(const QMap<QString, QString> &s
 			}
 			if (it.key() == "font")
 			{
-				// static QRegularExpression regex(R"(\s*([\d.]+)px\s*'([^']+)')");
 				static QRegularExpression regex(R"(\s*([\d.]+)px\s*('([^']+)'|([\w]+)))");
 
 				QRegularExpressionMatch match = regex.match(it.value());
